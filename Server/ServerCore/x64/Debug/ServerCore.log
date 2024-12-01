@@ -1,0 +1,22 @@
+﻿  pch.cpp
+  CoreGlobal.cpp
+  CorePch.cpp
+  CoreTLS.cpp
+  DBConnect.cpp
+  DBManager.cpp
+  GlobalQueue.cpp
+  IocpCore.cpp
+  IocpEvent.cpp
+  JobQueue.cpp
+  JobTimer.cpp
+  Listener.cpp
+  NetAddress.cpp
+  RecvBuffer.cpp
+  SendBuffer.cpp
+  Service.cpp
+  Session.cpp
+  SessionManager.cpp
+  SocketUtils.cpp
+  ThreadManager.cpp
+  코드를 생성하고 있습니다...
+  ServerCore.vcxproj -> C:\Users\ppa01\Desktop\ServerPortfolio\Server\Libraries\Libs\ServerCore\Debug\ServerCore.lib

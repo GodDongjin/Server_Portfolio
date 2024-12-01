@@ -1,0 +1,5 @@
+# 대용량 파일 제외
+/Server/.vs/
+/Server/GameServer/x64/Debug/
+*.ipch
+*.pch

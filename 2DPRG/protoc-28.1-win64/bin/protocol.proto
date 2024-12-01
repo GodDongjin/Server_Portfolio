@@ -1,0 +1,117 @@
+syntax = "proto3";
+package Protocol;
+
+import "Enum.proto";
+import "Struct.proto";
+
+
+message C_LOGIN
+{
+	string id = 1;
+	string pass = 2;
+}
+
+message S_LOGIN
+{
+	bool success = 1;
+	uint64 idx = 2;
+}
+
+message C_ACCESSION
+{
+	string id = 1;
+	string pass = 2;
+}
+
+message S_ACCESSION
+{
+	bool success = 1;
+}
+
+message C_SELECT_ROOM_ENTER
+{
+	uint64 idx = 1;
+}
+
+message S_SELECT_ROOM_ENTER
+{
+	PlayerInfo player = 1;
+	SELECT_PLAYER_ERROR error = 2;
+}
+
+message C_CREATE_PLAYER
+{
+	string playerName = 1;
+	uint64 idx = 2;
+}
+
+message S_CREATE_PLAYER
+{
+	PlayerInfo player = 1;
+	CREATE_PLAYER_ERROR error = 2;
+}
+
+message C_ENTER_GAME
+{
+	uint64 idx = 1;
+}
+
+message S_ENTER_GAME
+{
+	PlayerInfo sessionPlayer = 1;
+	repeated PlayerInfo players = 2;
+	ENTER_GAME_ERROR error = 3;
+}
+
+message C_MOVE
+{
+	PlayerPos sessionPos = 1;
+}
+
+message S_MOVE
+{
+	PlayerPos sessionPos = 1;
+	MOVE_ERROR error = 2;
+}
+
+message S_SEND_OTHER_USER
+{
+	PlayerInfo player = 1;
+	ENTER_GAME_ERROR error = 2;
+}
+
+message C_LEAVE_GAME
+{
+
+}
+
+message S_LEAVE_GAME
+{
+
+}
+
+message S_SPAWN
+{
+	
+}
+
+message S_DESPAWN
+{
+	
+}
+
+message C_CHAT
+{
+	string msg = 1;
+}
+
+message S_CHAT
+{
+	uint64 playerId = 1;
+	string msg = 2;
+}
+
+message C_HELLOWORLD
+{
+	string mes = 1;
+}

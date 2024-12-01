@@ -1,0 +1,19 @@
+syntax = "proto3";
+package Protocol;
+
+import "Enum.proto";
+
+message SessionInfo
+{
+	uint64 session_id = 1;
+}
+
+
+message PlayerInfo
+{
+	uint64 object_Id = 1;
+	float x = 2;
+	float y = 3;
+	float z = 4;
+	float yaw = 5;
+}

@@ -1,0 +1,28 @@
+syntax = "proto3";
+package Protocol;
+
+message SessionInfo
+{
+	uint64 session_id = 1;
+}
+
+message PlayerInfo
+{
+	float x = 1;
+	float y = 2;
+	float z = 3;
+	string playerName = 4;
+	uint32 lv = 5;
+	float hp = 6;
+	float atk = 7;
+	float df = 8;
+	uint64 idx = 9;
+}
+
+message PlayerPos
+{
+	float x = 1;
+	float y = 2;
+	float z = 3;
+	uint64 idx = 4;
+}
