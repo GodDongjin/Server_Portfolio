@@ -10,8 +10,8 @@ public:
 	~DBConnect();
 
 
-	bool Connect(SQLHENV& hEnv, SQLHDBC& hDbc);
+	bool connect(SQLHENV& henv, SQLHDBC& hdbc);
 
 private:
-	SQLRETURN retcode;
+	SQLRETURN _retcode;
 };

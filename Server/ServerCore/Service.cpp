@@ -4,7 +4,7 @@
 #include "Listener.h"
 
 Service::Service(ServiceType type, NetAddress address, IocpCoreRef core, SessionFactory factory, SessionManagerRef sessionManager)
-	: mType(type), mNetAddress(address), mIocpCore(core), mSessionFactory(factory), mSessionManager(sessionManager)
+	: _service_type(type), _net_address(address), _iocp_core(core), _sessionFactory(factory), _sessionManager(sessionManager)
 {
 
 }
@@ -13,38 +13,38 @@ Service::~Service()
 {
 }
 
-bool Service::CanStart()
+bool Service::can_start()
 {
-	if (mType == ServiceType::NONE || mIocpCore == nullptr || mSessionManager == nullptr)
+	if (_service_type == ServiceType::NONE || _iocp_core == nullptr || _sessionManager == nullptr)
 		return false;
 
 	return true;
 }
 
-void Service::CloseService()
+void Service::close_service()
 {
 	// TODO
 }
 
-SessionRef Service::CreateSession()
+SessionRef Service::create_session()
 {
-	SessionRef session = mSessionFactory();
+	SessionRef session = _sessionFactory();
 	//session->SetService(shared_from_this());
 
-	if (mIocpCore->Register(session) == false)
+	if (_iocp_core->Register(session) == false)
 		return nullptr;
 
 	return session;
 }
 
 ServerService::ServerService(NetAddress address, IocpCoreRef core, SessionFactory factory, SessionManagerRef sessionManager)
-	: Service(ServiceType::Server, address, core, factory, sessionManager)
+	: Service(ServiceType::SERVER, address, core, factory, sessionManager)
 {
 }
 
-bool ServerService::Start()
+bool ServerService::start()
 {
-	if (CanStart() == false)
+	if (can_start() == false)
 		return false;
 
 	_listener = make_shared<Listener>();
@@ -52,15 +52,15 @@ bool ServerService::Start()
 		return false;
 
 	ServerServiceRef service = static_pointer_cast<ServerService>(shared_from_this());
-	if (_listener->StartAccept(service) == false)
+	if (_listener->start_accept(service) == false)
 		return false;
 
 	return true;
 }
 
-void ServerService::CloseService()
+void ServerService::close_service()
 {
 	// TODO
 
-	Service::CloseService();
+	Service::close_service();
 }

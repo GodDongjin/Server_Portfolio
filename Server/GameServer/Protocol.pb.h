@@ -1701,7 +1701,7 @@ class S_ENTER_GAME final :
     kSessionPlayerFieldNumber = 1,
     kErrorFieldNumber = 3,
   };
-  // repeated .Protocol.PlayerInfo players = 2;
+  // repeated .Protocol.PlayerInfo _player_list = 2;
   int players_size() const;
   private:
   int _internal_players_size() const;
@@ -1714,10 +1714,10 @@ class S_ENTER_GAME final :
   const ::Protocol::PlayerInfo& _internal_players(int index) const;
   ::Protocol::PlayerInfo* _internal_add_players();
   public:
-  const ::Protocol::PlayerInfo& players(int index) const;
+  const ::Protocol::PlayerInfo& _player_list(int index) const;
   ::Protocol::PlayerInfo* add_players();
   const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::Protocol::PlayerInfo >&
-      players() const;
+      _player_list() const;
 
   // .Protocol.PlayerInfo sessionPlayer = 1;
   bool has_sessionplayer() const;
@@ -3909,7 +3909,7 @@ inline void S_ENTER_GAME::set_allocated_sessionplayer(::Protocol::PlayerInfo* se
   // @@protoc_insertion_point(field_set_allocated:Protocol.S_ENTER_GAME.sessionPlayer)
 }
 
-// repeated .Protocol.PlayerInfo players = 2;
+// repeated .Protocol.PlayerInfo _player_list = 2;
 inline int S_ENTER_GAME::_internal_players_size() const {
   return _impl_.players_.size();
 }
@@ -3917,19 +3917,19 @@ inline int S_ENTER_GAME::players_size() const {
   return _internal_players_size();
 }
 inline ::Protocol::PlayerInfo* S_ENTER_GAME::mutable_players(int index) {
-  // @@protoc_insertion_point(field_mutable:Protocol.S_ENTER_GAME.players)
+  // @@protoc_insertion_point(field_mutable:Protocol.S_ENTER_GAME._player_list)
   return _impl_.players_.Mutable(index);
 }
 inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::Protocol::PlayerInfo >*
 S_ENTER_GAME::mutable_players() {
-  // @@protoc_insertion_point(field_mutable_list:Protocol.S_ENTER_GAME.players)
+  // @@protoc_insertion_point(field_mutable_list:Protocol.S_ENTER_GAME._player_list)
   return &_impl_.players_;
 }
 inline const ::Protocol::PlayerInfo& S_ENTER_GAME::_internal_players(int index) const {
   return _impl_.players_.Get(index);
 }
-inline const ::Protocol::PlayerInfo& S_ENTER_GAME::players(int index) const {
-  // @@protoc_insertion_point(field_get:Protocol.S_ENTER_GAME.players)
+inline const ::Protocol::PlayerInfo& S_ENTER_GAME::_player_list(int index) const {
+  // @@protoc_insertion_point(field_get:Protocol.S_ENTER_GAME._player_list)
   return _internal_players(index);
 }
 inline ::Protocol::PlayerInfo* S_ENTER_GAME::_internal_add_players() {
@@ -3937,12 +3937,12 @@ inline ::Protocol::PlayerInfo* S_ENTER_GAME::_internal_add_players() {
 }
 inline ::Protocol::PlayerInfo* S_ENTER_GAME::add_players() {
   ::Protocol::PlayerInfo* _add = _internal_add_players();
-  // @@protoc_insertion_point(field_add:Protocol.S_ENTER_GAME.players)
+  // @@protoc_insertion_point(field_add:Protocol.S_ENTER_GAME._player_list)
   return _add;
 }
 inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::Protocol::PlayerInfo >&
-S_ENTER_GAME::players() const {
-  // @@protoc_insertion_point(field_list:Protocol.S_ENTER_GAME.players)
+S_ENTER_GAME::_player_list() const {
+  // @@protoc_insertion_point(field_list:Protocol.S_ENTER_GAME._player_list)
   return _impl_.players_;
 }
 

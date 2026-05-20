@@ -1,50 +1,50 @@
 #include "pch.h"
 #include "RecvBuffer.h"
 
-RecvBuffer::RecvBuffer(int32 bufferSize) : mbufferSize(bufferSize)
+RecvBuffer::RecvBuffer(int32 BufferSize) : _Buffer_size(BufferSize)
 {
-	mCapacity = bufferSize * 10;
-	mbuffer.resize(mCapacity);
+	_capacity = BufferSize * 10;
+	_buffer.resize(_capacity);
 }
 
 RecvBuffer::~RecvBuffer()
 {
 }
 
-void RecvBuffer::Clean()
+void RecvBuffer::clean()
 {
-	int32 dataSize = DataSize();
-	if (dataSize == 0)
+	int32 _dataSize = data_size();
+	if (_dataSize == 0)
 	{
 		// 딱 마침 읽기+쓰기 커서가 동일한 위치라면, 둘 다 리셋.
-		mReadPos = mWritePos = 0;
+		_read_pos = _write_pos = 0;
 	}
 	else
 	{
 		// 여유 공간이 버퍼 1개 크기 미만이면, 데이터를 앞으로 땅긴다.
-		if (FreeSize() < mbufferSize)
+		if (free_size() < _Buffer_size)
 		{
-			::memcpy(&mbuffer[0], &mbuffer[mReadPos], dataSize);
-			mReadPos = 0;
-			mWritePos = dataSize;
+			::memcpy(&_buffer[0], &_buffer[_read_pos], _dataSize);
+			_read_pos = 0;
+			_write_pos = _dataSize;
 		}
 	}
 }
 
-bool RecvBuffer::OnRead(int32 numOfBytes)
+bool RecvBuffer::on_read(int32 numOfBytes)
 {
-	if (numOfBytes > DataSize())
+	if (numOfBytes > data_size())
 		return false;
 
-	mReadPos += numOfBytes;
+	_read_pos += numOfBytes;
 	return true;
 }
 
-bool RecvBuffer::OnWrite(int32 numOfBytes)
+bool RecvBuffer::on_write(int32 numOfBytes)
 {
-	if (numOfBytes > FreeSize())
+	if (numOfBytes > free_size())
 		return false;
 
-	mWritePos += numOfBytes;
+	_write_pos += numOfBytes;
 	return true;
 }

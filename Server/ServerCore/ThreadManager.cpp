@@ -8,27 +8,27 @@
 ThreadManager::ThreadManager()
 {
 	// Main Thread
-	InitTLS();
+	init_TLS();
 }
 
 ThreadManager::~ThreadManager()
 {
-	Join();
+	join();
 }
 
-void ThreadManager::Launch(function<void(void)> callback)
+void ThreadManager::launch(function<void(void)> callback)
 {
 	lock_guard<mutex> guard(_lock);
 
 	_threads.push_back(thread([=]()
 		{
-			InitTLS();
+			init_TLS();
 			callback();
-			DestroyTLS();
+			destroy_TLS();
 		}));
 }
 
-void ThreadManager::Join()
+void ThreadManager::join()
 {
 	for (thread& t : _threads)
 	{
@@ -38,18 +38,18 @@ void ThreadManager::Join()
 	_threads.clear();
 }
 
-void ThreadManager::InitTLS()
+void ThreadManager::init_TLS()
 {
 	static atomic<uint32> SThreadId = 1;
 	LThreadId = SThreadId.fetch_add(1);
 }
 
-void ThreadManager::DestroyTLS()
+void ThreadManager::destroy_TLS()
 {
 
 }
 
-void ThreadManager::DoGlobalQueueWork()
+void ThreadManager::do_global_queue_work()
 {
 	while (true)
 	{
@@ -57,17 +57,17 @@ void ThreadManager::DoGlobalQueueWork()
 		if (now > LEndTickCount)
 			break;
 
-		JobQueueRef jobQueue = GGlobalQueue->Pop();
+		JobQueueRef jobQueue = GGlobalQueue->pop();
 		if (jobQueue == nullptr)
 			break;
 
-		jobQueue->Execute();
+		jobQueue->execute();
 	}
 }
 
-void ThreadManager::DistributeReservedJobs()
+void ThreadManager::distribute_reserved_jobs()
 {
 	const uint64 now = ::GetTickCount64();
 
-	GJobTimer->Distribute(now);
+	GJobTimer->distribute(now);
 }

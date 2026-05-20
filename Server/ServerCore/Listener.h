@@ -9,20 +9,20 @@ public:
 	~Listener();
 
 public:
-	bool StartAccept(ServerServiceRef service);
-	void CloseSocket();
+	bool start_accept(ServerServiceRef service);
+	void close_socket();
 
 public:
-	virtual HANDLE GetHandle() override;
-	virtual void Dispatch(class IocpEvent* iocpEvent, int32 numOfBytes = 0) override;
+	virtual HANDLE get_handle() override;
+	virtual void dispatch(class IocpEvent* iocpEvent, int32 numOfBytes = 0) override;
 
 private:
-	void RegisterAccept(AcceptEvent* acceptEvent);
-	void ProcessAccept(AcceptEvent* acceptEvent);
+	void register_accept(AcceptEvent* acceptEvent);
+	void process_accept(AcceptEvent* acceptEvent);
 
 protected:
-	SOCKET mSocket = INVALID_SOCKET;
-	vector<AcceptEvent*> mAcceptEvents;
-	ServerServiceRef mService;
+	SOCKET _socket = INVALID_SOCKET;
+	vector<AcceptEvent*> _accept_events;
+	ServerServiceRef _service;
 };
 

@@ -2,24 +2,24 @@
 
 struct JobData
 {
-	JobData(weak_ptr<JobQueue> owner, JobRef job) : owner(owner), job(job)
+	JobData(weak_ptr<JobQueue> owner, JobRef job) : _owner(owner), _job(job)
 	{
 
 	}
 
-	weak_ptr<JobQueue>	owner;
-	JobRef				job;
+	weak_ptr<JobQueue>	_owner;
+	JobRef				_job;
 };
 
 struct TimerItem
 {
 	bool operator<(const TimerItem& other) const
 	{
-		return executeTick > other.executeTick;
+		return _execute_tick > other._execute_tick;
 	}
 
-	uint64 executeTick = 0;
-	JobData* jobData = nullptr;
+	uint64 _execute_tick = 0;
+	JobData* _job_data = nullptr;
 };
 
 /*--------------
@@ -29,9 +29,9 @@ struct TimerItem
 class JobTimer
 {
 public:
-	void			Reserve(uint64 tickAfter, weak_ptr<JobQueue> owner, JobRef job);
-	void			Distribute(uint64 now);
-	void			Clear();
+	void			reserve(uint64 tickAfter, weak_ptr<JobQueue> owner, JobRef job);
+	void			distribute(uint64 now);
+	void			clear();
 
 private:
 	USE_LOCK;

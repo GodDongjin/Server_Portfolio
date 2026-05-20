@@ -9,14 +9,14 @@ public:
 	ThreadManager();
 	~ThreadManager();
 
-	void	Launch(function<void(void)> callback);
-	void	Join();
+	void	launch(function<void(void)> callback);
+	void	join();
 
-	static void InitTLS();
-	static void DestroyTLS();
+	static void init_TLS();
+	static void destroy_TLS();
 
-	static void DoGlobalQueueWork();
-	static void DistributeReservedJobs();
+	static void do_global_queue_work();
+	static void distribute_reserved_jobs();
 
 private:
 	mutex			_lock;

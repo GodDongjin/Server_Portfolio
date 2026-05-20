@@ -5,24 +5,25 @@ class SessionManager
 {
 public:
 	SessionManager(int32 sessionMaxCount);
-public:
-	void AddSession(SessionRef session);
-	void ReleaseSession(SessionRef session);
-	bool Broadcast(SendBufferRef sendBuffer);
 
 public:
-	void OnConnected(SessionRef session);
-	void OnDisconnected(SessionRef session);
+	void add_session(SessionRef session);
+	void release_session(SessionRef session);
+	bool broad_cast(SendBufferRef sendBuffer);
 
 public:
-	int32 GetMaxSessionCount() { return mMaxSessionCount; }
+	void on_connected(SessionRef session);
+	void on_disconnected(SessionRef session);
+
+public:
+	int32 get_max_session_count() { return _max_session_count; }
 
 private:
 	USE_LOCK;
 
-	set<SessionRef> mSessions;
-	int32 mSessionCount;
-	int32 mMaxSessionCount;
+	set<SessionRef> _sessions;
+	int32 _sessionCount;
+	int32 _max_session_count;
 
 };
 

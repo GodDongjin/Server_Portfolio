@@ -9,75 +9,75 @@ LPFN_CONNECTEX		SocketUtils::ConnectEx = nullptr;
 LPFN_DISCONNECTEX	SocketUtils::DisconnectEx = nullptr;
 LPFN_ACCEPTEX		SocketUtils::AcceptEx = nullptr;
 
-void SocketUtils::Init()
+void SocketUtils::init()
 {
 	WSADATA wsaData;
 	ASSERT_CRASH(::WSAStartup(MAKEWORD(2, 2), OUT & wsaData) == 0);
 
 	/* 런타임에 주소 얻어오는 API */
-	SOCKET dummySocket = CreateSocket();
-	ASSERT_CRASH(BindWindowsFunction(dummySocket, WSAID_CONNECTEX, reinterpret_cast<LPVOID*>(&ConnectEx)));
-	ASSERT_CRASH(BindWindowsFunction(dummySocket, WSAID_DISCONNECTEX, reinterpret_cast<LPVOID*>(&DisconnectEx)));
-	ASSERT_CRASH(BindWindowsFunction(dummySocket, WSAID_ACCEPTEX, reinterpret_cast<LPVOID*>(&AcceptEx)));
-	Close(dummySocket);
+	SOCKET dummySocket = create_socket();
+	ASSERT_CRASH(bind_windows_function(dummySocket, WSAID_CONNECTEX, reinterpret_cast<LPVOID*>(&ConnectEx)));
+	ASSERT_CRASH(bind_windows_function(dummySocket, WSAID_DISCONNECTEX, reinterpret_cast<LPVOID*>(&DisconnectEx)));
+	ASSERT_CRASH(bind_windows_function(dummySocket, WSAID_ACCEPTEX, reinterpret_cast<LPVOID*>(&AcceptEx)));
+	close(dummySocket);
 }
 
-void SocketUtils::Clear()
+void SocketUtils::clear()
 {
 	::WSACleanup();
 }
 
-bool SocketUtils::BindWindowsFunction(SOCKET socket, GUID guid, LPVOID* fn)
+bool SocketUtils::bind_windows_function(SOCKET socket, GUID guid, LPVOID* fn)
 {
 	DWORD bytes = 0;
 	return SOCKET_ERROR != ::WSAIoctl(socket, SIO_GET_EXTENSION_FUNCTION_POINTER, &guid, sizeof(guid), fn, sizeof(*fn), OUT & bytes, NULL, NULL);
 }
 
-SOCKET SocketUtils::CreateSocket()
+SOCKET SocketUtils::create_socket()
 {
 	return ::WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
 }
 
-bool SocketUtils::SetLinger(SOCKET socket, uint16 onoff, uint16 linger)
+bool SocketUtils::set_linger(SOCKET socket, uint16 onoff, uint16 linger)
 {
 	LINGER option;
 	option.l_onoff = onoff;
 	option.l_linger = linger;
-	return SetSockOpt(socket, SOL_SOCKET, SO_LINGER, option);
+	return set_socket_opt(socket, SOL_SOCKET, SO_LINGER, option);
 }
 
-bool SocketUtils::SetReuseAddress(SOCKET socket, bool flag)
+bool SocketUtils::set_resuse_address(SOCKET socket, bool flag)
 {
-	return SetSockOpt(socket, SOL_SOCKET, SO_REUSEADDR, flag);
+	return set_socket_opt(socket, SOL_SOCKET, SO_REUSEADDR, flag);
 }
 
-bool SocketUtils::SetRecvBufferSize(SOCKET socket, int32 size)
+bool SocketUtils::set_recv_buffer_size(SOCKET socket, int32 size)
 {
-	return SetSockOpt(socket, SOL_SOCKET, SO_RCVBUF, size);
+	return set_socket_opt(socket, SOL_SOCKET, SO_RCVBUF, size);
 }
 
-bool SocketUtils::SetSendBufferSize(SOCKET socket, int32 size)
+bool SocketUtils::set_send_buffer_size(SOCKET socket, int32 size)
 {
-	return SetSockOpt(socket, SOL_SOCKET, SO_SNDBUF, size);
+	return set_socket_opt(socket, SOL_SOCKET, SO_SNDBUF, size);
 }
 
-bool SocketUtils::SetTcpNoDelay(SOCKET socket, bool flag)
+bool SocketUtils::set_tcp_no_delay(SOCKET socket, bool flag)
 {
-	return SetSockOpt(socket, SOL_SOCKET, TCP_NODELAY, flag);
+	return set_socket_opt(socket, SOL_SOCKET, TCP_NODELAY, flag);
 }
 
 // ListenSocket의 특성을 ClientSocket에 그대로 적용
-bool SocketUtils::SetUpdateAcceptSocket(SOCKET socket, SOCKET listenSocket)
+bool SocketUtils::set_update_accept_socket(SOCKET socket, SOCKET listenSocket)
 {
-	return SetSockOpt(socket, SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT, listenSocket);
+	return set_socket_opt(socket, SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT, listenSocket);
 }
 
-bool SocketUtils::Bind(SOCKET socket, NetAddress netAddr)
+bool SocketUtils::bind(SOCKET socket, NetAddress netAddr)
 {
-	return SOCKET_ERROR != ::bind(socket, reinterpret_cast<const SOCKADDR*>(&netAddr.GetSockAddr()), sizeof(SOCKADDR_IN));
+	return SOCKET_ERROR != ::bind(socket, reinterpret_cast<const SOCKADDR*>(&netAddr.get_sock_addr()), sizeof(SOCKADDR_IN));
 }
 
-bool SocketUtils::BindAnyAddress(SOCKET socket, uint16 port)
+bool SocketUtils::bind_any_address(SOCKET socket, uint16 port)
 {
 	SOCKADDR_IN myAddress;
 	myAddress.sin_family = AF_INET;
@@ -87,12 +87,12 @@ bool SocketUtils::BindAnyAddress(SOCKET socket, uint16 port)
 	return SOCKET_ERROR != ::bind(socket, reinterpret_cast<const SOCKADDR*>(&myAddress), sizeof(myAddress));
 }
 
-bool SocketUtils::Listen(SOCKET socket, int32 backlog)
+bool SocketUtils::listen(SOCKET socket, int32 backlog)
 {
 	return SOCKET_ERROR != ::listen(socket, backlog);
 }
 
-void SocketUtils::Close(SOCKET& socket)
+void SocketUtils::close(SOCKET& socket)
 {
 	if (socket != INVALID_SOCKET)
 		::closesocket(socket);

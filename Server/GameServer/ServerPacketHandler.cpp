@@ -41,7 +41,7 @@ std::string wstringToString(const std::wstring& wstr) {
 
 bool Handle_C_LOGIN(SessionRef& session, Protocol::C_LOGIN& pkt)
 {
-	Protocol::S_LOGIN loginPkt;
+	/*Protocol::S_LOGIN loginPkt;
 
 	uint64 idx = 0;
 	wstring userID = stringToWstring(pkt.id());
@@ -58,14 +58,14 @@ bool Handle_C_LOGIN(SessionRef& session, Protocol::C_LOGIN& pkt)
 	loginPkt.set_idx(idx);
 	loginPkt.set_success(true);
 
-	SEND_PACKET(loginPkt);
+	SEND_PACKET(loginPkt);*/
 
 	return true;
 }
 
 bool Handle_C_ACCESSION(SessionRef& session, Protocol::C_ACCESSION& pkt)
 {
-	Protocol::S_ACCESSION accessionPkt;
+	/*Protocol::S_ACCESSION accessionPkt;
 
 	wstring testID = stringToWstring(pkt.id());
 	wstring testpass = stringToWstring(pkt.pass());
@@ -77,7 +77,7 @@ bool Handle_C_ACCESSION(SessionRef& session, Protocol::C_ACCESSION& pkt)
 	}
 
 	accessionPkt.set_success(true);
-	SEND_PACKET(accessionPkt);
+	SEND_PACKET(accessionPkt);*/
 
 	return true;
 }
@@ -85,7 +85,7 @@ bool Handle_C_ACCESSION(SessionRef& session, Protocol::C_ACCESSION& pkt)
 
 bool Handle_C_SELECT_ROOM_ENTER(SessionRef& session, Protocol::C_SELECT_ROOM_ENTER& pkt)
 {
-	if (session->GetAccountIdx() != pkt.idx() || session->IsConnected() == false) {
+	/*if (session->GetAccountIdx() != pkt.idx() || session->IsConnected() == false) {
 		return false;
 	}
 
@@ -120,51 +120,51 @@ bool Handle_C_SELECT_ROOM_ENTER(SessionRef& session, Protocol::C_SELECT_ROOM_ENT
 
 	selectPlayerPkt.set_allocated_player(playerInfo);
 	selectPlayerPkt.set_error(error);
-	SEND_PACKET(selectPlayerPkt);
+	SEND_PACKET(selectPlayerPkt);*/
 
 	return true;
 }
 
 bool Handle_C_CREATE_PLAYER(SessionRef& session, Protocol::C_CREATE_PLAYER& pkt)
 {
-	if (session->GetAccountIdx() != pkt.idx() || session->IsConnected() == false || pkt.playername() == "") {
-		return false;
-	}
+	//if (session->GetAccountIdx() != pkt.idx() || session->IsConnected() == false || pkt.playername() == "") {
+	//	return false;
+	//}
 
-	Protocol::S_CREATE_PLAYER createPlayerPkt;
-	Protocol::PlayerInfo* playerInfo = new Protocol::PlayerInfo();
-	playerInfo->set_x(0);
-	playerInfo->set_y(0);
-	playerInfo->set_z(0);
-	playerInfo->set_playername(pkt.playername());
-	playerInfo->set_lv(1);
-	playerInfo->set_hp(100);
-	playerInfo->set_atk(10);
-	playerInfo->set_df(3);
-	playerInfo->set_idx(pkt.idx());
-	//playerInfo->set_idx
+	//Protocol::S_CREATE_PLAYER createPlayerPkt;
+	//Protocol::PlayerInfo* playerInfo = new Protocol::PlayerInfo();
+	//playerInfo->set_x(0);
+	//playerInfo->set_y(0);
+	//playerInfo->set_z(0);
+	//playerInfo->set_playername(pkt.playername());
+	//playerInfo->set_lv(1);
+	//playerInfo->set_hp(100);
+	//playerInfo->set_atk(10);
+	//playerInfo->set_df(3);
+	//playerInfo->set_idx(pkt.idx());
+	////playerInfo->set_idx
 
-	wstring playerName = stringToWstring(pkt.playername());
+	//wstring playerName = stringToWstring(pkt.playername());
 
-	Protocol::CREATE_PLAYER_ERROR error = Protocol::CREATE_PLAYER_ERROR::CREATE_PLAYER_NONE;
-	if (!GDBManager->Insert_Player(OUT (CREATE_PLAYER_ERROR&)error, pkt.idx(), playerName, playerInfo->lv(), playerInfo->hp(), playerInfo->atk(), playerInfo->df()))
-	{
-		createPlayerPkt.set_error(error);
-		SEND_PACKET(createPlayerPkt);
-		return false;
-	}
+	//Protocol::CREATE_PLAYER_ERROR error = Protocol::CREATE_PLAYER_ERROR::CREATE_PLAYER_NONE;
+	//if (!GDBManager->Insert_Player(OUT (CREATE_PLAYER_ERROR&)error, pkt.idx(), playerName, playerInfo->lv(), playerInfo->hp(), playerInfo->atk(), playerInfo->df()))
+	//{
+	//	createPlayerPkt.set_error(error);
+	//	SEND_PACKET(createPlayerPkt);
+	//	return false;
+	//}
 
-	GPlayerManager->CreatePlayer(pkt.idx(), session, *playerInfo);
+	//GPlayerManager->CreatePlayer(pkt.idx(), session, *playerInfo);
 
-	createPlayerPkt.set_allocated_player(playerInfo);
-	createPlayerPkt.set_error(error);
-	SEND_PACKET(createPlayerPkt);
+	//createPlayerPkt.set_allocated_player(playerInfo);
+	//createPlayerPkt.set_error(error);
+	//SEND_PACKET(createPlayerPkt);
 	return true;
 }
 
 bool Handle_C_ENTER_GAME(SessionRef& session, Protocol::C_ENTER_GAME& pkt)
 {
-	Protocol::S_ENTER_GAME enterPkt;
+	/*Protocol::S_ENTER_GAME enterPkt;
 	Protocol::S_SEND_OTHER_USER otherUserPkt;
 	std::mutex playersMutex;
 	USE_LOCK;
@@ -205,13 +205,13 @@ bool Handle_C_ENTER_GAME(SessionRef& session, Protocol::C_ENTER_GAME& pkt)
 	GPlayerManager->GetPlayer(pkt.idx())->PlayerEnterGame();
 	GPlayerManager->UserEnterBoradCast(GPlayerManager->GetPlayerInfo(pkt.idx()), session);
 
-	SEND_PACKET(enterPkt);
+	SEND_PACKET(enterPkt);*/
 	return true;
 }
 
 bool Handle_C_MOVE(SessionRef& session, Protocol::C_MOVE& pkt)
 {
-	Protocol::S_MOVE movePkt;
+	/*Protocol::S_MOVE movePkt;
 
 	if (session->GetAccountIdx() != pkt.sessionpos().idx() || session->IsConnected() == false) {
 		movePkt.set_error(Protocol::MOVE_ERROR::MOVE_FAIL);
@@ -223,7 +223,7 @@ bool Handle_C_MOVE(SessionRef& session, Protocol::C_MOVE& pkt)
 		movePkt.set_error(Protocol::MOVE_ERROR::MOVE_FAIL);
 		SEND_PACKET(movePkt);
 		return false;
-	}
+	}*/
 
 	return true;
 }

@@ -5,30 +5,30 @@
 
 IocpCore::IocpCore()
 {
-	mIocpHandle = ::CreateIoCompletionPort(INVALID_HANDLE_VALUE, 0, 0, 0);
-	ASSERT_CRASH(mIocpHandle != INVALID_HANDLE_VALUE);
+	_iocp_handle = ::CreateIoCompletionPort(INVALID_HANDLE_VALUE, 0, 0, 0);
+	ASSERT_CRASH(_iocp_handle != INVALID_HANDLE_VALUE);
 }
 
 IocpCore::~IocpCore()
 {
-	::CloseHandle(mIocpHandle);
+	::CloseHandle(_iocp_handle);
 }
 
 bool IocpCore::Register(IocpObjectRef iocpObject)
 {
-	return ::CreateIoCompletionPort(iocpObject->GetHandle(), mIocpHandle, /*key*/0, 0);
+	return ::CreateIoCompletionPort(iocpObject->get_handle(), _iocp_handle, /*key*/0, 0);
 }
 
-bool IocpCore::Dispatch(uint32 timeoutMs)
+bool IocpCore::dispatch(uint32 timeoutMs)
 {
 	DWORD numOfBytes = 0;
 	ULONG_PTR key = 0;
 	IocpEvent* iocpEvent = nullptr;
 
-	if (::GetQueuedCompletionStatus(mIocpHandle, OUT & numOfBytes, OUT & key, OUT reinterpret_cast<LPOVERLAPPED*>(&iocpEvent), timeoutMs))
+	if (::GetQueuedCompletionStatus(_iocp_handle, OUT & numOfBytes, OUT & key, OUT reinterpret_cast<LPOVERLAPPED*>(&iocpEvent), timeoutMs))
 	{
-		IocpObjectRef iocpObject = iocpEvent->GetOwner();
-		iocpObject->Dispatch(iocpEvent, numOfBytes);
+		IocpObjectRef iocpObject = iocpEvent->get_owner();
+		iocpObject->dispatch(iocpEvent, numOfBytes);
 	}
 	else
 	{
@@ -39,8 +39,8 @@ bool IocpCore::Dispatch(uint32 timeoutMs)
 			return false;
 		default:
 			// TODO : ·Î±× Âï±â
-			IocpObjectRef iocpObject = iocpEvent->GetOwner();
-			iocpObject->Dispatch(iocpEvent, numOfBytes);
+			IocpObjectRef iocpObject = iocpEvent->get_owner();
+			iocpObject->dispatch(iocpEvent, numOfBytes);
 			break;
 		}
 	}

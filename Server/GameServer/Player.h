@@ -1,10 +1,11 @@
 #pragma once
-#include "Session.h"
+#include "../ServerCore/Session.h"
+#include "../GameServer/Struct.pb.h"
 
 
 class Player
 {
-	enum class HeroType : BYTE
+	/*enum class HeroType : BYTE
 	{
 		NONE,
 		WARRIOR,
@@ -29,6 +30,6 @@ private:
 	Protocol::PlayerInfo mPlayerInfo;
 	HeroType mHeroType;
 	SessionRef mOwner;
-	bool inGame = false;
+	bool inGame = false;*/
 };
 

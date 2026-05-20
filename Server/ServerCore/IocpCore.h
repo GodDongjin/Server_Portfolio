@@ -6,12 +6,12 @@ public:
 	IocpCore();
 	~IocpCore();
 
-	HANDLE		GetHandle() { return mIocpHandle; }
+	HANDLE		get_handle() { return _iocp_handle; }
 
 	bool		Register(IocpObjectRef iocpObject);
-	bool		Dispatch(uint32 timeoutMs = INFINITE);
+	bool		dispatch(uint32 timeoutMs = INFINITE);
 
 private:
-	HANDLE		mIocpHandle;
+	HANDLE		_iocp_handle;
 };
 

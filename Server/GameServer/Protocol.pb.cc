@@ -2584,7 +2584,7 @@ const char* S_ENTER_GAME::_InternalParse(const char* ptr, ::_pbi::ParseContext* 
         } else
           goto handle_unusual;
         continue;
-      // repeated .Protocol.PlayerInfo players = 2;
+      // repeated .Protocol.PlayerInfo _player_list = 2;
       case 2:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
           ptr -= 1;
@@ -2642,7 +2642,7 @@ uint8_t* S_ENTER_GAME::_InternalSerialize(
         _Internal::sessionplayer(this).GetCachedSize(), target, stream);
   }
 
-  // repeated .Protocol.PlayerInfo players = 2;
+  // repeated .Protocol.PlayerInfo _player_list = 2;
   for (unsigned i = 0,
       n = static_cast<unsigned>(this->_internal_players_size()); i < n; i++) {
     const auto& repfield = this->_internal_players(i);
@@ -2673,7 +2673,7 @@ size_t S_ENTER_GAME::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // repeated .Protocol.PlayerInfo players = 2;
+  // repeated .Protocol.PlayerInfo _player_list = 2;
   total_size += 1UL * this->_internal_players_size();
   for (const auto& msg : this->_impl_.players_) {
     total_size +=

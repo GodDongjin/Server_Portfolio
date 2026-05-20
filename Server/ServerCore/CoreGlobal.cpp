@@ -20,7 +20,7 @@ public:
 		GGlobalQueue = new GlobalQueue();
 		GJobTimer = new JobTimer();
 		GDBManager = new DBManager();
-		SocketUtils::Init();
+		SocketUtils::init();
 	}
 
 	~CoreGlobal()
@@ -29,6 +29,6 @@ public:
 		delete GGlobalQueue;
 		delete GJobTimer;
 		delete GDBManager;
-		SocketUtils::Clear();
+		SocketUtils::clear();
 	}
 } GCoreGlobal;

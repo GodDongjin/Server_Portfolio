@@ -33,3 +33,11 @@
 		__analysis_assume(expr);	\
 	}								\
 }
+
+/*---------------
+	  send
+---------------*/
+
+#define SEND_PACKET(pkt)												\
+	SendBufferRef sendBuffer = ServerPacketHandler::MakeSendBuffer(pkt); \
+	session->send(sendBuffer);

@@ -3,26 +3,26 @@
 
 DBManager::DBManager()
 {
-	dbConnect = make_shared<DBConnect>();
+	db_connect = make_shared<DBConnect>();
 }
 
 DBManager::~DBManager()
 {
 }
 
-bool DBManager::DBConnectStart()
+bool DBManager::db_connect_start()
 {
-	if (hDbc != nullptr || hEnv != nullptr)
+	if (hdbc != nullptr || henv != nullptr)
 		return false;
 
-	return dbConnect->Connect(hEnv, hDbc);;
+	return db_connect->connect(henv, hdbc);;
 }
 
 
-bool DBManager::SendPacket(SQLHSTMT& hStmt, SQLRETURN& retcode)
+bool DBManager::send_packet(SQLHSTMT& hStmt, SQLRETURN& _retcode)
 {
-    retcode = SQLExecute(hStmt);
-    if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
+    _retcode = SQLExecute(hStmt);
+    if (_retcode == SQL_SUCCESS || _retcode == SQL_SUCCESS_WITH_INFO) {
         std::cout << "Packet sent successfully." << std::endl;
     }
     else {
@@ -42,23 +42,23 @@ std::wstring SQLCharToWString(SQLCHAR* sqlCharStr, size_t length) {
     return converter.from_bytes(str);
 }
 
-bool DBManager::Insert_Accession(wstring id, wstring password)
+bool DBManager::insert_accession(wstring id, wstring password)
 {
     WRITE_LOCK;
     SQLHSTMT hStmt;
-    SQLRETURN retcode;
+    SQLRETURN _retcode;
 
-    SQLAllocHandle(SQL_HANDLE_STMT, hDbc, &hStmt);
+    SQLAllocHandle(SQL_HANDLE_STMT, hdbc, &hStmt);
 
     // 孽府 角青
-    retcode = SQLPrepareW(hStmt, (SQLWCHAR*)L"CALL p_Login_Insert(?, ?)", SQL_NTS);
+    _retcode = SQLPrepareW(hStmt, (SQLWCHAR*)L"CALL p_Login_Insert(?, ?)", SQL_NTS);
     wstring loginId = id;
     wstring loginPass = password;
 
     SQLBindParameter(hStmt, 1, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WVARCHAR, loginId.size(), 0, (SQLWCHAR*)loginId.c_str(), 0, NULL);
     SQLBindParameter(hStmt, 2, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WVARCHAR, loginPass.size(), 0, (SQLWCHAR*)loginPass.c_str(), 0, NULL);
 
-    if (!SendPacket(hStmt, retcode)) {
+    if (!send_packet(hStmt, _retcode)) {
         SQLFreeHandle(SQL_HANDLE_STMT, hStmt);
         return false;
     }
@@ -67,24 +67,24 @@ bool DBManager::Insert_Accession(wstring id, wstring password)
     return true;
 }
 
-bool DBManager::Select_LoginData(OUT uint64& idx, OUT wstring& id, OUT wstring& password)
+bool DBManager::select_login_data(OUT uint64& idx, OUT wstring& id, OUT wstring& password)
 {
     WRITE_LOCK;
 
     SQLHSTMT hStmt;
-    SQLRETURN retcode;
+    SQLRETURN _retcode;
 
-    SQLAllocHandle(SQL_HANDLE_STMT, hDbc, &hStmt);
+    SQLAllocHandle(SQL_HANDLE_STMT, hdbc, &hStmt);
 
     // 孽府 角青
-    retcode = SQLPrepareW(hStmt, (SQLWCHAR*)L"CALL p_Login_Select(?, ?)", SQL_NTS);
+    _retcode = SQLPrepareW(hStmt, (SQLWCHAR*)L"CALL p_Login_Select(?, ?)", SQL_NTS);
     wstring loginId = id;
     wstring loginPass = password;
 
     SQLBindParameter(hStmt, 1, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WVARCHAR, loginId.size(), 0, (SQLWCHAR*)loginId.c_str(), 0, NULL);
     SQLBindParameter(hStmt, 2, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WVARCHAR, loginPass.size(), 0, (SQLWCHAR*)loginPass.c_str(), 0, NULL);
 
-    if (!SendPacket(hStmt, retcode)) {
+    if (!send_packet(hStmt, _retcode)) {
         SQLFreeHandle(SQL_HANDLE_STMT, hStmt);
         return false;
     }
@@ -109,19 +109,19 @@ bool DBManager::Select_LoginData(OUT uint64& idx, OUT wstring& id, OUT wstring& 
     return true;
 }
 
-bool DBManager::Select_Player(OUT SELECT_PLAYER_ERROR& error, OUT wstring& name, OUT uint32& lv, OUT float& hp, OUT float& atk, OUT float& df, uint64 idx)
+bool DBManager::select_player(OUT SELECT_PLAYER_ERROR& error, OUT wstring& name, OUT uint32& lv, OUT float& hp, OUT float& atk, OUT float& df, uint64 idx)
 {
     WRITE_LOCK;
     SQLHSTMT hStmt;
-    SQLRETURN retcode;
+    SQLRETURN _retcode;
 
-    SQLAllocHandle(SQL_HANDLE_STMT, hDbc, &hStmt);
+    SQLAllocHandle(SQL_HANDLE_STMT, hdbc, &hStmt);
 
     // 孽府 角青 - p_Player_Select 龋免
-    retcode = SQLPrepareW(hStmt, (SQLWCHAR*)L"CALL p_Player_Select(?)", SQL_NTS);
+    _retcode = SQLPrepareW(hStmt, (SQLWCHAR*)L"CALL p_Player_Select(?)", SQL_NTS);
     SQLBindParameter(hStmt, 1, SQL_PARAM_INPUT, SQL_C_UBIGINT, SQL_BIGINT, 0, 0, &idx, 0, NULL);
 
-    if (!SendPacket(hStmt, retcode)) {
+    if (!send_packet(hStmt, _retcode)) {
         SQLFreeHandle(SQL_HANDLE_STMT, hStmt);
         error = SELECT_PLAYER_ERROR::SELECT_PLAYER_FAIL;
         return false;
@@ -163,16 +163,16 @@ bool DBManager::Select_Player(OUT SELECT_PLAYER_ERROR& error, OUT wstring& name,
     return true;
 }
 
-bool DBManager::Insert_Player(OUT CREATE_PLAYER_ERROR& error, uint64 idx, wstring name, uint32 lv, float hp, float atk, float df)
+bool DBManager::insert_player(OUT CREATE_PLAYER_ERROR& error, uint64 idx, wstring name, uint32 lv, float hp, float atk, float df)
 {
     WRITE_LOCK;
     SQLHSTMT hStmt;
-    SQLRETURN retcode;
+    SQLRETURN _retcode;
 
-    SQLAllocHandle(SQL_HANDLE_STMT, hDbc, &hStmt);
+    SQLAllocHandle(SQL_HANDLE_STMT, hdbc, &hStmt);
 
     // 孽府 角青
-    retcode = SQLPrepareW(hStmt, (SQLWCHAR*)L"CALL p_Player_Insert(?, ?, ?, ?, ?, ?)", SQL_NTS);
+    _retcode = SQLPrepareW(hStmt, (SQLWCHAR*)L"CALL p_Player_Insert(?, ?, ?, ?, ?, ?)", SQL_NTS);
     wstring playerName = name;
 
     SQLBindParameter(hStmt, 1, SQL_PARAM_INPUT, SQL_C_UBIGINT, SQL_BIGINT, 0, 0, &idx, 0, NULL);
@@ -182,7 +182,7 @@ bool DBManager::Insert_Player(OUT CREATE_PLAYER_ERROR& error, uint64 idx, wstrin
     SQLBindParameter(hStmt, 5, SQL_PARAM_INPUT, SQL_C_FLOAT, SQL_FLOAT, 0, 0, &atk, 0, NULL);
     SQLBindParameter(hStmt, 6, SQL_PARAM_INPUT, SQL_C_FLOAT, SQL_FLOAT, 0, 0, &df, 0, NULL);
 
-    if (!SendPacket(hStmt, retcode)) {
+    if (!send_packet(hStmt, _retcode)) {
         SQLFreeHandle(SQL_HANDLE_STMT, hStmt);
         error = CREATE_PLAYER_ERROR::CREATE_PLAYER_FAIL;
         return false;

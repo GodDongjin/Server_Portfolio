@@ -1,24 +1,24 @@
 #include "pch.h"
 #include "SendBuffer.h"
 
-SendBuffer::SendBuffer(int32 bufferSize)
+SendBuffer::SendBuffer(int32 BufferSize)
 {
-	mBuffer.resize(bufferSize);
+	_buffer.resize(BufferSize);
 }
 
 SendBuffer::~SendBuffer()
 {
 }
 
-void SendBuffer::CopyData(void* data, int32 len)
+void SendBuffer::copy_data(void* data, int32 len)
 {
-	assert(Capacity() >= len);
-	::memcpy(mBuffer.data(), data, len);
-	mWriteSize = len;
+	assert(capacity() >= len);
+	::memcpy(_buffer.data(), data, len);
+	_write_size = len;
 }
 
-void SendBuffer::Close(uint32 writeSize)
+void SendBuffer::close(uint32 writeSize)
 {
-	mWriteSize = writeSize;
+	_write_size = writeSize;
 }
 

@@ -1,26 +1,26 @@
 #include "pch.h"
-#include "ThreadManager.h"
-#include "Service.h"
+#include "../ServerCore/ThreadManager.h"
+#include "../ServerCore/Service.h"
+#include "../ServerCore/DBManager.h"
+#include "../ServerCore/IocpCore.h"
 #include "GameSession.h"
-#include "IocpCore.h"
 #include "ServerPacketHandler.h"
-#include "DBManager.h"
 #include "PlayerManager.h"
 
-void DoWorkerJob(ServerServiceRef& service)
+void do_worker_job(ServerServiceRef& service)
 {
 	while (true)
 	{
 		LEndTickCount = ::GetTickCount64() + 64;
 
 		// 네트워크 입출력 처리 -> 인게임 로직까지 (패킷 핸들러에 의해)
-		service->GetIocpCore()->Dispatch(10);
+		service->get_iocp_core()->dispatch(10);
 
 		// 예약된 일감 처리
-		ThreadManager::DistributeReservedJobs();
+		ThreadManager::distribute_reserved_jobs();
 
 		// 글로벌 큐
-		ThreadManager::DoGlobalQueueWork();
+		ThreadManager::do_global_queue_work();
 
 	}
 }
@@ -28,7 +28,7 @@ void DoWorkerJob(ServerServiceRef& service)
 
 int main()
 {
-	ServerPacketHandler::Init();
+	//ServerPacketHandler::Init();
 
 	ServerServiceRef service = make_shared<ServerService>(
 		NetAddress(L"127.0.0.1", 7777),
@@ -36,16 +36,16 @@ int main()
 		[=]() {return make_shared<GameSession>(); },
 		make_shared<SessionManager>(100));
 
-	ASSERT_CRASH(service->Start());
-	ASSERT_CRASH(GDBManager->DBConnectStart());
+	ASSERT_CRASH(service->start());
+	////ASSERT_CRASH(GDBManager->DBConnectStart());
 
 	for (int32 i = 0; i < 5; i++)
 	{
-		GThreadManager->Launch([&service]()
+		GThreadManager->launch([&service]()
 			{
-				DoWorkerJob(service);
+				do_worker_job(service);
 			});
 	}
 
-	GThreadManager->Join();
+	GThreadManager->join();
 }

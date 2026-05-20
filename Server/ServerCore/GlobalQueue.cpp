@@ -11,12 +11,12 @@ GlobalQueue::~GlobalQueue()
 
 }
 
-void GlobalQueue::Push(JobQueueRef jobQueue)
+void GlobalQueue::push(JobQueueRef jobQueue)
 {
-	_jobQueues.Push(jobQueue);
+	_jobQueues.push(jobQueue);
 }
 
-JobQueueRef GlobalQueue::Pop()
+JobQueueRef GlobalQueue::pop()
 {
-	return _jobQueues.Pop();
+	return _jobQueues.pop();
 }

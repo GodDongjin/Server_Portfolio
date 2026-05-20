@@ -2,17 +2,17 @@
 class SendBuffer : enable_shared_from_this<SendBuffer>
 {
 public:
-	SendBuffer(int32 bufferSize);
+	SendBuffer(int32 BufferSize);
 	~SendBuffer();
 
-	BYTE* Buffer() { return mBuffer.data(); }
-	int32 WriteSize() { return mWriteSize; }
-	int32 Capacity() { return static_cast<int32>(mBuffer.size()); }
+	BYTE* get_buffer() { return _buffer.data(); }
+	int32 get_write_size() { return _write_size; }
+	int32 capacity() { return static_cast<int32>(_buffer.size()); }
 
-	void CopyData(void* data, int32 len);
-	void Close(uint32 writeSize);
+	void copy_data(void* data, int32 len);
+	void close(uint32 writeSize);
 
 private:
-	vector<BYTE>	mBuffer;
-	int32			mWriteSize = 0;
+	vector<BYTE>	_buffer;
+	int32			_write_size = 0;
 };

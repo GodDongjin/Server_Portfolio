@@ -8,8 +8,8 @@
 enum class ServiceType : uint8
 {
 	NONE,
-	Server,
-	Client
+	SERVER,
+	CLIENT
 };
 
 using SessionFactory = function<SessionRef(void)>;
@@ -20,30 +20,30 @@ public:
 	Service(ServiceType type, NetAddress address, IocpCoreRef core, SessionFactory factory, SessionManagerRef sessionManager);
 	virtual ~Service();
 
-	virtual bool		Start() abstract;
-	bool				CanStart();
+	virtual bool		start() abstract;
+	bool				can_start();
 
-	virtual void		CloseService();
-	SessionRef			CreateSession();
+	virtual void		close_service();
+	SessionRef			create_session();
 
-	void				SetSessionFactory(SessionFactory func) { mSessionFactory = func; }
+	void				set_sessionFactory(SessionFactory func) { _sessionFactory = func; }
 
-	//int32				GetCurrentSessionCount() { return mSessionManager; }
-	//int32				GetMaxSessionCount() { return mMaxSessionCount; }
+	//int32				GetCurrentSessionCount() { return _sessionManager; }
+	//int32				get_max_session_count() { return _max_session_count; }
 
 public:
-	ServiceType			GetServiceType() { return mType; }
-	NetAddress			GetNetAddress() { return mNetAddress; }
-	IocpCoreRef&		GetIocpCore() { return mIocpCore; }
-	SessionManagerRef&  GetSessionManager() { return mSessionManager; }
+	ServiceType			get_service_type() { return _service_type; }
+	NetAddress			get_net_address() { return _net_address; }
+	IocpCoreRef&		get_iocp_core() { return _iocp_core; }
+	SessionManagerRef&  get_sessionManager() { return _sessionManager; }
 
 protected:
 	USE_LOCK;
-	ServiceType			mType = ServiceType::NONE;
-	NetAddress			mNetAddress = {};
-	IocpCoreRef			mIocpCore = nullptr;
-	SessionFactory		mSessionFactory;
-	SessionManagerRef	mSessionManager = nullptr;
+	ServiceType			_service_type = ServiceType::NONE;
+	NetAddress			_net_address = {};
+	IocpCoreRef			_iocp_core = nullptr;
+	SessionFactory		_sessionFactory;
+	SessionManagerRef	_sessionManager = nullptr;
 };
 
 /*-----------------
@@ -56,8 +56,8 @@ public:
 	ServerService(NetAddress targetAddress, IocpCoreRef core, SessionFactory factory, SessionManagerRef sessionManager);
 	virtual ~ServerService() {}
 
-	virtual bool	Start() override;
-	virtual void	CloseService() override;
+	virtual bool	start() override;
+	virtual void	close_service() override;
 
 private:
 	ListenerRef		_listener = nullptr;

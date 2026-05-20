@@ -7,8 +7,8 @@ public:
 	GlobalQueue();
 	~GlobalQueue();
 
-	void					Push(JobQueueRef jobQueue);
-	JobQueueRef				Pop();
+	void					push(JobQueueRef jobQueue);
+	JobQueueRef				pop();
 
 private:
 	LockQueue<JobQueueRef> _jobQueues;

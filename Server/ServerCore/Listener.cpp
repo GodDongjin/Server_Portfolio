@@ -7,9 +7,9 @@
 
 Listener::~Listener()
 {
-	SocketUtils::Close(mSocket);
+	SocketUtils::close(_socket);
 
-	for (AcceptEvent* acceptEvent : mAcceptEvents)
+	for (AcceptEvent* acceptEvent : _accept_events)
 	{
 		// TODO
 
@@ -17,101 +17,101 @@ Listener::~Listener()
 	}
 }
 
-bool Listener::StartAccept(ServerServiceRef service)
+bool Listener::start_accept(ServerServiceRef service)
 {
-	mService = service;
-	if (mService == nullptr)
+	_service = service;
+	if (_service == nullptr)
 		return false;
 
-	mSocket = SocketUtils::CreateSocket();
-	if (mSocket == INVALID_SOCKET)
+	_socket = SocketUtils::create_socket();
+	if (_socket == INVALID_SOCKET)
 		return false;
 
-	if (mService->GetIocpCore()->Register(shared_from_this()) == false)
+	if (_service->get_iocp_core()->Register(shared_from_this()) == false)
 		return false;
 
-	if (SocketUtils::SetReuseAddress(mSocket, true) == false)
+	if (SocketUtils::set_resuse_address(_socket, true) == false)
 		return false;
 
-	if (SocketUtils::SetLinger(mSocket, 0, 0) == false)
+	if (SocketUtils::set_linger(_socket, 0, 0) == false)
 		return false;
 
-	if (SocketUtils::Bind(mSocket, mService->GetNetAddress()) == false)
+	if (SocketUtils::bind(_socket, _service->get_net_address()) == false)
 		return false;
 
-	if (SocketUtils::Listen(mSocket) == false)
+	if (SocketUtils::listen(_socket) == false)
 		return false;
 
-	const int32 acceptCount = mService->GetSessionManager()->GetMaxSessionCount();
+	const int32 acceptCount = _service->get_sessionManager()->get_max_session_count();
 	for (int32 i = 0; i < acceptCount; i++)
 	{
 		AcceptEvent* acceptEvent = new AcceptEvent();
-		acceptEvent->SetOwner(shared_from_this());
-		mAcceptEvents.push_back(acceptEvent);
-		RegisterAccept(acceptEvent);
+		acceptEvent->set_owner(shared_from_this());
+		_accept_events.push_back(acceptEvent);
+		register_accept(acceptEvent);
 	}
 
 	return true;
 }
 
-void Listener::CloseSocket()
+void Listener::close_socket()
 {
-	SocketUtils::Close(mSocket);
+	SocketUtils::close(_socket);
 }
 
-HANDLE Listener::GetHandle()
+HANDLE Listener::get_handle()
 {
-	return reinterpret_cast<HANDLE>(mSocket);
+	return reinterpret_cast<HANDLE>(_socket);
 }
 
-void Listener::Dispatch(IocpEvent* iocpEvent, int32 numOfBytes)
+void Listener::dispatch(IocpEvent* iocpEvent, int32 numOfBytes)
 {
-	ASSERT_CRASH(iocpEvent->GetEventType() == EventType::Accept);
+	ASSERT_CRASH(iocpEvent->get_event_type() == EventType::Accept);
 	AcceptEvent* acceptEvent = static_cast<AcceptEvent*>(iocpEvent);
-	ProcessAccept(acceptEvent);
+	process_accept(acceptEvent);
 }
 
-void Listener::RegisterAccept(AcceptEvent* acceptEvent)
+void Listener::register_accept(AcceptEvent* acceptEvent)
 {
-	SessionRef session = mService->CreateSession();
+	SessionRef session = _service->create_session();
 
-	acceptEvent->Init();
-	acceptEvent->SetSession(session);
+	acceptEvent->init();
+	acceptEvent->set_session(session);
 
 	DWORD bytesReceived = 0;
-	if (false == SocketUtils::AcceptEx(mSocket, session->GetSocket(), session->GetRecvBuffer().WritePos(), 0, sizeof(SOCKADDR_IN) + 16, sizeof(SOCKADDR_IN) + 16, OUT & bytesReceived, static_cast<LPOVERLAPPED>(acceptEvent)))
+	if (false == SocketUtils::AcceptEx(_socket, session->get_socket(), session->get_recv_buffer().write_pos(), 0, sizeof(SOCKADDR_IN) + 16, sizeof(SOCKADDR_IN) + 16, OUT & bytesReceived, static_cast<LPOVERLAPPED>(acceptEvent)))
 	{
 		const int32 errorCode = ::WSAGetLastError();
 		if (errorCode != WSA_IO_PENDING)
 		{
 			// 일단 다시 Accept 걸어준다
-			RegisterAccept(acceptEvent);
+			register_accept(acceptEvent);
 		}
 	}
 }
 
-void Listener::ProcessAccept(AcceptEvent* acceptEvent)
+void Listener::process_accept(AcceptEvent* acceptEvent)
 {
-	SessionRef session = acceptEvent->GetSession();
+	SessionRef session = acceptEvent->get_session();
 
-	if (false == SocketUtils::SetUpdateAcceptSocket(session->GetSocket(), mSocket))
+	if (false == SocketUtils::set_update_accept_socket(session->get_socket(), _socket))
 	{
-		RegisterAccept(acceptEvent);
+		register_accept(acceptEvent);
 		return;
 	}
 
 	SOCKADDR_IN sockAddress;
 	int32 sizeOfSockAddr = sizeof(sockAddress);
-	if (SOCKET_ERROR == ::getpeername(session->GetSocket(), OUT reinterpret_cast<SOCKADDR*>(&sockAddress), &sizeOfSockAddr))
+	if (SOCKET_ERROR == ::getpeername(session->get_socket(), OUT reinterpret_cast<SOCKADDR*>(&sockAddress), &sizeOfSockAddr))
 	{
-		RegisterAccept(acceptEvent);
+		register_accept(acceptEvent);
 		return;
 	}
 
 	cout << "Success Accept" << endl;
 
-	session->SetNetAddress(NetAddress(sockAddress));
-	//session->SetProcessConnect();
-	mService->GetSessionManager()->OnConnected(session);
-	RegisterAccept(acceptEvent);
+	session->set_net_address(NetAddress(sockAddress));
+	//session->set_process_connect();
+	_service->get_sessionManager()->on_connected(session);
+	register_accept(acceptEvent);
 }

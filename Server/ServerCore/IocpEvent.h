@@ -2,27 +2,27 @@
 
 enum class EventType : uint8
 {
-	Connect,
-	Disconnect,
+	connect,
+	disconnect,
 	Accept,
 	Recv,
-	Send
+	send
 };
 
 class IocpEvent : public OVERLAPPED
 {
 public:
 	IocpEvent(EventType type);
-	void			Init();
+	void			init();
 
 public:
-	EventType GetEventType() { return mEventType; }
-	IocpObjectRef GetOwner() { return mOwner; }
-	void SetOwner(IocpObjectRef owner) { mOwner = owner; }
+	EventType get_event_type() { return _event_type; }
+	IocpObjectRef get_owner() { return _owner; }
+	void set_owner(IocpObjectRef owner) { _owner = owner; }
 
 private:
-	EventType		mEventType;
-	IocpObjectRef	mOwner;
+	EventType		_event_type;
+	IocpObjectRef	_owner;
 };
 
 /*----------------
@@ -32,7 +32,7 @@ private:
 class ConnectEvent : public IocpEvent
 {
 public:
-	ConnectEvent() : IocpEvent(EventType::Connect) { }
+	ConnectEvent() : IocpEvent(EventType::connect) { }
 };
 
 /*--------------------
@@ -42,7 +42,7 @@ public:
 class DisconnectEvent : public IocpEvent
 {
 public:
-	DisconnectEvent() : IocpEvent(EventType::Disconnect) { }
+	DisconnectEvent() : IocpEvent(EventType::disconnect) { }
 };
 
 /*----------------
@@ -55,11 +55,11 @@ public:
 	AcceptEvent() : IocpEvent(EventType::Accept) { }
 
 public:
-	SessionRef GetSession() { return mSession; }
-	void SetSession(SessionRef session) { mSession = session; }
+	SessionRef get_session() { return _session; }
+	void set_session(SessionRef session) { _session = session; }
 
 private:
-	SessionRef	mSession = nullptr;
+	SessionRef	_session = nullptr;
 };
 
 /*----------------
@@ -79,12 +79,12 @@ public:
 class SendEvent : public IocpEvent
 {
 public:
-	SendEvent() : IocpEvent(EventType::Send) { }
+	SendEvent() : IocpEvent(EventType::send) { }
 
 public:
-	vector<SendBufferRef> GetSendBuffer() { return mSendBuffers; }
-	void SendBuffersPush(SendBufferRef sendBuffer) { mSendBuffers.push_back(sendBuffer); }
-	void SendBuffersClear() { mSendBuffers.clear(); }
+	vector<SendBufferRef> get_send_Buffers() { return _send_Buffers; }
+	void send_Buffers_push(SendBufferRef sendBuffer) { _send_Buffers.push_back(sendBuffer); }
+	void send_Buffers_clear() { _send_Buffers.clear(); }
 private:
-	vector<SendBufferRef> mSendBuffers;
+	vector<SendBufferRef> _send_Buffers;
 };
