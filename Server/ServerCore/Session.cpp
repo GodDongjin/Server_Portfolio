@@ -71,6 +71,37 @@ void Session::Dispatch(IocpEvent* iocpEvent, int32 numOfBytes)
 	}
 }
 
+//bool Session::RegisterConnect()
+//{
+//	if (IsConnected())
+//		return false;
+//
+//	if (GetService()->GetServiceType() != ServiceType::Client)
+//		return false;
+//
+//	if (SocketUtils::SetReuseAddress(mSocket, true) == false)
+//		return false;
+//
+//	if (SocketUtils::BindAnyAddress(mSocket, 0) == false)
+//		return false;
+//
+//	mConnectEvent.Init();
+//	mConnectEvent.SetOwner(shared_from_this());
+//
+//	DWORD numOfBytes = 0;
+//	SOCKADDR_IN sockAddr = GetService()->GetNetAddress().GetSockAddr();
+//	if (false == SocketUtils::ConnectEx(mSocket, reinterpret_cast<SOCKADDR*>(&sockAddr), sizeof(sockAddr), nullptr, 0, &numOfBytes, &mConnectEvent))
+//	{
+//		int32 errorCode = ::WSAGetLastError();
+//		if (errorCode != WSA_IO_PENDING)
+//		{
+//			mConnectEvent.SetOwner(nullptr); 
+//			return false;
+//		}
+//	}
+//
+//	return true;
+//}
 
 bool Session::RegisterDisconnect()
 {

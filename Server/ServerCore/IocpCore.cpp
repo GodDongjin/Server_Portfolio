@@ -39,12 +39,6 @@ bool IocpCore::Dispatch(uint32 timeoutMs)
 			return false;
 		default:
 			// TODO : ·Î±× Âï±â
-			if (iocpEvent->GetOwner() == nullptr)
-			{
-				cout << "iocpEvent Owner NULL" << endl;
-				break;
-			}
-
 			IocpObjectRef iocpObject = iocpEvent->GetOwner();
 			iocpObject->Dispatch(iocpEvent, numOfBytes);
 			break;
