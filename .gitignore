@@ -1,5 +1,35 @@
-# 대용량 파일 제외
-/Server/.vs/
-/Server/GameServer/x64/Debug/
+# Visual Studio / IDE
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.rsuser
+*.VC.db
+*.VC.opendb
+*.vsidx
 *.ipch
+*.tlog
+
+# C/C++ build outputs
+[Bb]inaries/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+*.obj
 *.pch
+*.ilk
+*.idb
+*.pdb
+*.lib
+*.exp
+*.dll
+*.log
+*.recipe
+*.lastbuildstate
+*.FileListAbsolute.txt
+
+# OS files
+.DS_Store
+Thumbs.db

@@ -10,7 +10,7 @@ void SessionManager::AddSession(SessionRef session)
 {
 	WRITE_LOCK;
 	mSessions.insert(session);
-	mMaxSessionCount++;
+	mSessionCount++;
 	session->SetProcessConnect();
 }
 
@@ -18,7 +18,7 @@ void SessionManager::ReleaseSession(SessionRef session)
 {
 	WRITE_LOCK;
 	ASSERT_CRASH(mSessions.erase(session) != 0);
-	mMaxSessionCount--;
+	mSessionCount--;
 	//session->Disconnect();
 }
 

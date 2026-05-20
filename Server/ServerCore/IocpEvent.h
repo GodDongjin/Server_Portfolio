@@ -82,7 +82,7 @@ public:
 	SendEvent() : IocpEvent(EventType::Send) { }
 
 public:
-	vector<SendBufferRef> GetSendBuffer() { return mSendBuffers; }
+	const vector<SendBufferRef>& GetSendBuffer() { return mSendBuffers; }
 	void SendBuffersPush(SendBufferRef sendBuffer) { mSendBuffers.push_back(sendBuffer); }
 	void SendBuffersClear() { mSendBuffers.clear(); }
 private:
