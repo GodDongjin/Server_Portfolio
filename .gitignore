@@ -1,4 +1,17 @@
-# Visual Studio / IDE
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Editor / local environment
+.vscode/
+.idea/
+*.swp
+*.swo
+*.tmp
+*.temp
+
+# Visual Studio / MSBuild
 .vs/
 *.suo
 *.user
@@ -7,29 +20,78 @@
 *.rsuser
 *.VC.db
 *.VC.opendb
-*.vsidx
+*.opensdf
+*.sdf
+*.ncb
+*.aps
 *.ipch
 *.tlog
+*.log
+*.lastbuildstate
+*.FileListAbsolute.txt
 
-# C/C++ build outputs
+# C / C++ build outputs
 [Bb]inaries/
+[Bb]in/
+[Oo]bj/
 [Dd]ebug/
 [Rr]elease/
 x64/
 x86/
 *.obj
+*.iobj
 *.pch
+*.pdb
+*.ipdb
 *.ilk
 *.idb
-*.pdb
 *.lib
 *.exp
 *.dll
-*.log
+*.exe
 *.recipe
-*.lastbuildstate
-*.FileListAbsolute.txt
 
-# OS files
-.DS_Store
-Thumbs.db
+# NuGet / package restore outputs
+packages/
+.vcpkg/
+vcpkg_installed/
+
+# CMake outputs
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+compile_commands.json
+out/
+build/
+
+# Unity generated folders
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+MemoryCaptures/
+Recordings/
+
+# Unity generated files
+*.csproj
+*.unityproj
+*.sln.DotSettings.user
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+*.pidb.meta
+*.pdb.meta
+*.mdb.meta
+sysinfo.txt
+
+# Unity crash / profiler output
+*.stackdump
+*.dmp
+*.trace
