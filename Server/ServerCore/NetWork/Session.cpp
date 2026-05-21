@@ -71,37 +71,6 @@ void Session::dispatch(IocpEvent* iocpEvent, int32 numOfBytes)
 	}
 }
 
-//bool Session::RegisterConnect()
-//{
-//	if (is_connected())
-//		return false;
-//
-//	if (GetService()->get_service_type() != ServiceType::Client)
-//		return false;
-//
-//	if (SocketUtils::set_resuse_address(_socket, true) == false)
-//		return false;
-//
-//	if (SocketUtils::bind_any_address(_socket, 0) == false)
-//		return false;
-//
-//	_connect_event.init();
-//	_connect_event.set_owner(shared_from_this());
-//
-//	DWORD numOfBytes = 0;
-//	SOCKADDR_IN sockAddr = GetService()->get_net_address().get_sock_addr();
-//	if (false == SocketUtils::ConnectEx(_socket, reinterpret_cast<SOCKADDR*>(&sockAddr), sizeof(sockAddr), nullptr, 0, &numOfBytes, &_connect_event))
-//	{
-//		int32 errorCode = ::WSAGetLastError();
-//		if (errorCode != WSA_IO_PENDING)
-//		{
-//			_connect_event.set_owner(nullptr); 
-//			return false;
-//		}
-//	}
-//
-//	return true;
-//}
 
 bool Session::register_disconnect()
 {
@@ -161,7 +130,6 @@ void Session::register_send()
 			SendBufferRef sendBuffer = _send_queue.front();
 
 			writeSize += sendBuffer->get_write_size();
-			// TODO : 예외 체크
 
 			_send_queue.pop();
 			_send_event.send_Buffers_push(sendBuffer);
@@ -197,8 +165,6 @@ void Session::process_connect()
 	_connect_event.set_owner(nullptr);
 
 	_is_connect.store(true);
-
-	//on_connected();
 
 	register_recv();
 }
@@ -279,16 +245,18 @@ int32 Session::on_recv(BYTE* get_buffer, int32 len)
 	while (true)
 	{
 		int32 dataSize = len - processLen;
-		// 최소한 헤더는 파싱할 수 있어야 한다
+		
+		// 받은 패킷 크기가 header보다 작으면 문제.
 		if (dataSize < sizeof(PacketHeader))
 			break;
 
 		PacketHeader header = *(reinterpret_cast<PacketHeader*>(&get_buffer[processLen]));
-		// 헤더에 기록된 패킷 크기를 파싱할 수 있어야 한다
+		
+		// 패킷 사이즈 채크.
 		if (dataSize < header.size)
 			break;
 
-		// 패킷 조립 성공
+		// 패킷 처리 작업 진행.
 		on_recv_packet(&get_buffer[processLen], header.size);
 
 		processLen += header.size;

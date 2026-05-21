@@ -48,16 +48,16 @@ PROTOBUF_NAMESPACE_CLOSE
 namespace Protocol {
 
 enum CREATE_PLAYER_ERROR : int {
-  CREATE_PLAYER_NONE = 0,
-  CREATE_PLAYER_FAIL = 1,
-  CREATE_PLAYER_SUCCESS = 2,
-  CREATE_PLAYER_DUPLICATION = 3,
+  CREATE_USER_NONE = 0,
+  CREATE_USER_FAIL = 1,
+  CREATE_USER_SUCCESS = 2,
+  CREATE_USER_DUPLICATION = 3,
   CREATE_PLAYER_ERROR_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
   CREATE_PLAYER_ERROR_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
 };
 bool CREATE_PLAYER_ERROR_IsValid(int value);
-constexpr CREATE_PLAYER_ERROR CREATE_PLAYER_ERROR_MIN = CREATE_PLAYER_NONE;
-constexpr CREATE_PLAYER_ERROR CREATE_PLAYER_ERROR_MAX = CREATE_PLAYER_DUPLICATION;
+constexpr CREATE_PLAYER_ERROR CREATE_PLAYER_ERROR_MIN = CREATE_USER_NONE;
+constexpr CREATE_PLAYER_ERROR CREATE_PLAYER_ERROR_MAX = CREATE_USER_DUPLICATION;
 constexpr int CREATE_PLAYER_ERROR_ARRAYSIZE = CREATE_PLAYER_ERROR_MAX + 1;
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* CREATE_PLAYER_ERROR_descriptor();
@@ -73,32 +73,6 @@ inline bool CREATE_PLAYER_ERROR_Parse(
     ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, CREATE_PLAYER_ERROR* value) {
   return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<CREATE_PLAYER_ERROR>(
     CREATE_PLAYER_ERROR_descriptor(), name, value);
-}
-enum SELECT_PLAYER_ERROR : int {
-  SELECT_PLAYER_NONE = 0,
-  SELECT_PLAYER_FAIL = 1,
-  SELECT_PLAYER_SUCCESS = 2,
-  SELECT_PLAYER_ERROR_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
-  SELECT_PLAYER_ERROR_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
-};
-bool SELECT_PLAYER_ERROR_IsValid(int value);
-constexpr SELECT_PLAYER_ERROR SELECT_PLAYER_ERROR_MIN = SELECT_PLAYER_NONE;
-constexpr SELECT_PLAYER_ERROR SELECT_PLAYER_ERROR_MAX = SELECT_PLAYER_SUCCESS;
-constexpr int SELECT_PLAYER_ERROR_ARRAYSIZE = SELECT_PLAYER_ERROR_MAX + 1;
-
-const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* SELECT_PLAYER_ERROR_descriptor();
-template<typename T>
-inline const std::string& SELECT_PLAYER_ERROR_Name(T enum_t_value) {
-  static_assert(::std::is_same<T, SELECT_PLAYER_ERROR>::value ||
-    ::std::is_integral<T>::value,
-    "Incorrect type passed to function SELECT_PLAYER_ERROR_Name.");
-  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
-    SELECT_PLAYER_ERROR_descriptor(), enum_t_value);
-}
-inline bool SELECT_PLAYER_ERROR_Parse(
-    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, SELECT_PLAYER_ERROR* value) {
-  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<SELECT_PLAYER_ERROR>(
-    SELECT_PLAYER_ERROR_descriptor(), name, value);
 }
 enum ENTER_GAME_ERROR : int {
   ENTER_GAME_NONE = 0,
@@ -126,31 +100,31 @@ inline bool ENTER_GAME_ERROR_Parse(
   return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<ENTER_GAME_ERROR>(
     ENTER_GAME_ERROR_descriptor(), name, value);
 }
-enum MOVE_ERROR : int {
-  MOVE_NONE = 0,
-  MOVE_FAIL = 1,
-  MOVE_SUCCESS = 2,
-  MOVE_ERROR_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
-  MOVE_ERROR_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
+enum ENTER_ROOM_ERROR : int {
+  ENTER_ROOM_NONE = 0,
+  ENTER_ROOM_FAIL = 1,
+  ENTER_ROOM_SUCCESS = 2,
+  ENTER_ROOM_ERROR_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
+  ENTER_ROOM_ERROR_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
 };
-bool MOVE_ERROR_IsValid(int value);
-constexpr MOVE_ERROR MOVE_ERROR_MIN = MOVE_NONE;
-constexpr MOVE_ERROR MOVE_ERROR_MAX = MOVE_SUCCESS;
-constexpr int MOVE_ERROR_ARRAYSIZE = MOVE_ERROR_MAX + 1;
+bool ENTER_ROOM_ERROR_IsValid(int value);
+constexpr ENTER_ROOM_ERROR ENTER_ROOM_ERROR_MIN = ENTER_ROOM_NONE;
+constexpr ENTER_ROOM_ERROR ENTER_ROOM_ERROR_MAX = ENTER_ROOM_SUCCESS;
+constexpr int ENTER_ROOM_ERROR_ARRAYSIZE = ENTER_ROOM_ERROR_MAX + 1;
 
-const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* MOVE_ERROR_descriptor();
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* ENTER_ROOM_ERROR_descriptor();
 template<typename T>
-inline const std::string& MOVE_ERROR_Name(T enum_t_value) {
-  static_assert(::std::is_same<T, MOVE_ERROR>::value ||
+inline const std::string& ENTER_ROOM_ERROR_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, ENTER_ROOM_ERROR>::value ||
     ::std::is_integral<T>::value,
-    "Incorrect type passed to function MOVE_ERROR_Name.");
+    "Incorrect type passed to function ENTER_ROOM_ERROR_Name.");
   return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
-    MOVE_ERROR_descriptor(), enum_t_value);
+    ENTER_ROOM_ERROR_descriptor(), enum_t_value);
 }
-inline bool MOVE_ERROR_Parse(
-    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, MOVE_ERROR* value) {
-  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<MOVE_ERROR>(
-    MOVE_ERROR_descriptor(), name, value);
+inline bool ENTER_ROOM_ERROR_Parse(
+    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, ENTER_ROOM_ERROR* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<ENTER_ROOM_ERROR>(
+    ENTER_ROOM_ERROR_descriptor(), name, value);
 }
 // ===================================================================
 
@@ -179,20 +153,15 @@ template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::CREATE_PLAYER_ERROR>() {
   return ::Protocol::CREATE_PLAYER_ERROR_descriptor();
 }
-template <> struct is_proto_enum< ::Protocol::SELECT_PLAYER_ERROR> : ::std::true_type {};
-template <>
-inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::SELECT_PLAYER_ERROR>() {
-  return ::Protocol::SELECT_PLAYER_ERROR_descriptor();
-}
 template <> struct is_proto_enum< ::Protocol::ENTER_GAME_ERROR> : ::std::true_type {};
 template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::ENTER_GAME_ERROR>() {
   return ::Protocol::ENTER_GAME_ERROR_descriptor();
 }
-template <> struct is_proto_enum< ::Protocol::MOVE_ERROR> : ::std::true_type {};
+template <> struct is_proto_enum< ::Protocol::ENTER_ROOM_ERROR> : ::std::true_type {};
 template <>
-inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::MOVE_ERROR>() {
-  return ::Protocol::MOVE_ERROR_descriptor();
+inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::ENTER_ROOM_ERROR>() {
+  return ::Protocol::ENTER_ROOM_ERROR_descriptor();
 }
 
 PROTOBUF_NAMESPACE_CLOSE

@@ -8,7 +8,7 @@
 #pragma comment(lib, "Protobuf\\Release\\libprotobuf.lib")
 #endif
 
-#include "../ServerCore/CorePch.h"
+#include "../ServerCore/Utils/CorePch.h"
 
 #include "Enum.pb.h"
 #include "Struct.pb.h"

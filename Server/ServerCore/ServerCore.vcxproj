@@ -61,7 +61,8 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)Libraries\Include\mysql;$(SolutionDir)Libraries\Include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)Utils\;$(ProjectDir)DB\;$(ProjectDir)Job\;$(ProjectDir)NetWork\;$(ProjectDir)Thread\;$(SolutionDir)Libraries\Include\mysql;$(SolutionDir)Libraries\Include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -79,7 +80,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)Libraries\Include\mysql;$(SolutionDir)Libraries\Include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)Utils\;$(ProjectDir)DB\;$(ProjectDir)Job\;$(ProjectDir)NetWork\;$(ProjectDir)Thread\;$(SolutionDir)Libraries\Include\mysql;$(SolutionDir)Libraries\Include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -90,62 +91,61 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="CoreGlobal.h" />
-    <ClInclude Include="CoreMacro.h" />
-    <ClInclude Include="CorePch.h" />
-    <ClInclude Include="CoreTLS.h" />
-    <ClInclude Include="DBConnect.h" />
-    <ClInclude Include="DBEnum.h" />
-    <ClInclude Include="DBManager.h" />
-    <ClInclude Include="GlobalQueue.h" />
-    <ClInclude Include="IocpCore.h" />
-    <ClInclude Include="IocpEvent.h" />
-    <ClInclude Include="IocpObject.h" />
-    <ClInclude Include="Job.h" />
-    <ClInclude Include="JobQueue.h" />
-    <ClInclude Include="JobTimer.h" />
-    <ClInclude Include="Listener.h" />
-    <ClInclude Include="LockQueue.h" />
-    <ClInclude Include="Log.h" />
-    <ClInclude Include="NetAddress.h" />
-    <ClInclude Include="pch.h" />
-    <ClInclude Include="RecvBuffer.h" />
-    <ClInclude Include="SendBuffer.h" />
-    <ClInclude Include="Service.h" />
-    <ClInclude Include="Session.h" />
-    <ClInclude Include="SessionManager.h" />
-    <ClInclude Include="SocketUtils.h" />
-    <ClInclude Include="ThreadManager.h" />
-    <ClInclude Include="Types.h" />
+    <ClInclude Include="DB\DBConnect.h" />
+    <ClInclude Include="DB\DBEnum.h" />
+    <ClInclude Include="DB\DBManager.h" />
+    <ClInclude Include="Job\GlobalQueue.h" />
+    <ClInclude Include="Job\Job.h" />
+    <ClInclude Include="Job\JobQueue.h" />
+    <ClInclude Include="Job\JobTimer.h" />
+    <ClInclude Include="NetWork\IocpCore.h" />
+    <ClInclude Include="NetWork\IocpEvent.h" />
+    <ClInclude Include="NetWork\IocpObject.h" />
+    <ClInclude Include="NetWork\Listener.h" />
+    <ClInclude Include="NetWork\NetAddress.h" />
+    <ClInclude Include="NetWork\RecvBuffer.h" />
+    <ClInclude Include="NetWork\SendBuffer.h" />
+    <ClInclude Include="NetWork\Service.h" />
+    <ClInclude Include="NetWork\Session.h" />
+    <ClInclude Include="NetWork\SessionManager.h" />
+    <ClInclude Include="Thread\ThreadManager.h" />
+    <ClInclude Include="Utils\CoreGlobal.h" />
+    <ClInclude Include="Utils\CoreMacro.h" />
+    <ClInclude Include="Utils\CorePch.h" />
+    <ClInclude Include="Utils\CoreTLS.h" />
+    <ClInclude Include="Utils\LockQueue.h" />
+    <ClInclude Include="Utils\Logger.h" />
+    <ClInclude Include="Utils\pch.h" />
+    <ClInclude Include="Utils\SocketUtils.h" />
+    <ClInclude Include="Utils\Types.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CoreGlobal.cpp" />
-    <ClCompile Include="CorePch.cpp" />
-    <ClCompile Include="CoreTLS.cpp" />
-    <ClCompile Include="DBConnect.cpp">
+    <ClCompile Include="DB\DBConnect.cpp" />
+    <ClCompile Include="DB\DBManager.cpp" />
+    <ClCompile Include="Job\GlobalQueue.cpp" />
+    <ClCompile Include="Job\JobQueue.cpp" />
+    <ClCompile Include="Job\JobTimer.cpp" />
+    <ClCompile Include="NetWork\IocpCore.cpp" />
+    <ClCompile Include="NetWork\IocpEvent.cpp" />
+    <ClCompile Include="NetWork\Listener.cpp" />
+    <ClCompile Include="NetWork\NetAddress.cpp" />
+    <ClCompile Include="NetWork\RecvBuffer.cpp" />
+    <ClCompile Include="NetWork\SendBuffer.cpp" />
+    <ClCompile Include="NetWork\Service.cpp" />
+    <ClCompile Include="NetWork\Session.cpp" />
+    <ClCompile Include="NetWork\SessionManager.cpp" />
+    <ClCompile Include="Thread\ThreadManager.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="DBManager.cpp" />
-    <ClCompile Include="GlobalQueue.cpp" />
-    <ClCompile Include="IocpCore.cpp" />
-    <ClCompile Include="IocpEvent.cpp" />
-    <ClCompile Include="JobQueue.cpp" />
-    <ClCompile Include="JobTimer.cpp" />
-    <ClCompile Include="Listener.cpp" />
-    <ClCompile Include="Log.cpp" />
-    <ClCompile Include="NetAddress.cpp" />
-    <ClCompile Include="pch.cpp">
+    <ClCompile Include="Utils\CoreGlobal.cpp" />
+    <ClCompile Include="Utils\CorePch.cpp" />
+    <ClCompile Include="Utils\CoreTLS.cpp" />
+    <ClCompile Include="Utils\Logger.cpp" />
+    <ClCompile Include="Utils\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="RecvBuffer.cpp" />
-    <ClCompile Include="SendBuffer.cpp" />
-    <ClCompile Include="Service.cpp" />
-    <ClCompile Include="Session.cpp" />
-    <ClCompile Include="SessionManager.cpp" />
-    <ClCompile Include="SocketUtils.cpp" />
-    <ClCompile Include="ThreadManager.cpp" />
+    <ClCompile Include="Utils\SocketUtils.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

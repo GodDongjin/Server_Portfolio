@@ -1,9 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Main">
-      <UniqueIdentifier>{ba3c8480-e46d-42b1-bde2-75eac7d5af07}</UniqueIdentifier>
-    </Filter>
     <Filter Include="NetWork">
       <UniqueIdentifier>{feec0dc8-568d-42b0-8082-60da43ee64a6}</UniqueIdentifier>
     </Filter>
@@ -22,152 +19,153 @@
     <Filter Include="DB">
       <UniqueIdentifier>{f94f9b8d-4723-4fe1-be3d-e9f25e029af9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Log">
-      <UniqueIdentifier>{7e9143eb-7777-4681-b4e7-508210aead45}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="pch.cpp">
-      <Filter>Main</Filter>
+    <ClCompile Include="DB\DBConnect.cpp">
+      <Filter>DB</Filter>
     </ClCompile>
-    <ClCompile Include="CorePch.cpp">
-      <Filter>Main</Filter>
+    <ClCompile Include="DB\DBManager.cpp">
+      <Filter>DB</Filter>
     </ClCompile>
-    <ClCompile Include="SocketUtils.cpp">
+    <ClCompile Include="Job\GlobalQueue.cpp">
+      <Filter>Job</Filter>
+    </ClCompile>
+    <ClCompile Include="Job\JobQueue.cpp">
+      <Filter>Job</Filter>
+    </ClCompile>
+    <ClCompile Include="Job\JobTimer.cpp">
+      <Filter>Job</Filter>
+    </ClCompile>
+    <ClCompile Include="NetWork\IocpCore.cpp">
       <Filter>NetWork</Filter>
     </ClCompile>
-    <ClCompile Include="NetAddress.cpp">
+    <ClCompile Include="NetWork\IocpEvent.cpp">
       <Filter>NetWork</Filter>
     </ClCompile>
-    <ClCompile Include="IocpCore.cpp">
+    <ClCompile Include="NetWork\Listener.cpp">
       <Filter>NetWork</Filter>
     </ClCompile>
-    <ClCompile Include="IocpEvent.cpp">
+    <ClCompile Include="NetWork\NetAddress.cpp">
       <Filter>NetWork</Filter>
     </ClCompile>
-    <ClCompile Include="Listener.cpp">
+    <ClCompile Include="NetWork\RecvBuffer.cpp">
       <Filter>NetWork</Filter>
     </ClCompile>
-    <ClCompile Include="Service.cpp">
+    <ClCompile Include="NetWork\SendBuffer.cpp">
       <Filter>NetWork</Filter>
     </ClCompile>
-    <ClCompile Include="RecvBuffer.cpp">
+    <ClCompile Include="NetWork\Service.cpp">
       <Filter>NetWork</Filter>
     </ClCompile>
-    <ClCompile Include="SendBuffer.cpp">
+    <ClCompile Include="NetWork\Session.cpp">
       <Filter>NetWork</Filter>
     </ClCompile>
-    <ClCompile Include="ThreadManager.cpp">
+    <ClCompile Include="NetWork\SessionManager.cpp">
+      <Filter>NetWork</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\CoreGlobal.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\CorePch.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\CoreTLS.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\Logger.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\pch.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\SocketUtils.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Thread\ThreadManager.cpp">
       <Filter>Thread</Filter>
     </ClCompile>
-    <ClCompile Include="JobQueue.cpp">
-      <Filter>Job</Filter>
-    </ClCompile>
-    <ClCompile Include="JobTimer.cpp">
-      <Filter>Job</Filter>
-    </ClCompile>
-    <ClCompile Include="CoreGlobal.cpp">
-      <Filter>Main</Filter>
-    </ClCompile>
-    <ClCompile Include="GlobalQueue.cpp">
-      <Filter>Job</Filter>
-    </ClCompile>
-    <ClCompile Include="CoreTLS.cpp">
-      <Filter>Main</Filter>
-    </ClCompile>
-    <ClCompile Include="SessionManager.cpp">
-      <Filter>NetWork</Filter>
-    </ClCompile>
-    <ClCompile Include="DBConnect.cpp">
-      <Filter>DB</Filter>
-    </ClCompile>
-    <ClCompile Include="DBManager.cpp">
-      <Filter>DB</Filter>
-    </ClCompile>
-    <ClCompile Include="Session.cpp">
-      <Filter>NetWork</Filter>
-    </ClCompile>
-    <ClCompile Include="Log.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="pch.h">
-      <Filter>Main</Filter>
+    <ClInclude Include="DB\DBConnect.h">
+      <Filter>DB</Filter>
     </ClInclude>
-    <ClInclude Include="CorePch.h">
-      <Filter>Main</Filter>
+    <ClInclude Include="DB\DBEnum.h">
+      <Filter>DB</Filter>
     </ClInclude>
-    <ClInclude Include="SocketUtils.h">
-      <Filter>NetWork</Filter>
+    <ClInclude Include="DB\DBManager.h">
+      <Filter>DB</Filter>
     </ClInclude>
-    <ClInclude Include="CoreMacro.h">
-      <Filter>Main</Filter>
-    </ClInclude>
-    <ClInclude Include="Types.h">
-      <Filter>Main</Filter>
-    </ClInclude>
-    <ClInclude Include="NetAddress.h">
-      <Filter>NetWork</Filter>
-    </ClInclude>
-    <ClInclude Include="IocpCore.h">
-      <Filter>NetWork</Filter>
-    </ClInclude>
-    <ClInclude Include="IocpObject.h">
-      <Filter>NetWork</Filter>
-    </ClInclude>
-    <ClInclude Include="IocpEvent.h">
-      <Filter>NetWork</Filter>
-    </ClInclude>
-    <ClInclude Include="Listener.h">
-      <Filter>NetWork</Filter>
-    </ClInclude>
-    <ClInclude Include="Service.h">
-      <Filter>NetWork</Filter>
-    </ClInclude>
-    <ClInclude Include="RecvBuffer.h">
-      <Filter>NetWork</Filter>
-    </ClInclude>
-    <ClInclude Include="SendBuffer.h">
-      <Filter>NetWork</Filter>
-    </ClInclude>
-    <ClInclude Include="ThreadManager.h">
-      <Filter>Thread</Filter>
-    </ClInclude>
-    <ClInclude Include="Job.h">
+    <ClInclude Include="Job\GlobalQueue.h">
       <Filter>Job</Filter>
     </ClInclude>
-    <ClInclude Include="JobQueue.h">
+    <ClInclude Include="Job\Job.h">
       <Filter>Job</Filter>
     </ClInclude>
-    <ClInclude Include="LockQueue.h">
+    <ClInclude Include="Job\JobQueue.h">
+      <Filter>Job</Filter>
+    </ClInclude>
+    <ClInclude Include="Job\JobTimer.h">
+      <Filter>Job</Filter>
+    </ClInclude>
+    <ClInclude Include="NetWork\IocpCore.h">
+      <Filter>NetWork</Filter>
+    </ClInclude>
+    <ClInclude Include="NetWork\IocpEvent.h">
+      <Filter>NetWork</Filter>
+    </ClInclude>
+    <ClInclude Include="NetWork\IocpObject.h">
+      <Filter>NetWork</Filter>
+    </ClInclude>
+    <ClInclude Include="NetWork\Listener.h">
+      <Filter>NetWork</Filter>
+    </ClInclude>
+    <ClInclude Include="NetWork\NetAddress.h">
+      <Filter>NetWork</Filter>
+    </ClInclude>
+    <ClInclude Include="NetWork\RecvBuffer.h">
+      <Filter>NetWork</Filter>
+    </ClInclude>
+    <ClInclude Include="NetWork\SendBuffer.h">
+      <Filter>NetWork</Filter>
+    </ClInclude>
+    <ClInclude Include="NetWork\Service.h">
+      <Filter>NetWork</Filter>
+    </ClInclude>
+    <ClInclude Include="NetWork\Session.h">
+      <Filter>NetWork</Filter>
+    </ClInclude>
+    <ClInclude Include="NetWork\SessionManager.h">
+      <Filter>NetWork</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\CoreGlobal.h">
       <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="JobTimer.h">
-      <Filter>Job</Filter>
+    <ClInclude Include="Utils\CoreMacro.h">
+      <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="CoreGlobal.h">
-      <Filter>Main</Filter>
+    <ClInclude Include="Utils\CorePch.h">
+      <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="GlobalQueue.h">
-      <Filter>Job</Filter>
+    <ClInclude Include="Utils\CoreTLS.h">
+      <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="CoreTLS.h">
-      <Filter>Main</Filter>
+    <ClInclude Include="Utils\LockQueue.h">
+      <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="SessionManager.h">
-      <Filter>NetWork</Filter>
+    <ClInclude Include="Utils\Logger.h">
+      <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="DBConnect.h">
-      <Filter>DB</Filter>
+    <ClInclude Include="Utils\pch.h">
+      <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="DBManager.h">
-      <Filter>DB</Filter>
+    <ClInclude Include="Utils\SocketUtils.h">
+      <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="Session.h">
-      <Filter>NetWork</Filter>
+    <ClInclude Include="Thread\ThreadManager.h">
+      <Filter>Thread</Filter>
     </ClInclude>
-    <ClInclude Include="DBEnum.h">
-      <Filter>DB</Filter>
+    <ClInclude Include="Utils\Types.h">
+      <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="Log.h" />
   </ItemGroup>
 </Project>

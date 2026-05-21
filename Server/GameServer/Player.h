@@ -1,5 +1,5 @@
 #pragma once
-#include "../ServerCore/Session.h"
+#include "../ServerCore/NetWork/Session.h"
 #include "../GameServer/Struct.pb.h"
 
 

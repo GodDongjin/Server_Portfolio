@@ -1,8 +1,10 @@
 #include "pch.h"
-#include "../ServerCore/ThreadManager.h"
-#include "../ServerCore/Service.h"
-#include "../ServerCore/DBManager.h"
-#include "../ServerCore/IocpCore.h"
+#include "../ServerCore/NetWork/Service.h"
+#include "../ServerCore/NetWork/IocpCore.h"
+#include "../ServerCore/DB/DBManager.h"
+#include "../ServerCore/Thread/ThreadManager.h"
+#include "../ServerCore/Utils/Logger.h"
+
 #include "GameSession.h"
 #include "ServerPacketHandler.h"
 #include "PlayerManager.h"
@@ -28,7 +30,9 @@ void do_worker_job(ServerServiceRef& service)
 
 int main()
 {
-	//ServerPacketHandler::Init();
+	ServerPacketHandler::Init();
+
+	GLogger->init("./Log");
 
 	ServerServiceRef service = make_shared<ServerService>(
 		NetAddress(L"127.0.0.1", 7777),
@@ -38,6 +42,8 @@ int main()
 
 	ASSERT_CRASH(service->start());
 	////ASSERT_CRASH(GDBManager->DBConnectStart());
+
+	
 
 	for (int32 i = 0; i < 5; i++)
 	{

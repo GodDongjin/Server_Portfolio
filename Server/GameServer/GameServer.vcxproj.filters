@@ -16,6 +16,9 @@
     <Filter Include="Protobuf">
       <UniqueIdentifier>{6abe9302-c4eb-47d2-ad53-0a2b21623b65}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Packet">
+      <UniqueIdentifier>{78c0f86d-ba50-40ef-b7e5-ee6b1bb445d8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GameServer.cpp">
@@ -42,11 +45,11 @@
     <ClCompile Include="Struct.pb.cc">
       <Filter>Protobuf</Filter>
     </ClCompile>
-    <ClCompile Include="ServerPacketHandler.cpp">
-      <Filter>Protobuf</Filter>
-    </ClCompile>
     <ClCompile Include="GameSession.cpp">
       <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="ServerPacketHandler.cpp">
+      <Filter>Packet</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -71,11 +74,11 @@
     <ClInclude Include="Struct.pb.h">
       <Filter>Protobuf</Filter>
     </ClInclude>
-    <ClInclude Include="ServerPacketHandler.h">
-      <Filter>Protobuf</Filter>
-    </ClInclude>
     <ClInclude Include="GameSession.h">
       <Filter>Main</Filter>
+    </ClInclude>
+    <ClInclude Include="ServerPacketHandler.h">
+      <Filter>Packet</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -22,28 +22,26 @@ namespace _pbi = _pb::internal;
 
 namespace Protocol {
 }  // namespace Protocol
-static const ::_pb::EnumDescriptor* file_level_enum_descriptors_Enum_2eproto[4];
+static const ::_pb::EnumDescriptor* file_level_enum_descriptors_Enum_2eproto[3];
 static constexpr ::_pb::ServiceDescriptor const** file_level_service_descriptors_Enum_2eproto = nullptr;
 const uint32_t TableStruct_Enum_2eproto::offsets[1] = {};
 static constexpr ::_pbi::MigrationSchema* schemas = nullptr;
 static constexpr ::_pb::Message* const* file_default_instances = nullptr;
 
 const char descriptor_table_protodef_Enum_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
-  "\n\nEnum.proto\022\010Protocol*\177\n\023CREATE_PLAYER_"
-  "ERROR\022\026\n\022CREATE_PLAYER_NONE\020\000\022\026\n\022CREATE_"
-  "PLAYER_FAIL\020\001\022\031\n\025CREATE_PLAYER_SUCCESS\020\002"
-  "\022\035\n\031CREATE_PLAYER_DUPLICATION\020\003*`\n\023SELEC"
-  "T_PLAYER_ERROR\022\026\n\022SELECT_PLAYER_NONE\020\000\022\026"
-  "\n\022SELECT_PLAYER_FAIL\020\001\022\031\n\025SELECT_PLAYER_"
-  "SUCCESS\020\002*T\n\020ENTER_GAME_ERROR\022\023\n\017ENTER_G"
-  "AME_NONE\020\000\022\023\n\017ENTER_GAME_FAIL\020\001\022\026\n\022ENTER"
-  "_GAME_SUCCESS\020\002*<\n\nMOVE_ERROR\022\r\n\tMOVE_NO"
-  "NE\020\000\022\r\n\tMOVE_FAIL\020\001\022\020\n\014MOVE_SUCCESS\020\002b\006p"
-  "roto3"
+  "\n\nEnum.proto\022\010Protocol*w\n\023CREATE_PLAYER_"
+  "ERROR\022\024\n\020CREATE_USER_NONE\020\000\022\024\n\020CREATE_US"
+  "ER_FAIL\020\001\022\027\n\023CREATE_USER_SUCCESS\020\002\022\033\n\027CR"
+  "EATE_USER_DUPLICATION\020\003*T\n\020ENTER_GAME_ER"
+  "ROR\022\023\n\017ENTER_GAME_NONE\020\000\022\023\n\017ENTER_GAME_F"
+  "AIL\020\001\022\026\n\022ENTER_GAME_SUCCESS\020\002*T\n\020ENTER_R"
+  "OOM_ERROR\022\023\n\017ENTER_ROOM_NONE\020\000\022\023\n\017ENTER_"
+  "ROOM_FAIL\020\001\022\026\n\022ENTER_ROOM_SUCCESS\020\002b\006pro"
+  "to3"
   ;
 static ::_pbi::once_flag descriptor_table_Enum_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_Enum_2eproto = {
-    false, false, 405, descriptor_table_protodef_Enum_2eproto,
+    false, false, 323, descriptor_table_protodef_Enum_2eproto,
     "Enum.proto",
     &descriptor_table_Enum_2eproto_once, nullptr, 0, 0,
     schemas, file_default_instances, TableStruct_Enum_2eproto::offsets,
@@ -73,24 +71,9 @@ bool CREATE_PLAYER_ERROR_IsValid(int value) {
   }
 }
 
-const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* SELECT_PLAYER_ERROR_descriptor() {
-  ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_Enum_2eproto);
-  return file_level_enum_descriptors_Enum_2eproto[1];
-}
-bool SELECT_PLAYER_ERROR_IsValid(int value) {
-  switch (value) {
-    case 0:
-    case 1:
-    case 2:
-      return true;
-    default:
-      return false;
-  }
-}
-
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* ENTER_GAME_ERROR_descriptor() {
   ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_Enum_2eproto);
-  return file_level_enum_descriptors_Enum_2eproto[2];
+  return file_level_enum_descriptors_Enum_2eproto[1];
 }
 bool ENTER_GAME_ERROR_IsValid(int value) {
   switch (value) {
@@ -103,11 +86,11 @@ bool ENTER_GAME_ERROR_IsValid(int value) {
   }
 }
 
-const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* MOVE_ERROR_descriptor() {
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* ENTER_ROOM_ERROR_descriptor() {
   ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_Enum_2eproto);
-  return file_level_enum_descriptors_Enum_2eproto[3];
+  return file_level_enum_descriptors_Enum_2eproto[2];
 }
-bool MOVE_ERROR_IsValid(int value) {
+bool ENTER_ROOM_ERROR_IsValid(int value) {
   switch (value) {
     case 0:
     case 1:

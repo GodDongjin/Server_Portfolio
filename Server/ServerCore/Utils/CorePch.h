@@ -4,6 +4,7 @@
 #include "CoreMacro.h"
 #include "CoreTLS.h"
 #include "CoreGlobal.h"
+#include "Logger.h"
 
 #include <array>
 #include <vector>
@@ -17,8 +18,11 @@
 #include <codecvt>
 
 #include <windows.h>
-#include <iostream>
 #include <assert.h>
+#include <iostream>
+#include <fstream>
+#include <filesystem>
+#include <ctime>
 
 using namespace std;
 

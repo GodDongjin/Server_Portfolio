@@ -36,10 +36,12 @@ bool DBManager::send_packet(SQLHSTMT& hStmt, SQLRETURN& _retcode)
 std::wstring SQLCharToWString(SQLCHAR* sqlCharStr, size_t length) {
     // SQLCHAR 배열을 string으로 변환
     std::string str(reinterpret_cast<char*>(sqlCharStr), length);
-
+    
     // UTF-8에서 UTF-16(wstring)으로 변환
-    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-    return converter.from_bytes(str);
+    wstring wstr;
+    wstr.assign(str.begin(), str.end());
+
+    return wstr;
 }
 
 bool DBManager::insert_accession(wstring id, wstring password)

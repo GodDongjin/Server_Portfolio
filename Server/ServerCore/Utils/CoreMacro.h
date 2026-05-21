@@ -35,9 +35,18 @@
 }
 
 /*---------------
-	  send
+	  Send
 ---------------*/
 
 #define SEND_PACKET(pkt)												\
 	SendBufferRef sendBuffer = ServerPacketHandler::MakeSendBuffer(pkt); \
 	session->send(sendBuffer);
+
+
+/*---------------
+	  Log
+---------------*/
+#define DEBUG_LOG(message) GLogger->write(LogLevel::LOG_DEBUG, message)
+#define INFO_LOG(message)  GLogger->write(LogLevel::LOG_INFO, message)
+#define WARN_LOG(message)  GLogger->write(LogLevel::LOG_WARN, message)
+#define ERROR_LOG(message) GLogger->write(LogLevel::LOG_ERROR, message)	

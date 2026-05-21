@@ -12,7 +12,7 @@ Listener::~Listener()
 	for (AcceptEvent* acceptEvent : _accept_events)
 	{
 		// TODO
-
+		
 		delete(acceptEvent);
 	}
 }
@@ -50,6 +50,8 @@ bool Listener::start_accept(ServerServiceRef service)
 		_accept_events.push_back(acceptEvent);
 		register_accept(acceptEvent);
 	}
+	INFO_LOG("start accept");
+	cout << "start accept" << endl;
 
 	return true;
 }
@@ -108,7 +110,7 @@ void Listener::process_accept(AcceptEvent* acceptEvent)
 		return;
 	}
 
-	cout << "Success Accept" << endl;
+	INFO_LOG("Success Accept");
 
 	session->set_net_address(NetAddress(sockAddress));
 	//session->set_process_connect();
