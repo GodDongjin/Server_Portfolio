@@ -63,3 +63,10 @@ bool Handle_C_LOGIN(SessionRef& session, Protocol::C_LOGIN& pkt)
 	return true;
 }
 
+bool Handle_C_CHAR(SessionRef& session, Protocol::C_CHAR& pkt)
+{
+	cout << "Session ID : " << session->get_account_idx() << " - " << pkt.message() << endl;
+
+	return true;
+}
+

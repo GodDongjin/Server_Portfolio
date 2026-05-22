@@ -10,10 +10,13 @@ enum : uint16
 {
 	PKT_C_LOGIN = 1000,
 	PKT_S_LOGIN = 1001,
+	PKT_C_CHAR = 1002,
+	PKT_S_CHAR = 1003,
 };
 
 bool Handle_INVALID(SessionRef& session, BYTE* buffer, int32 len);
 bool Handle_C_LOGIN(SessionRef& session, Protocol::C_LOGIN& pkt);
+bool Handle_C_CHAR(SessionRef& session, Protocol::C_CHAR& pkt);
 
 class ServerPacketHandler
 {
@@ -23,6 +26,7 @@ public:
 		for (int32 i = 0; i < UINT16_MAX; i++)
 			GPacketHandler[i] = Handle_INVALID;
 		GPacketHandler[PKT_C_LOGIN] = [](SessionRef& session, BYTE* buffer, int32 len) { return HandlePacket<Protocol::C_LOGIN>(Handle_C_LOGIN, session, buffer, len); };
+		GPacketHandler[PKT_C_CHAR] = [](SessionRef& session, BYTE* buffer, int32 len) { return HandlePacket<Protocol::C_CHAR>(Handle_C_CHAR, session, buffer, len); };
 	}
 
 	static bool HandlePacket(SessionRef& session, BYTE* buffer, int32 len)
@@ -31,6 +35,7 @@ public:
 		return GPacketHandler[header->id](session, buffer, len);
 	}
 	static SendBufferRef MakeSendBuffer(Protocol::S_LOGIN& pkt) { return MakeSendBuffer(pkt, PKT_S_LOGIN); }
+	static SendBufferRef MakeSendBuffer(Protocol::S_CHAR& pkt) { return MakeSendBuffer(pkt, PKT_S_CHAR); }
 
 private:
 	template<typename PacketType, typename ProcessFunc>

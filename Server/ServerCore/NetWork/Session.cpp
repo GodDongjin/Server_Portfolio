@@ -2,7 +2,6 @@
 #include "Session.h"
 #include "SocketUtils.h"
 #include "SendBuffer.h"
-//#include "ServerPacketHandler.h"
 
 Session::Session() : _recv_buffer(BUFFER_SIZE)
 {
@@ -124,12 +123,13 @@ void Session::register_send()
 	_send_event.set_owner(shared_from_this());
 
 	{
-		int32 writeSize = 0;
+		//int32 writeSize = 0;
 		while (_send_queue.empty() == false)
 		{
+			// 뭔가 수정 필요.
 			SendBufferRef sendBuffer = _send_queue.front();
 
-			writeSize += sendBuffer->get_write_size();
+			//writeSize += sendBuffer->get_write_size();
 
 			_send_queue.pop();
 			_send_event.send_Buffers_push(sendBuffer);

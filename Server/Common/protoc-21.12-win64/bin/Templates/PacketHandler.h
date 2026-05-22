@@ -1,7 +1,7 @@
 #pragma once
 #include "Protocol.pb.h"
-#include "Session.h"
-#include "SendBuffer.h"
+#include "../ServerCore/NetWork/Session.h"
+#include "../ServerCore/NetWork/SendBuffer.h"
 
 using PacketHandlerFunc = std::function<bool(SessionRef&, BYTE*, int32)>;
 extern PacketHandlerFunc GPacketHandler[UINT16_MAX];
@@ -60,11 +60,11 @@ private:
 		const uint16 packetSize = dataSize + sizeof(PacketHeader);
 
 		SendBufferRef sendBuffer = make_shared<SendBuffer>(packetSize);
-		PacketHeader* header = reinterpret_cast<PacketHeader*>(sendBuffer->Buffer());
+		PacketHeader* header = reinterpret_cast<PacketHeader*>(sendBuffer->get_buffer());
 		header->size = packetSize;
 		header->id = pktId;
 		pkt.SerializeToArray(&header[1], dataSize);
-		sendBuffer->Close(packetSize);
+		sendBuffer->close(packetSize);
 
 		return sendBuffer;
 	}

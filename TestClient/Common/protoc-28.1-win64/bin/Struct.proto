@@ -1,0 +1,13 @@
+syntax = "proto3";
+package Protocol;
+
+message SessionInfo
+{
+	uint64 session_id = 1;
+}
+
+message UserInfo
+{
+	uint64 user_idx = 1;
+	string player_name = 2;
+}

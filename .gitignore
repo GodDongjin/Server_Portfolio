@@ -95,3 +95,26 @@ sysinfo.txt
 *.stackdump
 *.dmp
 *.trace
+
+# Project-shipped third-party binaries needed to build TestClient
+!TestClient/Libraries/Libs/
+!TestClient/Libraries/Libs/Protobuf/
+!TestClient/Libraries/Libs/Protobuf/Debug/
+!TestClient/Libraries/Libs/Protobuf/Debug/libprotobufd.lib
+!TestClient/Libraries/Libs/Protobuf/Release/
+!TestClient/Libraries/Libs/Protobuf/Release/libprotobuf.lib
+!TestClient/Common/protoc-28.1-win64/bin/
+!TestClient/Common/protoc-28.1-win64/bin/protoc.exe
+!TestClient/Common/protoc-28.1-win64/bin/GenPackets.exe
+!TestClient/Common/protoc-28.1-win64/bin/protocol.bat
+!TestClient/Common/protoc-28.1-win64/bin/*.proto
+!TestClient/Common/protoc-28.1-win64/bin/Templates/
+!TestClient/Common/protoc-28.1-win64/bin/Templates/*.h
+
+# Generated C# protocol files are not used by the C++ TestClient
+TestClient/TestClient/Protocol/*.cs
+
+# Runtime logs
+*.log
+*.txt.log
+Server/GameServer/Log/

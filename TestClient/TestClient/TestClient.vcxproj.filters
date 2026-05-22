@@ -16,6 +16,12 @@
     <Filter Include="Buffer">
       <UniqueIdentifier>{3e26586f-ddba-45bc-a95b-bdec8657541c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Protocol">
+      <UniqueIdentifier>{d5188cfa-43a4-4af8-be8a-6514d8b73ef5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Packet">
+      <UniqueIdentifier>{641facb8-1caf-48dd-bef3-6d50b92e1728}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Session\TestSession.h">
@@ -29,6 +35,24 @@
     </ClInclude>
     <ClInclude Include="Buffer\SendBuffer.h">
       <Filter>Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="NetWork\ClientServer.h">
+      <Filter>NetWork</Filter>
+    </ClInclude>
+    <ClInclude Include="Protocol\Enum.pb.h">
+      <Filter>Protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Protocol\Protocol.pb.h">
+      <Filter>Protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Protocol\Struct.pb.h">
+      <Filter>Protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Packet\ClientPacketHandler.h">
+      <Filter>Packet</Filter>
+    </ClInclude>
+    <ClInclude Include="NetWork\IocpEvent.h">
+      <Filter>NetWork</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -44,5 +68,28 @@
     <ClCompile Include="Buffer\SendBuffer.cpp">
       <Filter>Buffer</Filter>
     </ClCompile>
+    <ClCompile Include="NetWork\ClientServer.cpp">
+      <Filter>NetWork</Filter>
+    </ClCompile>
+    <ClCompile Include="Protocol\Enum.pb.cc">
+      <Filter>Protocol</Filter>
+    </ClCompile>
+    <ClCompile Include="Protocol\Protocol.pb.cc">
+      <Filter>Protocol</Filter>
+    </ClCompile>
+    <ClCompile Include="Protocol\Struct.pb.cc">
+      <Filter>Protocol</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Common\protoc-28.1-win64\bin\Enum.proto">
+      <Filter>Protocol</Filter>
+    </None>
+    <None Include="..\Common\protoc-28.1-win64\bin\protocol.proto">
+      <Filter>Protocol</Filter>
+    </None>
+    <None Include="..\Common\protoc-28.1-win64\bin\Struct.proto">
+      <Filter>Protocol</Filter>
+    </None>
   </ItemGroup>
 </Project>

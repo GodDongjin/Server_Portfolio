@@ -1,25 +1,34 @@
 #pragma once
 
-#include <iostream>
-
+#include "../Utils/Types.h"
+#include "../NetWork/ClientServer.h"
 #include "../Session/TestSession.h"
-
-#pragma comment(lib, "Ws2_32.lib")
 
 int main()
 {
-	TestSession test_session;
+	WSADATA wsaData;
+	if (::WSAStartup(MAKEWORD(2, 2), OUT & wsaData))
+	{
+		cout << "WSAStartup failed : " << WSAGetLastError() << endl;
+		WSACleanup();
+		return false;
+	}
+
+	ClientServer server;
+	SOCKADDR_IN server_addr;
+	server_addr = server.start_server(L"127.0.0.1", 7777);
+
+	vector<shared_ptr<TestSession>> sessions;
 
 	for (int i = 0; i < 1000; i++)
 	{
-		if (!test_session.connect(L"127.0.0.1", 7777))
-		{
-			cout << "connect failed" << endl;
-			return 0;
-		}
-	}
+		auto session = make_shared<TestSession>();
 
-	
+		if (!session->connect(server_addr))
+			continue;
+
+		sessions.push_back(session);
+	}
 
 	while (true)
 	{

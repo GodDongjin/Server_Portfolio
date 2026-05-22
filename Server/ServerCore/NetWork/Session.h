@@ -5,12 +5,6 @@
 #include "NetAddress.h"
 #include "RecvBuffer.h"
 
-struct PacketHeader
-{
-	uint16 size;
-	uint16 id;
-};
-
 class Session : public IocpObject
 {
 	enum
