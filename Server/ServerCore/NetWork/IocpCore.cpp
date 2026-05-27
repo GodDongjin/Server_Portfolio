@@ -27,6 +27,11 @@ bool IocpCore::dispatch(uint32 timeoutMs)
 
 	if (::GetQueuedCompletionStatus(_iocp_handle, OUT & numOfBytes, OUT & key, OUT reinterpret_cast<LPOVERLAPPED*>(&iocpEvent), timeoutMs))
 	{
+		if (iocpEvent == nullptr) {
+			ERROR_LOG("GetQueuedCompletionStatus ERROR");
+			return false;
+		}
+
 		IocpObjectRef iocpObject = iocpEvent->get_owner();
 		iocpObject->dispatch(iocpEvent, numOfBytes);
 	}

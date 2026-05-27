@@ -1,9 +1,10 @@
 #pragma once
 #include "IocpEvent.h"
-#include "Service.h"
 #include "IocpObject.h"
 #include "NetAddress.h"
 #include "RecvBuffer.h"
+
+class Service;
 
 class Session : public IocpObject
 {
@@ -18,7 +19,7 @@ public:
 
 public:
 	void				send(SendBufferRef sendBuffer);
-	void				disconnect(const WCHAR* cause);
+	void				disconnect();
 	void				set_process_connect() { this->process_connect(); }
 
 public:
@@ -31,10 +32,12 @@ public:
 
 	SessionRef			get_session() { return static_pointer_cast<Session>(shared_from_this()); }
 
-	RecvBuffer			get_recv_buffer() { return _recv_buffer; }
+	RecvBuffer&			get_recv_buffer() { return _recv_buffer; }
 
 	void				get_account_idx(uint64 idx) { _account_idx = idx; }
 	uint64				get_account_idx() { return _account_idx; }
+
+	void set_service(shared_ptr<Service> sevice) { _service = sevice; }
 
 private:
 	virtual HANDLE		get_handle() override;
@@ -63,6 +66,7 @@ private:
 	atomic<bool>		_is_connect = false;
 	uint64				_account_idx = 0;
 
+	weak_ptr<Service> _service;
 private:
 	USE_LOCK;
 	RecvBuffer				_recv_buffer;

@@ -67,6 +67,11 @@ bool Handle_C_CHAR(SessionRef& session, Protocol::C_CHAR& pkt)
 {
 	cout << "Session ID : " << session->get_account_idx() << " - " << pkt.message() << endl;
 
+	Protocol::S_CHAR chat_pkt;
+
+	chat_pkt.set_message(pkt.message());
+
+	SEND_PACKET(chat_pkt);
 	return true;
 }
 

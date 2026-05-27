@@ -35,6 +35,7 @@
     <ClCompile Include="Buffer\SendBuffer.cpp" />
     <ClCompile Include="Main\main.cpp" />
     <ClCompile Include="NetWork\ClientServer.cpp" />
+    <ClCompile Include="Packet\ClientPacketHandler.cpp" />
     <ClCompile Include="Protocol\Enum.pb.cc">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch.h</PrecompiledHeaderFile>
     </ClCompile>

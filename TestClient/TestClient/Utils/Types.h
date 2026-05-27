@@ -30,6 +30,8 @@
 #include <filesystem>
 #include <ctime>
 
+#include <memory>
+
 #pragma comment(lib, "ws2_32.lib")
 
 using namespace std;

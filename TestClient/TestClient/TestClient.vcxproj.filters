@@ -80,6 +80,9 @@
     <ClCompile Include="Protocol\Struct.pb.cc">
       <Filter>Protocol</Filter>
     </ClCompile>
+    <ClCompile Include="Packet\ClientPacketHandler.cpp">
+      <Filter>Packet</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Common\protoc-28.1-win64\bin\Enum.proto">

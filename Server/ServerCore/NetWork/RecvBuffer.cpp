@@ -24,7 +24,7 @@ void RecvBuffer::clean()
 		// 여유 공간이 버퍼 1개 크기 미만이면, 데이터를 앞으로 땅긴다.
 		if (free_size() < _Buffer_size)
 		{
-			::memcpy(&_buffer[0], &_buffer[_read_pos], _dataSize);
+			::memmove(&_buffer[0], &_buffer[_read_pos], _dataSize);
 			_read_pos = 0;
 			_write_pos = _dataSize;
 		}

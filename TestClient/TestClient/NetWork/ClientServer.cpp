@@ -1,34 +1,34 @@
 #include "ClientServer.h"
 #include "IocpEvent.h"
-#include "../Session/TestSession.h"
 
 bool ClientServer::CreateIocpHandle()
 {
 	_iocp_handle = ::CreateIoCompletionPort(INVALID_HANDLE_VALUE, 0, 0, 0);
 	
-	if (_iocp_handle != INVALID_HANDLE_VALUE) {
+	if (_iocp_handle == nullptr) {
+		cout << "CreateIocpHandle INVALID_HANDLE_VALUE" << GetLastError() << endl;
 		return false;
 	}
 
 	return true;
 }
 
-bool ClientServer::register_socket(SOCKET* client_socket)
+bool ClientServer::register_socket(shared_ptr<TestSession> session)
 {
-	if (client_socket == nullptr || *client_socket == INVALID_SOCKET)
+	if (session == nullptr || *session->get_socket() == INVALID_SOCKET)
 	{
 		cout << "error : cloent_socket error" << endl;
 		return false;
 	}
 
-	HANDLE result = CreateIoCompletionPort(reinterpret_cast<HANDLE>(*client_socket), _iocp_handle, 0, 0);
+	HANDLE result = CreateIoCompletionPort(reinterpret_cast<HANDLE>(*session->get_socket()), _iocp_handle, reinterpret_cast<ULONG_PTR>(session.get()), 0);
 
 	if (result == nullptr)
 	{
 		cout << "error : " << GetLastError() << endl;
 
 		cout << "register_scoket failed socket" <<  endl;
-		closesocket(*client_socket);
+		closesocket(*session->get_socket());
 
 		return false;
 	}
@@ -60,10 +60,35 @@ void ClientServer::start_worker_thread(short thread_count)
 
 	for (int i = 0; i < thread_count; i++)
 	{
-		_worker_trheads.push_back(thread([=]()
+		_worker_threads.push_back(thread([=]()
 		{
 			dispatch();
 		}));
+	}
+}
+
+void ClientServer::stop()
+{
+	if (_stopped.exchange(true))
+		return;
+
+	for (size_t i = 0; i < _worker_threads.size(); i++)
+	{
+		::PostQueuedCompletionStatus(_iocp_handle, 0, 0, nullptr);
+	}
+
+	for (thread& t : _worker_threads)
+	{
+		if (t.joinable())
+			t.join();
+	}
+
+	_worker_threads.clear();
+
+	if (_iocp_handle)
+	{
+		::CloseHandle(_iocp_handle);
+		_iocp_handle = nullptr;
 	}
 }
 
@@ -77,8 +102,15 @@ void ClientServer::dispatch()
 
 		if (::GetQueuedCompletionStatus(_iocp_handle, OUT & numOfBytes, OUT & key, OUT reinterpret_cast<LPOVERLAPPED*>(&iocp_event), INFINITE))
 		{
-			shared_ptr<TestSession> session = iocp_event->get_session();
-			//session->dispatch(iocp_event);
+			if (iocp_event == nullptr)
+				break;
+
+			TestSession* session = reinterpret_cast<TestSession*>(key);
+			if (session == nullptr) {
+				continue;
+			}
+
+			session->dispatch(iocp_event, numOfBytes);
 		}
 	}
 }

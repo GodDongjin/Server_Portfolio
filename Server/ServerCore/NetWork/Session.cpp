@@ -2,6 +2,7 @@
 #include "Session.h"
 #include "SocketUtils.h"
 #include "SendBuffer.h"
+#include "Service.h"
 
 Session::Session() : _recv_buffer(BUFFER_SIZE)
 {
@@ -33,13 +34,10 @@ void Session::send(SendBufferRef sendBuffer)
 	}
 }
 
-void Session::disconnect(const WCHAR* cause)
+void Session::disconnect()
 {
 	if (_is_connect.exchange(false) == false)
 		return;
-
-	// TEMP
-	wcout << "disconnect : " << cause << endl;
 
 	register_disconnect();
 }
@@ -172,6 +170,10 @@ void Session::process_connect()
 void Session::process_disconnect()
 {
 	_disconnect_event.set_owner(nullptr);
+	
+	auto service = _service.lock();
+	if (service)
+		service->get_sessionManager()->on_disconnected(get_session());
 }
 
 void Session::process_recv(int32 numOfBytes)
@@ -180,13 +182,15 @@ void Session::process_recv(int32 numOfBytes)
 
 	if (numOfBytes == 0)
 	{
-		disconnect(L"Recv 0");
+		disconnect();
+		ERROR_LOG("disconnect : Recv 0");
 		return;
 	}
 
 	if (_recv_buffer.on_write(numOfBytes) == false)
 	{
-		disconnect(L"on_write Overflow");
+		disconnect();
+		ERROR_LOG("disconnect : on_write Overflow");
 		return;
 	}
 
@@ -194,7 +198,8 @@ void Session::process_recv(int32 numOfBytes)
 	int32 processLen = on_recv(_recv_buffer.read_pos(), dataSize); 
 	if (processLen < 0 || dataSize < processLen || _recv_buffer.on_read(processLen) == false)
 	{
-		disconnect(L"on_read Overflow");
+		disconnect();
+		ERROR_LOG("disconnect : on_read Overflow");
 		return;
 	}
 
@@ -210,7 +215,8 @@ void Session::process_send(int32 numOfBytes)
 
 	if (numOfBytes == 0)
 	{
-		disconnect(L"send 0");
+		disconnect();
+		ERROR_LOG("disconnect : send 0");
 		return;
 	}
 
@@ -229,10 +235,11 @@ void Session::handle_error(int32 errorCode)
 	{
 	case WSAECONNRESET:
 	case WSAECONNABORTED:
-		disconnect(L"handle_error");
+		ERROR_LOG("disconnect : handle_error");
 		break;
 	default:
 		// TODO : Log
+		//ERROR_LOG("disconnect : handle_error");
 		cout << "Handle Error : " << errorCode << endl;
 		break;
 	}

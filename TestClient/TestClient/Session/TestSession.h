@@ -5,24 +5,28 @@
 #include "../Buffer/SendBuffer.h"
 #include "../NetWork/IocpEvent.h"
 
-class TestSession
+class TestSession : public enable_shared_from_this<TestSession>
 {
 public:
 	TestSession() 
 	{ 
 		_recv_buffer = make_shared<RecvBuffer>(0x10000); 
-		_send_buffer = make_shared<SendBuffer>(0x10000);
+		//_send_buffer = make_shared<SendBuffer>(0x10000);
 	}
+
+	bool start();
 
 	bool connect(SOCKADDR_IN server_addr);
 	void disconnect();
 
 	void send(/*shared_ptr<SendBuffer> send_buffer*/);
 
-	void dispatch(IocpEvent* iocp_evnet);
+	void dispatch(IocpEvent* iocp_evnet, INT32 numOfbyte);
 
 public:
 	bool is_connected() { return _is_connect; }
+
+	SOCKET* get_socket() { return &_socket; }
 
 private:
 
@@ -32,20 +36,28 @@ private:
 	void process_recv(uint32 num_bytes);
 	void process_send(uint32 num_bytes);
 
-	//void MakeSendBuffer()
-
 private:
-	atomic<bool>		_is_connect = false;
+	atomic<bool> _is_connect = false;
+	bool _is_disconnect = false;
 
 private:
 	SOCKET _socket = INVALID_SOCKET;
 
-	WSAOVERLAPPED _recv_overlapped = {};
-	WSAOVERLAPPED _send_overlapped = {};
+	/*WSAOVERLAPPED _recv_overlapped = {};
+	WSAOVERLAPPED _send_overlapped = {};*/
 
 	WSABUF _recv_wsa_buf = {};
 	WSABUF _send_wsa_buf = {};
 	
 	shared_ptr<RecvBuffer> _recv_buffer;
-	shared_ptr<SendBuffer> _send_buffer;
+	//shared_ptr<SendBuffer> _send_buffer;
+
+	queue<shared_ptr<SendBuffer>> _send_queue;
+	atomic<bool>			_is_send_register = false;
+
+	mutex _send_lock;
+
+private:
+	SendEvent _send_event;
+	RecvEvent _recv_event;
 };

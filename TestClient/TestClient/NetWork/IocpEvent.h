@@ -2,7 +2,6 @@
 
 #include "../Utils/Types.h"
 #include "../Buffer/SendBuffer.h"
-#include "../Session/TestSession.h"
 
 enum class EventType : uint8
 {
@@ -28,11 +27,9 @@ public:
 	}
 
 	EventType get_event_type() { return _event_type; }
-	shared_ptr<TestSession> get_session() { return _session; }
 
-private:
+protected:
 	EventType _event_type;
-	shared_ptr<TestSession> _session;
 };
 
 class RecvEvent : public IocpEvent
@@ -46,9 +43,16 @@ class SendEvent : public IocpEvent
 public:
 	SendEvent() : IocpEvent(EventType::SEND) {}
 
-	vector<shared_ptr<SendBuffer>> get_send_Buffers() { return _send_Buffers; }
+	void clear() 
+	{
+		_send_Buffers.clear();
+	}
+
+public:
+	const vector<shared_ptr<SendBuffer>> get_send_Buffers() { return _send_Buffers; }
 	void send_Buffers_push(shared_ptr<SendBuffer> sendBuffer) { _send_Buffers.push_back(sendBuffer); }
 	void send_Buffers_clear() { _send_Buffers.clear(); }
+
 private:
 	vector<shared_ptr<SendBuffer>> _send_Buffers;
 };

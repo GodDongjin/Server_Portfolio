@@ -1,10 +1,16 @@
 #pragma once
-#include "Protocol.pb.h"
-#include "Session.h"
-#include "SendBuffer.h"
+#include "../Protocol/Protocol.pb.h"
+#include "../Buffer/SendBuffer.h"
+#include "../Session/TestSession.h"
 
-using PacketHandlerFunc = std::function<bool(SessionRef&, BYTE*, int32)>;
+using PacketHandlerFunc = std::function<bool(shared_ptr<TestSession>&, BYTE*, int32)>;
 extern PacketHandlerFunc GPacketHandler[UINT16_MAX];
+
+struct PacketHeader
+{
+	uint16 size;
+	uint16 id;
+};
 
 enum : uint16
 {
@@ -13,10 +19,10 @@ enum : uint16
 {%- endfor %}
 };
 
-bool Handle_INVALID(SessionRef& session, BYTE* buffer, int32 len);
+bool Handle_INVALID(shared_ptr<TestSession>& session, BYTE* buffer, int32 len);
 
 {%- for pkt in parser.recv_pkt %}
-bool Handle_{{pkt.name}}(SessionRef& session, Protocol::{{pkt.name}}& pkt);
+bool Handle_{{pkt.name}}(shared_ptr<TestSession>& session, Protocol::{{pkt.name}}& pkt);
 {%- endfor %}
 
 class {{output}}
@@ -28,23 +34,23 @@ public:
 			GPacketHandler[i] = Handle_INVALID;
 
 {%- for pkt in parser.recv_pkt %}
-		GPacketHandler[PKT_{{pkt.name}}] = [](SessionRef& session, BYTE* buffer, int32 len) { return HandlePacket<Protocol::{{pkt.name}}>(Handle_{{pkt.name}}, session, buffer, len); };
+		GPacketHandler[PKT_{{pkt.name}}] = [](shared_ptr<TestSession>& session, BYTE* buffer, int32 len) { return HandlePacket<Protocol::{{pkt.name}}>(Handle_{{pkt.name}}, session, buffer, len); };
 {%- endfor %}
 	}
 
-	static bool HandlePacket(SessionRef& session, BYTE* buffer, int32 len)
+	static bool HandlePacket(shared_ptr<TestSession>& session, BYTE* buffer, int32 len)
 	{
 		PacketHeader* header = reinterpret_cast<PacketHeader*>(buffer);
 		return GPacketHandler[header->id](session, buffer, len);
 	}
 
 {%- for pkt in parser.send_pkt %}
-	static SendBufferRef MakeSendBuffer(Protocol::{{pkt.name}}& pkt) { return MakeSendBuffer(pkt, PKT_{{pkt.name}}); }
+	static shared_ptr<SendBuffer> MakeSendBuffer(Protocol::{{pkt.name}}& pkt) { return MakeSendBuffer(pkt, PKT_{{pkt.name}}); }
 {%- endfor %}
 
 private:
 	template<typename PacketType, typename ProcessFunc>
-	static bool HandlePacket(ProcessFunc func, SessionRef& session, BYTE* buffer, int32 len)
+	static bool HandlePacket(ProcessFunc func, shared_ptr<TestSession>& session, BYTE* buffer, int32 len)
 	{
 		PacketType pkt;
 		if (pkt.ParseFromArray(buffer + sizeof(PacketHeader), len - sizeof(PacketHeader)) == false)
@@ -54,12 +60,12 @@ private:
 	}
 
 	template<typename T>
-	static SendBufferRef MakeSendBuffer(T& pkt, uint16 pktId)
+	static shared_ptr<SendBuffer> MakeSendBuffer(T& pkt, uint16 pktId)
 	{
 		const uint16 dataSize = static_cast<uint16>(pkt.ByteSizeLong());
 		const uint16 packetSize = dataSize + sizeof(PacketHeader);
 
-		SendBufferRef sendBuffer = make_shared<SendBuffer>(packetSize);
+		shared_ptr<SendBuffer> sendBuffer = make_shared<SendBuffer>(packetSize);
 		PacketHeader* header = reinterpret_cast<PacketHeader*>(sendBuffer->get_buffer());
 		header->size = packetSize;
 		header->id = pktId;

@@ -3,8 +3,8 @@
 #include "../Buffer/SendBuffer.h"
 #include "../Session/TestSession.h"
 
-//using PacketHandlerFunc = std::function<bool(SessionRef&, BYTE*, int32)>;
-//extern PacketHandlerFunc GPacketHandler[UINT16_MAX];
+using PacketHandlerFunc = std::function<bool(shared_ptr<TestSession>&, BYTE*, int32)>;
+extern PacketHandlerFunc GPacketHandler[UINT16_MAX];
 
 struct PacketHeader
 {
@@ -14,45 +14,45 @@ struct PacketHeader
 
 enum : uint16
 {
-	PKT_C_LOGIN = 1000,
-	PKT_S_LOGIN = 1001,
-	PKT_C_CHAR = 1002,
-	PKT_S_CHAR = 1003,
+	PKT_REQ_LOGIN = 1000,
+	PKT_ACK_LOGIN = 1001,
+	PKT_REQ_CHAR = 1002,
+	PKT_ACK_CHAR = 1003,
 };
 
-//bool Handle_INVALID(SessionRef& session, BYTE* buffer, int32 len);
-//bool Handle_C_LOGIN(SessionRef& session, Protocol::C_LOGIN& pkt);
-//bool Handle_C_CHAR(SessionRef& session, Protocol::C_CHAR& pkt);
+bool Handle_INVALID(shared_ptr<TestSession>& session, BYTE* buffer, int32 len);
+bool Handle_ACK_LOGIN(shared_ptr<TestSession>& session, Protocol::ACK_LOGIN& pkt);
+bool Handle_ACK_CHAR(shared_ptr<TestSession>& session, Protocol::ACK_CHAR& pkt);
 
 class ClientPacketHandler
 {
 public:
-	/*static void Init()
+	static void Init()
 	{
 		for (int32 i = 0; i < UINT16_MAX; i++)
 			GPacketHandler[i] = Handle_INVALID;
-		GPacketHandler[PKT_C_LOGIN] = [](SessionRef& session, BYTE* buffer, int32 len) { return HandlePacket<Protocol::C_LOGIN>(Handle_C_LOGIN, session, buffer, len); };
-		GPacketHandler[PKT_C_CHAR] = [](SessionRef& session, BYTE* buffer, int32 len) { return HandlePacket<Protocol::C_CHAR>(Handle_C_CHAR, session, buffer, len); };
+		GPacketHandler[PKT_ACK_LOGIN] = [](shared_ptr<TestSession>& session, BYTE* buffer, int32 len) { return HandlePacket<Protocol::ACK_LOGIN>(Handle_ACK_LOGIN, session, buffer, len); };
+		GPacketHandler[PKT_ACK_CHAR] = [](shared_ptr<TestSession>& session, BYTE* buffer, int32 len) { return HandlePacket<Protocol::ACK_CHAR>(Handle_ACK_CHAR, session, buffer, len); };
 	}
 
-	static bool HandlePacket(SessionRef& session, BYTE* buffer, int32 len)
+	static bool HandlePacket(shared_ptr<TestSession>& session, BYTE* buffer, int32 len)
 	{
 		PacketHeader* header = reinterpret_cast<PacketHeader*>(buffer);
 		return GPacketHandler[header->id](session, buffer, len);
 	}
-	static SendBufferRef MakeSendBuffer(Protocol::S_LOGIN& pkt) { return MakeSendBuffer(pkt, PKT_S_LOGIN); }
-	static SendBufferRef MakeSendBuffer(Protocol::S_CHAR& pkt) { return MakeSendBuffer(pkt, PKT_S_CHAR); }*/
+	static shared_ptr<SendBuffer> MakeSendBuffer(Protocol::REQ_LOGIN& pkt) { return MakeSendBuffer(pkt, PKT_REQ_LOGIN); }
+	static shared_ptr<SendBuffer> MakeSendBuffer(Protocol::REQ_CHAR& pkt) { return MakeSendBuffer(pkt, PKT_REQ_CHAR); }
 
-public:
-	/*template<typename PacketType, typename ProcessFunc>
-	static bool HandlePacket(ProcessFunc func, SessionRef& session, BYTE* buffer, int32 len)
+private:
+	template<typename PacketType, typename ProcessFunc>
+	static bool HandlePacket(ProcessFunc func, shared_ptr<TestSession>& session, BYTE* buffer, int32 len)
 	{
 		PacketType pkt;
 		if (pkt.ParseFromArray(buffer + sizeof(PacketHeader), len - sizeof(PacketHeader)) == false)
 			return false;
 
 		return func(session, pkt);
-	}*/
+	}
 
 	template<typename T>
 	static shared_ptr<SendBuffer> MakeSendBuffer(T& pkt, uint16 pktId)

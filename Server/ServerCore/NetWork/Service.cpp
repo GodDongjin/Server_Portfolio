@@ -30,6 +30,8 @@ SessionRef Service::create_session()
 {
 	SessionRef session = _sessionFactory();
 
+	session->set_service(shared_from_this());
+
 	if (_iocp_core->Register(session) == false)
 		return nullptr;
 

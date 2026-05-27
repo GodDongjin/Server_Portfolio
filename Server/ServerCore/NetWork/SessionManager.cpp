@@ -10,7 +10,7 @@ void SessionManager::add_session(SessionRef session)
 {
 	WRITE_LOCK;
 	_sessions.insert(session);
-	_max_session_count++;
+	_sessionCount++;
 	session->set_process_connect();
 }
 
@@ -18,8 +18,8 @@ void SessionManager::release_session(SessionRef session)
 {
 	WRITE_LOCK;
 	ASSERT_CRASH(_sessions.erase(session) != 0);
-	_max_session_count--;
-	//session->disconnect();
+	_sessionCount--;
+	session->disconnect();
 }
 
 bool SessionManager::broad_cast(SendBufferRef sendBuffer)
