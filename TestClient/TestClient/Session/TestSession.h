@@ -18,15 +18,20 @@ public:
 
 	bool connect(SOCKADDR_IN server_addr);
 	void disconnect();
-
-	void send(/*shared_ptr<SendBuffer> send_buffer*/);
-
 	void dispatch(IocpEvent* iocp_evnet, INT32 numOfbyte);
+
+	void send(shared_ptr<SendBuffer> send_buffer);
+
+public:
+	void login();
 
 public:
 	bool is_connected() { return _is_connect; }
 
 	SOCKET* get_socket() { return &_socket; }
+
+	void set_account(uint64 idx) { _account_idx = idx; }
+	uint64& get_account() { return _account_idx; }
 
 private:
 
@@ -39,6 +44,8 @@ private:
 private:
 	atomic<bool> _is_connect = false;
 	bool _is_disconnect = false;
+
+	uint64 _account_idx;
 
 private:
 	SOCKET _socket = INVALID_SOCKET;

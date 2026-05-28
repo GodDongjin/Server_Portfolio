@@ -25,5 +25,7 @@ private:
 	int32 _sessionCount;
 	int32 _max_session_count;
 
+	atomic<uint64_t> _session_id{ 1 };
+
 };
 

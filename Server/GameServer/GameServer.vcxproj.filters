@@ -19,6 +19,12 @@
     <Filter Include="Packet">
       <UniqueIdentifier>{78c0f86d-ba50-40ef-b7e5-ee6b1bb445d8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="struct_Info">
+      <UniqueIdentifier>{2bc55a61-4367-4293-bbc0-539444cf93a4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Login">
+      <UniqueIdentifier>{ce6605b0-4ff3-4019-b8a9-372aab95c18d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GameServer.cpp">
@@ -51,6 +57,12 @@
     <ClCompile Include="ServerPacketHandler.cpp">
       <Filter>Packet</Filter>
     </ClCompile>
+    <ClCompile Include="Login.cpp">
+      <Filter>Login</Filter>
+    </ClCompile>
+    <ClCompile Include="GameGlobal.cpp">
+      <Filter>Pch</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -79,6 +91,18 @@
     </ClInclude>
     <ClInclude Include="ServerPacketHandler.h">
       <Filter>Packet</Filter>
+    </ClInclude>
+    <ClInclude Include="AccountInfo.h">
+      <Filter>struct_Info</Filter>
+    </ClInclude>
+    <ClInclude Include="Login.h">
+      <Filter>Login</Filter>
+    </ClInclude>
+    <ClInclude Include="UserInfo.h">
+      <Filter>struct_Info</Filter>
+    </ClInclude>
+    <ClInclude Include="GameGlobal.h">
+      <Filter>Pch</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

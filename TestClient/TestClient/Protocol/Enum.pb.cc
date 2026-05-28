@@ -22,7 +22,7 @@ namespace _pbi = _pb::internal;
 
 namespace Protocol {
 }  // namespace Protocol
-static const ::_pb::EnumDescriptor* file_level_enum_descriptors_Enum_2eproto[3];
+static const ::_pb::EnumDescriptor* file_level_enum_descriptors_Enum_2eproto[4];
 static constexpr ::_pb::ServiceDescriptor const** file_level_service_descriptors_Enum_2eproto = nullptr;
 const uint32_t TableStruct_Enum_2eproto::offsets[1] = {};
 static constexpr ::_pbi::MigrationSchema* schemas = nullptr;
@@ -32,7 +32,11 @@ const char descriptor_table_protodef_Enum_2eproto[] PROTOBUF_SECTION_VARIABLE(pr
   "\n\nEnum.proto\022\010Protocol*w\n\023CREATE_PLAYER_"
   "ERROR\022\024\n\020CREATE_USER_NONE\020\000\022\024\n\020CREATE_US"
   "ER_FAIL\020\001\022\027\n\023CREATE_USER_SUCCESS\020\002\022\033\n\027CR"
-  "EATE_USER_DUPLICATION\020\003*T\n\020ENTER_GAME_ER"
+  "EATE_USER_DUPLICATION\020\003*\235\001\n\013LOGIN_ERROR\022"
+  "\016\n\nLOGIN_NUNE\020\000\022\017\n\013LOGIN_FAILE\020\001\022\021\n\rLOGI"
+  "N_ID_NONE\020\002\022\021\n\rLOGIN_PW_NONE\020\003\022\026\n\022LOGIN_"
+  "CREATE_FAILE\020\004\022\034\n\030LOGIN_CREATE_HAS_ACCOU"
+  "NT\020\005\022\021\n\rLOGIN_SUCCESS\020\006*T\n\020ENTER_GAME_ER"
   "ROR\022\023\n\017ENTER_GAME_NONE\020\000\022\023\n\017ENTER_GAME_F"
   "AIL\020\001\022\026\n\022ENTER_GAME_SUCCESS\020\002*T\n\020ENTER_R"
   "OOM_ERROR\022\023\n\017ENTER_ROOM_NONE\020\000\022\023\n\017ENTER_"
@@ -41,7 +45,7 @@ const char descriptor_table_protodef_Enum_2eproto[] PROTOBUF_SECTION_VARIABLE(pr
   ;
 static ::_pbi::once_flag descriptor_table_Enum_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_Enum_2eproto = {
-    false, false, 323, descriptor_table_protodef_Enum_2eproto,
+    false, false, 483, descriptor_table_protodef_Enum_2eproto,
     "Enum.proto",
     &descriptor_table_Enum_2eproto_once, nullptr, 0, 0,
     schemas, file_default_instances, TableStruct_Enum_2eproto::offsets,
@@ -71,9 +75,28 @@ bool CREATE_PLAYER_ERROR_IsValid(int value) {
   }
 }
 
-const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* ENTER_GAME_ERROR_descriptor() {
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* LOGIN_ERROR_descriptor() {
   ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_Enum_2eproto);
   return file_level_enum_descriptors_Enum_2eproto[1];
+}
+bool LOGIN_ERROR_IsValid(int value) {
+  switch (value) {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+    case 5:
+    case 6:
+      return true;
+    default:
+      return false;
+  }
+}
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* ENTER_GAME_ERROR_descriptor() {
+  ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_Enum_2eproto);
+  return file_level_enum_descriptors_Enum_2eproto[2];
 }
 bool ENTER_GAME_ERROR_IsValid(int value) {
   switch (value) {
@@ -88,7 +111,7 @@ bool ENTER_GAME_ERROR_IsValid(int value) {
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* ENTER_ROOM_ERROR_descriptor() {
   ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_Enum_2eproto);
-  return file_level_enum_descriptors_Enum_2eproto[2];
+  return file_level_enum_descriptors_Enum_2eproto[3];
 }
 bool ENTER_ROOM_ERROR_IsValid(int value) {
   switch (value) {

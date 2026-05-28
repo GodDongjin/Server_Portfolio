@@ -62,3 +62,16 @@ public:
 private:
 	ListenerRef		_listener = nullptr;
 };
+
+class LoginService : public Service
+{
+public:
+	LoginService(NetAddress targetAddress, IocpCoreRef core, SessionFactory factory, SessionManagerRef sessionManager);
+	virtual ~LoginService() {}
+
+	virtual bool	start() override;
+	virtual void	close_service() override;
+
+private:
+	ListenerRef		_listener = nullptr;
+};

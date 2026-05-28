@@ -74,6 +74,36 @@ inline bool CREATE_PLAYER_ERROR_Parse(
   return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<CREATE_PLAYER_ERROR>(
     CREATE_PLAYER_ERROR_descriptor(), name, value);
 }
+enum LOGIN_ERROR : int {
+  LOGIN_NUNE = 0,
+  LOGIN_FAILE = 1,
+  LOGIN_ID_NONE = 2,
+  LOGIN_PW_NONE = 3,
+  LOGIN_CREATE_FAILE = 4,
+  LOGIN_CREATE_HAS_ACCOUNT = 5,
+  LOGIN_SUCCESS = 6,
+  LOGIN_ERROR_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
+  LOGIN_ERROR_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
+};
+bool LOGIN_ERROR_IsValid(int value);
+constexpr LOGIN_ERROR LOGIN_ERROR_MIN = LOGIN_NUNE;
+constexpr LOGIN_ERROR LOGIN_ERROR_MAX = LOGIN_SUCCESS;
+constexpr int LOGIN_ERROR_ARRAYSIZE = LOGIN_ERROR_MAX + 1;
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* LOGIN_ERROR_descriptor();
+template<typename T>
+inline const std::string& LOGIN_ERROR_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, LOGIN_ERROR>::value ||
+    ::std::is_integral<T>::value,
+    "Incorrect type passed to function LOGIN_ERROR_Name.");
+  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
+    LOGIN_ERROR_descriptor(), enum_t_value);
+}
+inline bool LOGIN_ERROR_Parse(
+    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, LOGIN_ERROR* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<LOGIN_ERROR>(
+    LOGIN_ERROR_descriptor(), name, value);
+}
 enum ENTER_GAME_ERROR : int {
   ENTER_GAME_NONE = 0,
   ENTER_GAME_FAIL = 1,
@@ -152,6 +182,11 @@ template <> struct is_proto_enum< ::Protocol::CREATE_PLAYER_ERROR> : ::std::true
 template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::CREATE_PLAYER_ERROR>() {
   return ::Protocol::CREATE_PLAYER_ERROR_descriptor();
+}
+template <> struct is_proto_enum< ::Protocol::LOGIN_ERROR> : ::std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::LOGIN_ERROR>() {
+  return ::Protocol::LOGIN_ERROR_descriptor();
 }
 template <> struct is_proto_enum< ::Protocol::ENTER_GAME_ERROR> : ::std::true_type {};
 template <>

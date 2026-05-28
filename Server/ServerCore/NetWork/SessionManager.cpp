@@ -10,8 +10,9 @@ void SessionManager::add_session(SessionRef session)
 {
 	WRITE_LOCK;
 	_sessions.insert(session);
-	_sessionCount++;
+	session->set_account_idx(_session_id.fetch_add(1));
 	session->set_process_connect();
+	_sessionCount++;
 }
 
 void SessionManager::release_session(SessionRef session)
@@ -19,7 +20,6 @@ void SessionManager::release_session(SessionRef session)
 	WRITE_LOCK;
 	ASSERT_CRASH(_sessions.erase(session) != 0);
 	_sessionCount--;
-	session->disconnect();
 }
 
 bool SessionManager::broad_cast(SendBufferRef sendBuffer)

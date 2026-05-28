@@ -4,7 +4,7 @@ protoc.exe -I=./ --cpp_out=./ ./Enum.proto
 protoc.exe -I=./ --cpp_out=./ ./Struct.proto
 protoc.exe -I=./ --cpp_out=./ ./Protocol.proto
 
-GenPackets.exe --path=./Protocol.proto --output=ServerPacketHandler --recv=C_ --send=S_
+GenPackets.exe --path=./Protocol.proto --output=ServerPacketHandler --recv=REQ --send=ACK
 
 IF ERRORLEVEL 1 PAUSE
 

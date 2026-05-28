@@ -7,22 +7,23 @@ import "Struct.proto";
 
 message REQ_LOGIN
 {
-	string id = 1;
-	string pass = 2;
+	bool is_create = 1;
+	string id = 2;
+	string pw = 3;
 }
 
 message ACK_LOGIN
 {
-	bool success = 1;
-	uint64 idx = 2;
+	uint64 idx = 1;
+	LOGIN_ERROR result = 2;
 }
 
-message REQ_CHAR
+message REQ_CHAT
 {
 	string message = 1;
 }
 
-message ACK_CHAR
+message ACK_CHAT
 {
 	string message = 1;
 }

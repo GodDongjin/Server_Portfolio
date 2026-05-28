@@ -111,100 +111,100 @@ bool DBManager::select_login_data(OUT uint64& idx, OUT wstring& id, OUT wstring&
     return true;
 }
 
-bool DBManager::select_player(OUT SELECT_PLAYER_ERROR& error, OUT wstring& name, OUT uint32& lv, OUT float& hp, OUT float& atk, OUT float& df, uint64 idx)
-{
-    WRITE_LOCK;
-    SQLHSTMT hStmt;
-    SQLRETURN _retcode;
+//bool DBManager::select_player(OUT SELECT_PLAYER_ERROR& error, OUT wstring& name, OUT uint32& lv, OUT float& hp, OUT float& atk, OUT float& df, uint64 idx)
+//{
+//    WRITE_LOCK;
+//    SQLHSTMT hStmt;
+//    SQLRETURN _retcode;
+//
+//    SQLAllocHandle(SQL_HANDLE_STMT, hdbc, &hStmt);
+//
+//    // 쿼리 실행 - p_Player_Select 호출
+//    _retcode = SQLPrepareW(hStmt, (SQLWCHAR*)L"CALL p_Player_Select(?)", SQL_NTS);
+//    SQLBindParameter(hStmt, 1, SQL_PARAM_INPUT, SQL_C_UBIGINT, SQL_BIGINT, 0, 0, &idx, 0, NULL);
+//
+//    if (!send_packet(hStmt, _retcode)) {
+//        SQLFreeHandle(SQL_HANDLE_STMT, hStmt);
+//        error = SELECT_PLAYER_ERROR::SELECT_PLAYER_FAIL;
+//        return false;
+//    }
+//
+//    // 결과 컬럼 선언 및 길이 변수
+//    SQLCHAR outName[13];
+//    SQLINTEGER outLv, outHp, outAtk, outDf;
+//    SQLLEN outNameLen, outLvLen, outHpLen, outAtkLen, outDfLen;
+//
+//    // 결과 값 가져오기
+//    bool fetchSuccess = false;
+//    while (SQLFetch(hStmt) == SQL_SUCCESS) {
+//        fetchSuccess = true;
+//        SQLGetData(hStmt, 1, SQL_C_CHAR, outName, sizeof(outName), &outNameLen);
+//        SQLGetData(hStmt, 2, SQL_C_SLONG, &outLv, 0, &outLvLen);
+//        SQLGetData(hStmt, 3, SQL_C_SLONG, &outHp, 0, &outHpLen);
+//        SQLGetData(hStmt, 4, SQL_C_SLONG, &outAtk, 0, &outAtkLen);
+//        SQLGetData(hStmt, 5, SQL_C_SLONG, &outDf, 0, &outDfLen);
+//    }
+//
+//    // 데이터가 비어 있는지 확인
+//    if (!fetchSuccess || outNameLen == SQL_NULL_DATA || outLvLen == SQL_NULL_DATA ||
+//        outHpLen == SQL_NULL_DATA || outAtkLen == SQL_NULL_DATA || outDfLen == SQL_NULL_DATA) {
+//        SQLFreeHandle(SQL_HANDLE_STMT, hStmt);
+//        error = SELECT_PLAYER_ERROR::SELECT_PLAYER_FAIL;
+//        return false;
+//    }
+//
+//    // 가져온 데이터 할당
+//    name = SQLCharToWString(outName, outNameLen);
+//    lv = static_cast<uint32>(outLv);
+//    hp = static_cast<float>(outHp);
+//    atk = static_cast<float>(outAtk);
+//    df = static_cast<float>(outDf);
+//
+//    error = SELECT_PLAYER_ERROR::SELECT_PLAYER_SUCCESS;
+//    SQLFreeHandle(SQL_HANDLE_STMT, hStmt);
+//    return true;
+//}
 
-    SQLAllocHandle(SQL_HANDLE_STMT, hdbc, &hStmt);
-
-    // 쿼리 실행 - p_Player_Select 호출
-    _retcode = SQLPrepareW(hStmt, (SQLWCHAR*)L"CALL p_Player_Select(?)", SQL_NTS);
-    SQLBindParameter(hStmt, 1, SQL_PARAM_INPUT, SQL_C_UBIGINT, SQL_BIGINT, 0, 0, &idx, 0, NULL);
-
-    if (!send_packet(hStmt, _retcode)) {
-        SQLFreeHandle(SQL_HANDLE_STMT, hStmt);
-        error = SELECT_PLAYER_ERROR::SELECT_PLAYER_FAIL;
-        return false;
-    }
-
-    // 결과 컬럼 선언 및 길이 변수
-    SQLCHAR outName[13];
-    SQLINTEGER outLv, outHp, outAtk, outDf;
-    SQLLEN outNameLen, outLvLen, outHpLen, outAtkLen, outDfLen;
-
-    // 결과 값 가져오기
-    bool fetchSuccess = false;
-    while (SQLFetch(hStmt) == SQL_SUCCESS) {
-        fetchSuccess = true;
-        SQLGetData(hStmt, 1, SQL_C_CHAR, outName, sizeof(outName), &outNameLen);
-        SQLGetData(hStmt, 2, SQL_C_SLONG, &outLv, 0, &outLvLen);
-        SQLGetData(hStmt, 3, SQL_C_SLONG, &outHp, 0, &outHpLen);
-        SQLGetData(hStmt, 4, SQL_C_SLONG, &outAtk, 0, &outAtkLen);
-        SQLGetData(hStmt, 5, SQL_C_SLONG, &outDf, 0, &outDfLen);
-    }
-
-    // 데이터가 비어 있는지 확인
-    if (!fetchSuccess || outNameLen == SQL_NULL_DATA || outLvLen == SQL_NULL_DATA ||
-        outHpLen == SQL_NULL_DATA || outAtkLen == SQL_NULL_DATA || outDfLen == SQL_NULL_DATA) {
-        SQLFreeHandle(SQL_HANDLE_STMT, hStmt);
-        error = SELECT_PLAYER_ERROR::SELECT_PLAYER_FAIL;
-        return false;
-    }
-
-    // 가져온 데이터 할당
-    name = SQLCharToWString(outName, outNameLen);
-    lv = static_cast<uint32>(outLv);
-    hp = static_cast<float>(outHp);
-    atk = static_cast<float>(outAtk);
-    df = static_cast<float>(outDf);
-
-    error = SELECT_PLAYER_ERROR::SELECT_PLAYER_SUCCESS;
-    SQLFreeHandle(SQL_HANDLE_STMT, hStmt);
-    return true;
-}
-
-bool DBManager::insert_player(OUT CREATE_PLAYER_ERROR& error, uint64 idx, wstring name, uint32 lv, float hp, float atk, float df)
-{
-    WRITE_LOCK;
-    SQLHSTMT hStmt;
-    SQLRETURN _retcode;
-
-    SQLAllocHandle(SQL_HANDLE_STMT, hdbc, &hStmt);
-
-    // 쿼리 실행
-    _retcode = SQLPrepareW(hStmt, (SQLWCHAR*)L"CALL p_Player_Insert(?, ?, ?, ?, ?, ?)", SQL_NTS);
-    wstring playerName = name;
-
-    SQLBindParameter(hStmt, 1, SQL_PARAM_INPUT, SQL_C_UBIGINT, SQL_BIGINT, 0, 0, &idx, 0, NULL);
-    SQLBindParameter(hStmt, 2, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WVARCHAR, name.size(), 0, (SQLWCHAR*)name.c_str(), 0, NULL);
-    SQLBindParameter(hStmt, 3, SQL_PARAM_INPUT, SQL_C_ULONG, SQL_INTEGER, 0, 0, &lv, 0, NULL);
-    SQLBindParameter(hStmt, 4, SQL_PARAM_INPUT, SQL_C_FLOAT, SQL_FLOAT, 0, 0, &hp, 0, NULL);
-    SQLBindParameter(hStmt, 5, SQL_PARAM_INPUT, SQL_C_FLOAT, SQL_FLOAT, 0, 0, &atk, 0, NULL);
-    SQLBindParameter(hStmt, 6, SQL_PARAM_INPUT, SQL_C_FLOAT, SQL_FLOAT, 0, 0, &df, 0, NULL);
-
-    if (!send_packet(hStmt, _retcode)) {
-        SQLFreeHandle(SQL_HANDLE_STMT, hStmt);
-        error = CREATE_PLAYER_ERROR::CREATE_PLAYER_FAIL;
-        return false;
-    }
-
-    SQLINTEGER result;
-    SQLLEN resultLen = 0;
-    // 6. 결과 받기 (ROW_COUNT()에 따른 결과)
-    if (SQLFetch(hStmt) == SQL_SUCCESS) {
-        SQLGetData(hStmt, 1, SQL_C_LONG, &result, 0, &resultLen);  // 불리언 값을 받음
-
-        if (result == 1) {
-            error = CREATE_PLAYER_ERROR::CREATE_PLAYER_SUCCESS;
-        }
-        else if (result == 0) {
-            error = CREATE_PLAYER_ERROR::CREATE_PLAYER_DUPLICATION;
-            return false;
-        }
-    }
-
-    return true;
-}
+//bool DBManager::insert_player(OUT CREATE_PLAYER_ERROR& error, uint64 idx, wstring name, uint32 lv, float hp, float atk, float df)
+//{
+//    WRITE_LOCK;
+//    SQLHSTMT hStmt;
+//    SQLRETURN _retcode;
+//
+//    SQLAllocHandle(SQL_HANDLE_STMT, hdbc, &hStmt);
+//
+//    // 쿼리 실행
+//    _retcode = SQLPrepareW(hStmt, (SQLWCHAR*)L"CALL p_Player_Insert(?, ?, ?, ?, ?, ?)", SQL_NTS);
+//    wstring playerName = name;
+//
+//    SQLBindParameter(hStmt, 1, SQL_PARAM_INPUT, SQL_C_UBIGINT, SQL_BIGINT, 0, 0, &idx, 0, NULL);
+//    SQLBindParameter(hStmt, 2, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WVARCHAR, name.size(), 0, (SQLWCHAR*)name.c_str(), 0, NULL);
+//    SQLBindParameter(hStmt, 3, SQL_PARAM_INPUT, SQL_C_ULONG, SQL_INTEGER, 0, 0, &lv, 0, NULL);
+//    SQLBindParameter(hStmt, 4, SQL_PARAM_INPUT, SQL_C_FLOAT, SQL_FLOAT, 0, 0, &hp, 0, NULL);
+//    SQLBindParameter(hStmt, 5, SQL_PARAM_INPUT, SQL_C_FLOAT, SQL_FLOAT, 0, 0, &atk, 0, NULL);
+//    SQLBindParameter(hStmt, 6, SQL_PARAM_INPUT, SQL_C_FLOAT, SQL_FLOAT, 0, 0, &df, 0, NULL);
+//
+//    if (!send_packet(hStmt, _retcode)) {
+//        SQLFreeHandle(SQL_HANDLE_STMT, hStmt);
+//        error = CREATE_PLAYER_ERROR::CREATE_PLAYER_FAIL;
+//        return false;
+//    }
+//
+//    SQLINTEGER result;
+//    SQLLEN resultLen = 0;
+//    // 6. 결과 받기 (ROW_COUNT()에 따른 결과)
+//    if (SQLFetch(hStmt) == SQL_SUCCESS) {
+//        SQLGetData(hStmt, 1, SQL_C_LONG, &result, 0, &resultLen);  // 불리언 값을 받음
+//
+//        if (result == 1) {
+//            error = CREATE_PLAYER_ERROR::CREATE_PLAYER_SUCCESS;
+//        }
+//        else if (result == 0) {
+//            error = CREATE_PLAYER_ERROR::CREATE_PLAYER_DUPLICATION;
+//            return false;
+//        }
+//    }
+//
+//    return true;
+//}
 

@@ -34,7 +34,7 @@ public:
 
 	RecvBuffer&			get_recv_buffer() { return _recv_buffer; }
 
-	void				get_account_idx(uint64 idx) { _account_idx = idx; }
+	void				set_account_idx(uint64 idx) { _account_idx = idx; }
 	uint64				get_account_idx() { return _account_idx; }
 
 	void set_service(shared_ptr<Service> sevice) { _service = sevice; }

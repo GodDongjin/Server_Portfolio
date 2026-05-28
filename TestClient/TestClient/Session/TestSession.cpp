@@ -44,8 +44,6 @@ bool TestSession::connect(SOCKADDR_IN server_addr)
 
 	cout << "connect succes" << endl;
 
-	register_recv();
-
 	return true;
 }
 
@@ -64,26 +62,25 @@ void TestSession::disconnect()
 	::closesocket(_socket);
 }
 
-void TestSession::send(/*shared_ptr<SendBuffer> send_buffer*/)
+void TestSession::send(shared_ptr<SendBuffer> send_buffer)
 {
 	if (is_connected() == false)
 		return;
 
 	bool registerSend = false;
 	
-	shared_ptr<SendBuffer> temp;
-	{
-		Protocol::REQ_CHAR chat_pkt;
-		chat_pkt.set_message("test1");
+	//shared_ptr<SendBuffer> temp;
+	//{
+	//	Protocol::REQ_LOGIN Login_pkt;
 
-		temp = ClientPacketHandler::MakeSendBuffer(chat_pkt);
-		//_send_buffer = temp;
-	}
+	//	temp = ClientPacketHandler::MakeSendBuffer(chat_pkt);
+	//	//_send_buffer = temp;
+	//}
 
 	{
 		lock_guard<mutex> lock(_send_lock);
 
-		_send_queue.push(temp);
+		_send_queue.push(send_buffer);
 
 		if (_is_send_register.exchange(true) == false) {
 			registerSend = true;
@@ -99,6 +96,30 @@ void TestSession::send(/*shared_ptr<SendBuffer> send_buffer*/)
 			return;
 		}
 	}
+}
+
+void TestSession::login()
+{
+	int is_create = 0;
+
+	cout << "1. 로그인    2. 계정 생성    " << endl;
+	cin >> is_create;
+
+	string id;
+	string pw;
+
+	cout << "id 입력 : ";
+	cin >> id;
+	cout << "passward 입력 : ";
+	cin >> pw;
+
+	Protocol::REQ_LOGIN _login_pkt;
+	_login_pkt.set_is_create((is_create - 1));
+	_login_pkt.set_id(id);
+	_login_pkt.set_pw(pw);
+
+	shared_ptr<SendBuffer> send_buffer = ClientPacketHandler::MakeSendBuffer(_login_pkt);
+	send(send_buffer);
 }
 
 void TestSession::dispatch(IocpEvent* iocp_evnet, INT32 numOfbyte)
@@ -231,7 +252,7 @@ void TestSession::process_recv(uint32 num_bytes)
 		INT32 data_size = recv_len - process_len;
 
 		if (data_size < sizeof(PacketHeader)) {
-			disconnect();
+			cout << "data_size가 PacketHeader보다 작음 " << endl;
 			break;
 		}
 
@@ -239,7 +260,7 @@ void TestSession::process_recv(uint32 num_bytes)
 
 		// 패킷 사이즈 채크.
 		if (data_size < header.size) {
-			disconnect();
+			cout << "data_size가 패킷 사이즈 보다 작음 " << endl;
 			break;
 		}
 			

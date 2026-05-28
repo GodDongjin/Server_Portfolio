@@ -1,8 +1,8 @@
 #include "pch.h"
-#include "../ServerCore/DB/DBManager.h"
-#include "../ServerCore/DB/DBEnum.h"
 #include "ServerPacketHandler.h"
 #include "PlayerManager.h"
+#include "GameGlobal.h"
+#include "Login.h"
 
 PacketHandlerFunc GPacketHandler[UINT16_MAX];
 
@@ -39,39 +39,51 @@ std::string wstringToString(const std::wstring& wstr) {
 	return utf8String;
 }
 
-bool Handle_C_LOGIN(SessionRef& session, Protocol::C_LOGIN& pkt)
+bool Handle_REQ_LOGIN(SessionRef& session, Protocol::REQ_LOGIN& pkt)
 {
-	/*Protocol::S_LOGIN loginPkt;
+	Protocol::ACK_LOGIN loginPkt;
 
 	uint64 idx = 0;
-	wstring userID = stringToWstring(pkt.id());
-	wstring userPass = stringToWstring(pkt.pass());
+	BYTE result = 0;
+	//DB 환경 만들었을 때 사용.
+	/*wstring userID = stringToWstring(pkt.id());
+	wstring userPass = stringToWstring(pkt.pw());
 
 	if (!GDBManager->Select_LoginData(OUT idx, OUT userID, OUT userPass)) {
 		loginPkt.set_success(false);
 		SEND_PACKET(loginPkt);
 		return false;
+	}*/
+
+	if (pkt.is_create()) {
+		result = GLogin->create_account(pkt.id(), pkt.pw(), OUT idx);
+	}
+	else if (!pkt.is_create()) {
+		result = GLogin->login(pkt.id(), pkt.pw(), OUT idx);
 	}
 
-	session->SetAccountIdx(idx);
-
 	loginPkt.set_idx(idx);
-	loginPkt.set_success(true);
+	loginPkt.set_result((Protocol::LOGIN_ERROR)result);
 
-	SEND_PACKET(loginPkt);*/
+	SEND_PACKET(loginPkt);
 
 	return true;
 }
 
-bool Handle_C_CHAR(SessionRef& session, Protocol::C_CHAR& pkt)
+bool Handle_REQ_CHAT(SessionRef& session, Protocol::REQ_CHAT& pkt)
 {
-	cout << "Session ID : " << session->get_account_idx() << " - " << pkt.message() << endl;
-
-	Protocol::S_CHAR chat_pkt;
-
-	chat_pkt.set_message(pkt.message());
-
-	SEND_PACKET(chat_pkt);
-	return true;
+	return false;
 }
+
+//bool Handle_C_CHAR(SessionRef& session, Protocol::C_CHAR& pkt)
+//{
+//	cout << "Session ID : " << session->get_account_idx() << " - " << pkt.message() << endl;
+//
+//	Protocol::S_CHAR chat_pkt;
+//
+//	chat_pkt.set_message(pkt.message());
+//
+//	SEND_PACKET(chat_pkt);
+//	return true;
+//}
 

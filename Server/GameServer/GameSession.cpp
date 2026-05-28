@@ -13,8 +13,8 @@ void GameSession::on_recv_packet(BYTE* buffer, int32 len)
 
 	if (!ServerPacketHandler::HandlePacket(session, buffer, len))
 	{
-		//PacketHeader* header = reinterpret_cast<PacketHeader*>(buffer);
+		PacketHeader* header = reinterpret_cast<PacketHeader*>(buffer);
 
-		//ERROR_LOG("HandlePacket ERROR - ID : %d", header->id);
+		ERROR_LOG("HandlePacket ERROR - ID : %d", header->id);
 	}
 }

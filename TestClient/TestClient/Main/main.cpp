@@ -31,38 +31,53 @@ int main()
 
 	vector<shared_ptr<TestSession>> sessions;
 
-	for (int i = 0; i < 1000; i++)
+	auto session = make_shared<TestSession>();
+
+	if (!session->connect(server_addr))
+		return 0;
+
+	if (!server.register_socket(session))
 	{
-		auto session = make_shared<TestSession>();
-
-		if (!session->connect(server_addr))
-			continue;
-
-		if (!server.register_socket(session))
-		{
-			//俊矾 Log 利力
-			cout << "register_socket ERROR" << endl;
-			continue;
-		}
-
-		if (!session->start())
-		{
-			cout << "session start ERROR" << endl;
-			continue;
-		}
-
-		sessions.push_back(session);
+		//俊矾 Log 利力
+		cout << "register_socket ERROR" << endl;
+		return 0;
 	}
 
-	for (shared_ptr<TestSession>& session : sessions)
+	if (!session->start())
 	{
-		session->send();
+		cout << "session start ERROR" << endl;
+		return 0;
 	}
 
-	for (shared_ptr<TestSession>& session : sessions)
-	{
-		session->disconnect();
-	}
+	session->login();
+
+	//for (int i = 0; i < 1000; i++)
+	//{
+	//	auto session = make_shared<TestSession>();
+
+	//	if (!session->connect(server_addr))
+	//		continue;
+
+	//	if (!server.register_socket(session))
+	//	{
+	//		//俊矾 Log 利力
+	//		cout << "register_socket ERROR" << endl;
+	//		continue;
+	//	}
+
+	//	if (!session->start())
+	//	{
+	//		cout << "session start ERROR" << endl;
+	//		continue;
+	//	}
+
+	//	sessions.push_back(session);
+	//}
+
+	//for (shared_ptr<TestSession>& session : sessions)
+	//{
+	//	session->send();
+	//}
 
 	while (true)
 	{

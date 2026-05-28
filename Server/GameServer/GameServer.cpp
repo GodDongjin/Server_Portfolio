@@ -8,6 +8,7 @@
 #include "GameSession.h"
 #include "ServerPacketHandler.h"
 #include "PlayerManager.h"
+#include "GameGlobal.h"
 
 void do_worker_job(ServerServiceRef& service)
 {

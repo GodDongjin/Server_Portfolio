@@ -5,24 +5,25 @@ import "Enum.proto";
 import "Struct.proto";
 
 
-message C_LOGIN
+message REQ_LOGIN
 {
-	string id = 1;
-	string pass = 2;
+	bool is_create = 1;
+	string id = 2;
+	string pw = 3;
 }
 
-message S_LOGIN
+message ACK_LOGIN
 {
-	bool success = 1;
-	uint64 idx = 2;
+	uint64 idx = 1;
+	LOGIN_ERROR result = 2;
 }
 
-message C_CHAR
+message REQ_CHAT
 {
 	string message = 1;
 }
 
-message S_CHAR
+message ACK_CHAT
 {
 	string message = 1;
 }
