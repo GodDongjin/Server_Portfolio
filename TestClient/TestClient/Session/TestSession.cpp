@@ -247,12 +247,12 @@ void TestSession::process_recv(uint32 num_bytes)
 	INT32 process_len = 0;
 	INT32 recv_len = _recv_buffer->data_size();
 	BYTE* recv_buffer = _recv_buffer->read_pos();
+	INT32 data_size = 0;
 	while (true)
 	{
-		INT32 data_size = recv_len - process_len;
+		data_size = recv_len - process_len;
 
-		if (data_size < sizeof(PacketHeader)) {
-			cout << "data_size가 PacketHeader보다 작음 " << endl;
+		if (recv_len < sizeof(PacketHeader)) {
 			break;
 		}
 
@@ -269,12 +269,16 @@ void TestSession::process_recv(uint32 num_bytes)
 		auto session = shared_from_this();
 		if (!ClientPacketHandler::HandlePacket(session, &recv_buffer[process_len], header.size))
 		{
-			//PacketHeader* header = reinterpret_cast<PacketHeader*>(buffer);
-
 			cout << "HandlePacket ERROR - ID : " << header.id << endl;
+			break;
 		}
 
 		process_len += header.size;
+
+		// 패킷 처리 끝났으니 그만
+		if (data_size < sizeof(PacketHeader)) {
+			break;
+		}
 	}
 
 

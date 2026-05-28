@@ -15,6 +15,7 @@ void GameSession::on_recv_packet(BYTE* buffer, int32 len)
 	{
 		PacketHeader* header = reinterpret_cast<PacketHeader*>(buffer);
 
-		ERROR_LOG("HandlePacket ERROR - ID : %d", header->id);
+		cout << "HandlePacket ERROR - ID : " << header->id << endl;
+		//ERROR_LOG("HandlePacket ERROR - ID : %d", header->id);
 	}
 }
