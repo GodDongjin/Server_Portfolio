@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "Player.h"
 
-//Player::Player(SessionRef owner, Protocol::PlayerInfo playerInfo)
+//Player::Player(GameSessionRef owner, Protocol::PlayerInfo playerInfo)
 //	: mOwner(owner), mPlayerInfo(playerInfo)
 //{
 //	inGame = false;

@@ -16,7 +16,7 @@
 //	DeleteAllPlayer();
 //}
 //
-//void PlayerManager::CreatePlayer(uint64 idx, SessionRef session, Protocol::PlayerInfo playerInfo)
+//void PlayerManager::CreatePlayer(uint64 idx, GameSessionRef session, Protocol::PlayerInfo playerInfo)
 //{
 //    WRITE_LOCK;
 //
@@ -52,7 +52,7 @@
 //	_player_list->erase(playerId);
 //}
 //
-//bool PlayerManager::MovePlayer(Protocol::PlayerPos pos, SessionRef mySession)
+//bool PlayerManager::MovePlayer(Protocol::PlayerPos pos, GameSessionRef mySession)
 //{
 //	WRITE_LOCK;
 //
@@ -73,7 +73,7 @@
 //	return true;
 //}
 //
-//void PlayerManager::UserEnterBoradCast(Protocol::PlayerInfo playerInfo, SessionRef mySession)
+//void PlayerManager::UserEnterBoradCast(Protocol::PlayerInfo playerInfo, GameSessionRef mySession)
 //{
 //	std::cout << " UserEnterBoradCast" << endl;
 //
@@ -92,12 +92,12 @@
 //	_player_list->clear();
 //}
 //
-//void PlayerManager::BoradCast(SendBufferRef sendBuffer, uint64 idx, SessionRef mySession)
+//void PlayerManager::BoradCast(SendBufferRef sendBuffer, uint64 idx, GameSessionRef mySession)
 //{
 //	std::cout << " BoradCast" << endl;
 //	for (auto itr = _player_list->begin(); itr != _player_list->end(); itr++)
 //	{
-//		if (SessionRef session = itr->second->GetSeeion()) {
+//		if (GameSessionRef session = itr->second->GetSeeion()) {
 //			if (mySession == itr->second->GetSeeion()) {
 //				continue;
 //			}

@@ -31,6 +31,10 @@ void do_worker_job(ServerServiceRef& service)
 
 int main()
 {
+	std::locale::global(std::locale(""));
+	wcin.imbue(std::locale());
+	wcout.imbue(std::locale());
+
 	ServerPacketHandler::Init();
 
 	GLogger->init("./Log");

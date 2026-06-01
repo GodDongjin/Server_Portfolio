@@ -1,9 +1,9 @@
 #pragma once
 #include "Protocol.pb.h"
-#include "../ServerCore/NetWork/Session.h"
+#include "GameSession.h"
 #include "../ServerCore/NetWork/SendBuffer.h"
 
-using PacketHandlerFunc = std::function<bool(SessionRef&, BYTE*, int32)>;
+using PacketHandlerFunc = std::function<bool(GameSessionRef&, BYTE*, int32)>;
 extern PacketHandlerFunc GPacketHandler[UINT16_MAX];
 
 enum : uint16
@@ -13,10 +13,10 @@ enum : uint16
 {%- endfor %}
 };
 
-bool Handle_INVALID(SessionRef& session, BYTE* buffer, int32 len);
+bool Handle_INVALID(GameSessionRef& session, BYTE* buffer, int32 len);
 
 {%- for pkt in parser.recv_pkt %}
-bool Handle_{{pkt.name}}(SessionRef& session, Protocol::{{pkt.name}}& pkt);
+bool Handle_{{pkt.name}}(GameSessionRef& session, Protocol::{{pkt.name}}& pkt);
 {%- endfor %}
 
 class {{output}}
@@ -28,11 +28,11 @@ public:
 			GPacketHandler[i] = Handle_INVALID;
 
 {%- for pkt in parser.recv_pkt %}
-		GPacketHandler[PKT_{{pkt.name}}] = [](SessionRef& session, BYTE* buffer, int32 len) { return HandlePacket<Protocol::{{pkt.name}}>(Handle_{{pkt.name}}, session, buffer, len); };
+		GPacketHandler[PKT_{{pkt.name}}] = [](GameSessionRef& session, BYTE* buffer, int32 len) { return HandlePacket<Protocol::{{pkt.name}}>(Handle_{{pkt.name}}, session, buffer, len); };
 {%- endfor %}
 	}
 
-	static bool HandlePacket(SessionRef& session, BYTE* buffer, int32 len)
+	static bool HandlePacket(GameSessionRef& session, BYTE* buffer, int32 len)
 	{
 		PacketHeader* header = reinterpret_cast<PacketHeader*>(buffer);
 		return GPacketHandler[header->id](session, buffer, len);
@@ -44,7 +44,7 @@ public:
 
 private:
 	template<typename PacketType, typename ProcessFunc>
-	static bool HandlePacket(ProcessFunc func, SessionRef& session, BYTE* buffer, int32 len)
+	static bool HandlePacket(ProcessFunc func, GameSessionRef& session, BYTE* buffer, int32 len)
 	{
 		PacketType pkt;
 		if (pkt.ParseFromArray(buffer + sizeof(PacketHeader), len - sizeof(PacketHeader)) == false)

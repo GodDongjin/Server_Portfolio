@@ -10,13 +10,36 @@ enum CREATE_PLAYER_ERROR {
 
 enum LOGIN_ERROR
 {
-	LOGIN_NUNE = 0;
-	LOGIN_FAILE = 1;
-	LOGIN_ID_NONE = 2;
-	LOGIN_PW_NONE = 3;
-	LOGIN_CREATE_FAILE = 4;
-	LOGIN_CREATE_HAS_ACCOUNT =5;
-	LOGIN_SUCCESS = 6;
+	LOGIN_NUNE = 0;			
+	LOGIN_FAILE = 1;				// 로그인 실패
+	LOGIN_ID_NONE = 2;				// 아이디가 없음
+	LOGIN_PW_NONE = 3;				// 비밀번호가 없음
+	LOGIN_CREATE_FAILE = 4;			// 계성 생성 실패
+	LOGIN_CREATE_HAS_ACCOUNT =5;	// 이미 계정이 있음
+	LOGIN_ALREADY_LOGIN = 6;		// 이미 로그인 되어있음.
+	LOGIN_SUCCESS = 7;				// 로그인 성공
+}
+
+enum LOGOUT_ERROR
+{
+	LOGOUT_NUNE = 0;			
+	LOGOUT_FAILE = 1;				// 로그아웃 실패
+	LOGOUT_SUCCESS = 6;				// 로그아웃 성공
+}
+
+enum CHAT_ERROR
+{
+	CHAT_ERROR_NONE = 0;
+	CHAT_ERROR_FAIL = 1;			// 채팅 실패
+	CHAT_ERROR_NOT_TARGET = 2;		// 채팅 대상이 없습니다.
+	CHAT_ERROR_SUCCESS = 3;			// 채팅 성공
+}
+
+enum CHAT_STATE
+{
+	CHAT_ALL = 0;					// 전채 챗
+	CHAT_NORMAL = 1;				// 일반 챗
+	CHAT_WHISPER = 2;				// 귓속말 챗
 }
 
 enum ENTER_GAME_ERROR

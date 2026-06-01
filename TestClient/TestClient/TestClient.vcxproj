@@ -28,6 +28,7 @@
     <ClInclude Include="Protocol\Protocol.pb.h" />
     <ClInclude Include="Protocol\Struct.pb.h" />
     <ClInclude Include="Session\TestSession.h" />
+    <ClInclude Include="Utils\StringUtil.h" />
     <ClInclude Include="Utils\Types.h" />
   </ItemGroup>
   <ItemGroup>

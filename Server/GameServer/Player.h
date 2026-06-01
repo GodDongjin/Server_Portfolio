@@ -14,14 +14,14 @@ class Player
 	};
 
 public:
-	Player(SessionRef owner, Protocol::PlayerInfo playerInfo);
+	Player(GameSessionRef owner, Protocol::PlayerInfo playerInfo);
 	~Player();
 
 public:
 	Protocol::PlayerInfo GetPlayerInfo() { return mPlayerInfo; }
 	void SetPlayerInfo(Protocol::PlayerInfo playerInfo) { mPlayerInfo = playerInfo; }
 	bool GetInGameState() { return inGame; }
-	SessionRef GetSeeion() { return mOwner; }
+	GameSessionRef GetSeeion() { return mOwner; }
 public:
 	void PlayerEnterGame() { inGame = true; }
 	void SetPlayerPos(Protocol::PlayerPos pos);
@@ -29,7 +29,7 @@ public:
 private:
 	Protocol::PlayerInfo mPlayerInfo;
 	HeroType mHeroType;
-	SessionRef mOwner;
+	GameSessionRef mOwner;
 	bool inGame = false;*/
 };
 

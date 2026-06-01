@@ -46,6 +46,8 @@ using uint16 = unsigned __int16;
 using uint32 = unsigned __int32;
 using uint64 = unsigned __int64;
 
+constexpr uint16 MAX_PACKET_SIZE = 0x10000;
+
 #define USING_SHARED_PTR(name)	using name##Ref = std::shared_ptr<class name>;
 
 #define size16(val)		static_cast<int16>(sizeof(val))

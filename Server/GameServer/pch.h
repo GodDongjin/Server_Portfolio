@@ -18,3 +18,4 @@
 
 USING_SHARED_PTR(Player);
 USING_SHARED_PTR(PlayerManager);
+USING_SHARED_PTR(GameSession)

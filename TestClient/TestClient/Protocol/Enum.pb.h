@@ -81,7 +81,8 @@ enum LOGIN_ERROR : int {
   LOGIN_PW_NONE = 3,
   LOGIN_CREATE_FAILE = 4,
   LOGIN_CREATE_HAS_ACCOUNT = 5,
-  LOGIN_SUCCESS = 6,
+  LOGIN_ALREADY_LOGIN = 6,
+  LOGIN_SUCCESS = 7,
   LOGIN_ERROR_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
   LOGIN_ERROR_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
 };
@@ -103,6 +104,85 @@ inline bool LOGIN_ERROR_Parse(
     ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, LOGIN_ERROR* value) {
   return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<LOGIN_ERROR>(
     LOGIN_ERROR_descriptor(), name, value);
+}
+enum LOGOUT_ERROR : int {
+  LOGOUT_NUNE = 0,
+  LOGOUT_FAILE = 1,
+  LOGOUT_SUCCESS = 6,
+  LOGOUT_ERROR_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
+  LOGOUT_ERROR_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
+};
+bool LOGOUT_ERROR_IsValid(int value);
+constexpr LOGOUT_ERROR LOGOUT_ERROR_MIN = LOGOUT_NUNE;
+constexpr LOGOUT_ERROR LOGOUT_ERROR_MAX = LOGOUT_SUCCESS;
+constexpr int LOGOUT_ERROR_ARRAYSIZE = LOGOUT_ERROR_MAX + 1;
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* LOGOUT_ERROR_descriptor();
+template<typename T>
+inline const std::string& LOGOUT_ERROR_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, LOGOUT_ERROR>::value ||
+    ::std::is_integral<T>::value,
+    "Incorrect type passed to function LOGOUT_ERROR_Name.");
+  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
+    LOGOUT_ERROR_descriptor(), enum_t_value);
+}
+inline bool LOGOUT_ERROR_Parse(
+    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, LOGOUT_ERROR* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<LOGOUT_ERROR>(
+    LOGOUT_ERROR_descriptor(), name, value);
+}
+enum CHAT_ERROR : int {
+  CHAT_ERROR_NONE = 0,
+  CHAT_ERROR_FAIL = 1,
+  CHAT_ERROR_NOT_TARGET = 2,
+  CHAT_ERROR_SUCCESS = 3,
+  CHAT_ERROR_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
+  CHAT_ERROR_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
+};
+bool CHAT_ERROR_IsValid(int value);
+constexpr CHAT_ERROR CHAT_ERROR_MIN = CHAT_ERROR_NONE;
+constexpr CHAT_ERROR CHAT_ERROR_MAX = CHAT_ERROR_SUCCESS;
+constexpr int CHAT_ERROR_ARRAYSIZE = CHAT_ERROR_MAX + 1;
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* CHAT_ERROR_descriptor();
+template<typename T>
+inline const std::string& CHAT_ERROR_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, CHAT_ERROR>::value ||
+    ::std::is_integral<T>::value,
+    "Incorrect type passed to function CHAT_ERROR_Name.");
+  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
+    CHAT_ERROR_descriptor(), enum_t_value);
+}
+inline bool CHAT_ERROR_Parse(
+    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, CHAT_ERROR* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<CHAT_ERROR>(
+    CHAT_ERROR_descriptor(), name, value);
+}
+enum CHAT_STATE : int {
+  CHAT_ALL = 0,
+  CHAT_NORMAL = 1,
+  CHAT_WHISPER = 2,
+  CHAT_STATE_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
+  CHAT_STATE_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
+};
+bool CHAT_STATE_IsValid(int value);
+constexpr CHAT_STATE CHAT_STATE_MIN = CHAT_ALL;
+constexpr CHAT_STATE CHAT_STATE_MAX = CHAT_WHISPER;
+constexpr int CHAT_STATE_ARRAYSIZE = CHAT_STATE_MAX + 1;
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* CHAT_STATE_descriptor();
+template<typename T>
+inline const std::string& CHAT_STATE_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, CHAT_STATE>::value ||
+    ::std::is_integral<T>::value,
+    "Incorrect type passed to function CHAT_STATE_Name.");
+  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
+    CHAT_STATE_descriptor(), enum_t_value);
+}
+inline bool CHAT_STATE_Parse(
+    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, CHAT_STATE* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<CHAT_STATE>(
+    CHAT_STATE_descriptor(), name, value);
 }
 enum ENTER_GAME_ERROR : int {
   ENTER_GAME_NONE = 0,
@@ -187,6 +267,21 @@ template <> struct is_proto_enum< ::Protocol::LOGIN_ERROR> : ::std::true_type {}
 template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::LOGIN_ERROR>() {
   return ::Protocol::LOGIN_ERROR_descriptor();
+}
+template <> struct is_proto_enum< ::Protocol::LOGOUT_ERROR> : ::std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::LOGOUT_ERROR>() {
+  return ::Protocol::LOGOUT_ERROR_descriptor();
+}
+template <> struct is_proto_enum< ::Protocol::CHAT_ERROR> : ::std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::CHAT_ERROR>() {
+  return ::Protocol::CHAT_ERROR_descriptor();
+}
+template <> struct is_proto_enum< ::Protocol::CHAT_STATE> : ::std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::CHAT_STATE>() {
+  return ::Protocol::CHAT_STATE_descriptor();
 }
 template <> struct is_proto_enum< ::Protocol::ENTER_GAME_ERROR> : ::std::true_type {};
 template <>

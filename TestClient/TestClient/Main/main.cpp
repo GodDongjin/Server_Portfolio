@@ -7,6 +7,10 @@
 
 int main()
 {
+	std::locale::global(std::locale(""));
+	wcin.imbue(std::locale());
+	wcout.imbue(std::locale());
+
 	ClientPacketHandler::Init();
 
 	WSADATA wsaData;
@@ -51,6 +55,26 @@ int main()
 
 	session->login();
 
+	while (true)
+	{
+		wstring line;
+		getline(wcin, line);
+
+		if (line == L"/q")
+		{
+			session->logout();
+			break;
+		}
+
+		if (line.rfind(L"/chat ", 0) == 0)
+		{
+			session->send_chat(line.substr(6), Protocol::CHAT_STATE::CHAT_ALL);
+			continue;
+		}
+
+		cout << "unknown command" << endl;
+	}
+
 	//for (int i = 0; i < 1000; i++)
 	//{
 	//	auto session = make_shared<TestSession>();
@@ -79,9 +103,9 @@ int main()
 	//	session->send();
 	//}
 
-	while (true)
+	while (session->is_connected())
 	{
-		::Sleep(1000);
+		::Sleep(10);
 	}
 
 	server.stop();

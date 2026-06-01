@@ -38,6 +38,7 @@ public:
 	uint64				get_account_idx() { return _account_idx; }
 
 	void set_service(shared_ptr<Service> sevice) { _service = sevice; }
+	weak_ptr<Service> get_service() { return _service; }
 
 private:
 	virtual HANDLE		get_handle() override;
@@ -56,6 +57,7 @@ private:
 	void				handle_error(int32 errorCode);
 
 protected:
+	virtual void		on_disconnect();
 	virtual int32		on_recv(BYTE* get_buffer, int32 len);
 	virtual void		on_send(int32 len) { }
 	virtual void		on_recv_packet(BYTE* get_buffer, int32 len);

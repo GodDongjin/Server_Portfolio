@@ -54,6 +54,9 @@
     <ClInclude Include="NetWork\IocpEvent.h">
       <Filter>NetWork</Filter>
     </ClInclude>
+    <ClInclude Include="Utils\StringUtil.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Session\TestSession.cpp">

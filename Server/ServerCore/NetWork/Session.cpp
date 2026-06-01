@@ -245,6 +245,17 @@ void Session::handle_error(int32 errorCode)
 	}
 }
 
+void Session::on_disconnect()
+{
+	_disconnect_event.set_owner(nullptr);
+
+	on_disconnect();
+
+	auto service = _service.lock();
+	if (service)
+		service->get_sessionManager()->on_disconnected(get_session());
+}
+
 int32 Session::on_recv(BYTE* get_buffer, int32 len)
 {
 	int32 processLen = 0;
@@ -260,6 +271,12 @@ int32 Session::on_recv(BYTE* get_buffer, int32 len)
 		PacketHeader header = *(reinterpret_cast<PacketHeader*>(&get_buffer[processLen]));
 		
 		// 패킷 사이즈 채크.
+		if (header.size < sizeof(PacketHeader))
+			return -1;
+
+		if (header.size > BUFFER_SIZE)
+			return -1;
+
 		if (dataSize < header.size)
 			break;
 

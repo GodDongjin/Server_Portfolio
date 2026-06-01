@@ -4,6 +4,7 @@
 #include "../Buffer/RecvBuffer.h"
 #include "../Buffer/SendBuffer.h"
 #include "../NetWork/IocpEvent.h"
+#include "../Protocol/Protocol.pb.h"
 
 class TestSession : public enable_shared_from_this<TestSession>
 {
@@ -24,7 +25,10 @@ public:
 
 public:
 	void login();
+	void logout();
+	
 
+	void send_chat(const wstring& message, Protocol::CHAT_STATE chat_state);
 public:
 	bool is_connected() { return _is_connect; }
 

@@ -17,12 +17,12 @@ public:
 //	bool GetPlayerEmpty() { return (!_player_list || _player_list->empty()); }
 //
 //public:
-//	void CreatePlayer(uint64 idx, SessionRef session, Protocol::PlayerInfo playerInfo);
+//	void CreatePlayer(uint64 idx, GameSessionRef session, Protocol::PlayerInfo playerInfo);
 //	void DeletePlayer(uint64 playerId);
 //
-//	bool MovePlayer(Protocol::PlayerPos pos, SessionRef mySession);
-//	void UserEnterBoradCast(Protocol::PlayerInfo playerInfo, SessionRef mySession);
-//	void BoradCast(SendBufferRef sendBuffer, uint64 idx, SessionRef mySession);
+//	bool MovePlayer(Protocol::PlayerPos pos, GameSessionRef mySession);
+//	void UserEnterBoradCast(Protocol::PlayerInfo playerInfo, GameSessionRef mySession);
+//	void BoradCast(SendBufferRef sendBuffer, uint64 idx, GameSessionRef mySession);
 //private:
 //	void DeleteAllPlayer();
 //private:

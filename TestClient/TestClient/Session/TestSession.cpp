@@ -1,6 +1,7 @@
 #include "TestSession.h"
 #include "../Protocol/Protocol.pb.h"
 #include "../Packet/ClientPacketHandler.h"
+#include "../Utils/StringUtil.h"
 
 bool TestSession::start()
 {
@@ -58,6 +59,8 @@ void TestSession::disconnect()
 		return;
 	}
 
+	_is_disconnect = true;
+
 	::shutdown(_socket, SD_BOTH);
 	::closesocket(_socket);
 }
@@ -102,24 +105,56 @@ void TestSession::login()
 {
 	int is_create = 0;
 
-	cout << "1. 로그인    2. 계정 생성    " << endl;
+	cout << "1. 로그인    2. 계정 생성   3. 나가기 " << endl;
 	cin >> is_create;
+
+	if (is_create == 3) {
+		disconnect();
+		return;
+	}
 
 	string id;
 	string pw;
+	wstring name;
 
 	cout << "id 입력 : ";
 	cin >> id;
 	cout << "passward 입력 : ";
 	cin >> pw;
 
+	if (is_create == 2)
+	{
+		cout << "이름 입력 : ";
+		wcin >> name;
+	}
+
 	Protocol::REQ_LOGIN _login_pkt;
 	_login_pkt.set_is_create((is_create - 1));
 	_login_pkt.set_id(id);
 	_login_pkt.set_pw(pw);
+	_login_pkt.set_name(WStringToUtf8(name));
 
 	shared_ptr<SendBuffer> send_buffer = ClientPacketHandler::MakeSendBuffer(_login_pkt);
 	send(send_buffer);
+}
+
+void TestSession::logout()
+{
+	Protocol::REQ_LOGOUT _logout_pkt;
+	_logout_pkt.set_idx(_account_idx);
+
+	shared_ptr<SendBuffer> send_buffer = ClientPacketHandler::MakeSendBuffer(_logout_pkt);
+	send(send_buffer);
+}
+
+void TestSession::send_chat(const wstring& message, Protocol::CHAT_STATE chat_state)
+{
+	Protocol::REQ_CHAT pkt;
+	pkt.set_message(WStringToUtf8(message));
+	pkt.set_chat_state(chat_state);
+
+	auto sendBuffer = ClientPacketHandler::MakeSendBuffer(pkt);
+	send(sendBuffer);
 }
 
 void TestSession::dispatch(IocpEvent* iocp_evnet, INT32 numOfbyte)
@@ -205,7 +240,7 @@ bool TestSession::register_send()
 		}
 	}
 
-	cout << "register_send succes" << endl;
+	//cout << "register_send succes" << endl;
 
 	return true;
 }
@@ -252,18 +287,29 @@ void TestSession::process_recv(uint32 num_bytes)
 	{
 		data_size = recv_len - process_len;
 
-		if (recv_len < sizeof(PacketHeader)) {
+		if (data_size < sizeof(PacketHeader)) {
 			break;
 		}
 
 		PacketHeader header = *(reinterpret_cast<PacketHeader*>(&recv_buffer[process_len]));
+
+		if (header.size < sizeof(PacketHeader))
+		{
+			disconnect();
+			return;
+		}
+
+		if (header.size > MAX_PACKET_SIZE)
+		{
+			disconnect();
+			return;
+		}
 
 		// 패킷 사이즈 채크.
 		if (data_size < header.size) {
 			cout << "data_size가 패킷 사이즈 보다 작음 " << endl;
 			break;
 		}
-			
 
 		// 패킷 처리 작업 진행.
 		auto session = shared_from_this();
@@ -274,11 +320,6 @@ void TestSession::process_recv(uint32 num_bytes)
 		}
 
 		process_len += header.size;
-
-		// 패킷 처리 끝났으니 그만
-		if (data_size < sizeof(PacketHeader)) {
-			break;
-		}
 	}
 
 

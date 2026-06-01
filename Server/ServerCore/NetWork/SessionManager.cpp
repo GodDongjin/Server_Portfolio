@@ -10,7 +10,6 @@ void SessionManager::add_session(SessionRef session)
 {
 	WRITE_LOCK;
 	_sessions.insert(session);
-	session->set_account_idx(_session_id.fetch_add(1));
 	session->set_process_connect();
 	_sessionCount++;
 }
