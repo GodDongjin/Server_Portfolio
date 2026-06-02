@@ -35,9 +35,81 @@ int main()
 
 	vector<shared_ptr<TestSession>> sessions;
 
-	auto session = make_shared<TestSession>();
+	
+	// Bot test 코드
+	///////////////////////////////////////////////////////////
+	atomic<bool> running = true;
+	const int32 session_Count = 1000;
+	const int32 bot_thread_Count = 4;
 
-	if (!session->connect(server_addr))
+	for (int32 i = 0; i < session_Count; i++)
+	{
+		auto session = make_shared<TestSession>();
+		session->set_bot_index(i);
+
+		if (!session->connect(server_addr)) {
+			continue;
+		}
+			
+
+		if (!server.register_socket(session)){
+			continue;
+		}
+			
+		if (!session->start()) {
+			continue;
+		}
+
+		session->test_login(i);
+
+		sessions.push_back(session);
+	}
+	
+	vector<thread> bot_threads;
+	for (int32 i = 0; i < bot_thread_Count; i++)
+	{
+		bot_threads.push_back(thread([&, i]()
+		{
+			vector<shared_ptr<TestSession>> mySessions;
+			for (int32 index = i; index < sessions.size(); index += bot_thread_Count)
+			{
+				mySessions.push_back(sessions[index]);
+			}
+
+			while (running)
+			{
+				for (int32 t = 0; t < mySessions.size(); t++)
+				{
+					auto& session = mySessions[t];
+
+					if (session->get_is_login())
+					{
+						session->send_chat(L"bot test message", Protocol::CHAT_STATE::CHAT_ALL);
+					}
+				}
+
+				::Sleep(2000);
+			}
+		}));
+	}
+
+	while (true)
+	{
+		::Sleep(1000);
+	}
+
+	running = false;
+
+	for (thread& t : bot_threads)
+	{
+		if (t.joinable())
+			t.join();
+	}
+	/////////////////////////////////////////////////////////////////////
+
+
+	/// 직접 테스트 할 때
+	/*if (!session->connect(server_addr))
 		return 0;
 
 	if (!server.register_socket(session))
@@ -57,6 +129,8 @@ int main()
 
 	while (true)
 	{
+		//cout << "[ /chat : 채팅, /q 종료  ]" << endl;
+		//wcin.ignore(std::numeric_limits<std::streamsize>::max(), L'\n');
 		wstring line;
 		getline(wcin, line);
 
@@ -75,38 +149,12 @@ int main()
 		cout << "unknown command" << endl;
 	}
 
-	//for (int i = 0; i < 1000; i++)
-	//{
-	//	auto session = make_shared<TestSession>();
-
-	//	if (!session->connect(server_addr))
-	//		continue;
-
-	//	if (!server.register_socket(session))
-	//	{
-	//		//에러 Log 적제
-	//		cout << "register_socket ERROR" << endl;
-	//		continue;
-	//	}
-
-	//	if (!session->start())
-	//	{
-	//		cout << "session start ERROR" << endl;
-	//		continue;
-	//	}
-
-	//	sessions.push_back(session);
-	//}
-
-	//for (shared_ptr<TestSession>& session : sessions)
-	//{
-	//	session->send();
-	//}
-
 	while (session->is_connected())
 	{
 		::Sleep(10);
 	}
+	*//////////
+
 
 	server.stop();
 	WSACleanup();

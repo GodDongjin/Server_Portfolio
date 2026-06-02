@@ -19,33 +19,79 @@ bool Handle_ACK_LOGIN(shared_ptr<TestSession>& session, Protocol::ACK_LOGIN& pkt
     switch (pkt.result())
     {
        case Protocol::LOGIN_ERROR::LOGIN_FAILE:
-           cout << "로그인 실패 " << endl;
+           wcout << L"로그인 실패 " << endl;
            session->login();
            break;
        case Protocol::LOGIN_ERROR::LOGIN_ID_NONE:
-           cout << "아이디가 없습니다. " << endl;
+           wcout << L"아이디가 없습니다. " << endl;
            session->login();
            break;
        case Protocol::LOGIN_ERROR::LOGIN_PW_NONE:
-           cout << "패스워드가 없습니다. " << endl;
+           wcout << L"패스워드가 없습니다. " << endl;
            session->login();
            break;
        case Protocol::LOGIN_ERROR::LOGIN_CREATE_FAILE:
-           cout << "계정 생성 실패 " << endl;
+           wcout << L"계정 생성 실패 " << endl;
            session->login();
            break;
        case Protocol::LOGIN_ERROR::LOGIN_CREATE_HAS_ACCOUNT:
-           cout << "이미 계정이 있습니다. " << endl;
+           wcout << L"이미 계정이 있습니다. " << endl;
            session->login();
            break;
        case Protocol::LOGIN_ERROR::LOGIN_ALREADY_LOGIN:
-           cout << "이미 이미 로그인 되어있습니다. " << endl;
+           wcout << L"이미 이미 로그인 되어있습니다. " << endl;
            session->login();
            break;
        case Protocol::LOGIN_ERROR::LOGIN_SUCCESS:
-           cout << "로그인 성공 " << endl;
+           wcout << L"로그인 성공 Bot_" << session->get_bot_index() << endl;
            session->set_account(pkt.idx());
+           session->set_is_login(true);
            break;
+    default:
+        break;
+    }
+
+    return true;
+}
+
+bool Handle_ACK_BOT_LOGIN(shared_ptr<TestSession>& session, Protocol::ACK_BOT_LOGIN& pkt)
+{
+    if (session == nullptr) {
+        cout << "Handle_ACK_CHAT : session nullptr" << endl;
+        return false;
+    }
+
+    switch (pkt.result())
+    {
+    case Protocol::LOGIN_ERROR::LOGIN_FAILE:
+        wcout << L"로그인 실패 " << endl;
+        session->test_login(session->get_bot_index());
+        break;
+    case Protocol::LOGIN_ERROR::LOGIN_ID_NONE:
+        wcout << L"아이디가 없습니다. " << endl;
+        session->test_login(session->get_bot_index());
+        break;
+    case Protocol::LOGIN_ERROR::LOGIN_PW_NONE:
+        wcout << L"패스워드가 없습니다. " << endl;
+        session->test_login(session->get_bot_index());
+        break;
+    case Protocol::LOGIN_ERROR::LOGIN_CREATE_FAILE:
+        wcout << L"계정 생성 실패 " << endl;
+        session->test_login(session->get_bot_index());
+        break;
+    case Protocol::LOGIN_ERROR::LOGIN_CREATE_HAS_ACCOUNT:
+        wcout << L"이미 계정이 있습니다. " << endl;
+        session->test_login(session->get_bot_index());
+        break;
+    case Protocol::LOGIN_ERROR::LOGIN_ALREADY_LOGIN:
+        wcout << L"이미 이미 로그인 되어있습니다. " << endl;
+        session->test_login(session->get_bot_index());
+        break;
+    case Protocol::LOGIN_ERROR::LOGIN_SUCCESS:
+        wcout << L"로그인 성공 Bot_" << session->get_bot_index() << endl;
+        session->set_account(pkt.idx());
+        session->set_is_login(true);
+        break;
     default:
         break;
     }

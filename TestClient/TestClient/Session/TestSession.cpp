@@ -23,12 +23,17 @@ bool TestSession::start()
 
 bool TestSession::connect(SOCKADDR_IN server_addr)
 {
+	if (_test_session_state == TEST_SESSION_STATE::CONNECTED) {
+		cout << "test_session_state is CONNECTED" << endl;
+		return false;
+	}
+
 	SOCKET client_socket = ::WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
 	if (client_socket == INVALID_SOCKET)
 	{
 		cout << "WSASocket failed : " << WSAGetLastError() << endl;
 		WSACleanup();
-		return NULL;
+		return false;
 	}
 
 	if (::connect(client_socket, reinterpret_cast<SOCKADDR*>(&server_addr), sizeof(server_addr)))
@@ -42,6 +47,7 @@ bool TestSession::connect(SOCKADDR_IN server_addr)
 
 	_socket = client_socket;
 	_is_connect.store(true);
+	_test_session_state = TEST_SESSION_STATE::CONNECTED;
 
 	cout << "connect succes" << endl;
 
@@ -50,6 +56,11 @@ bool TestSession::connect(SOCKADDR_IN server_addr)
 
 void TestSession::disconnect()
 {
+	if (_test_session_state == TEST_SESSION_STATE::DISCONNECTED) {
+		cout << "test_session_state is DISCONNECTED" << endl;
+		return;
+	}
+
 	if (_is_connect.exchange(false) == false)
 	{
 		return;
@@ -130,6 +141,22 @@ void TestSession::login()
 
 	Protocol::REQ_LOGIN _login_pkt;
 	_login_pkt.set_is_create((is_create - 1));
+	_login_pkt.set_id(id);
+	_login_pkt.set_pw(pw);
+	_login_pkt.set_name(WStringToUtf8(name));
+
+	shared_ptr<SendBuffer> send_buffer = ClientPacketHandler::MakeSendBuffer(_login_pkt);
+	send(send_buffer);
+}
+
+void TestSession::test_login(uint32 index)
+{
+	wstring name = L"Bot_" + to_wstring(index);
+	string id = "bot_" + to_string(index);
+	string pw = "1234";
+
+	Protocol::REQ_BOT_LOGIN _login_pkt;
+	_login_pkt.set_is_create(true);
 	_login_pkt.set_id(id);
 	_login_pkt.set_pw(pw);
 	_login_pkt.set_name(WStringToUtf8(name));

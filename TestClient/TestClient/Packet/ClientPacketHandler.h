@@ -16,15 +16,18 @@ enum : uint16
 {
 	PKT_REQ_LOGIN = 1000,
 	PKT_ACK_LOGIN = 1001,
-	PKT_REQ_LOGOUT = 1002,
-	PKT_ACK_LOGOUT = 1003,
-	PKT_REQ_CHAT = 1004,
-	PKT_ACK_CHAT = 1005,
-	PKT_ACK_SEND_CHAT = 1006,
+	PKT_REQ_BOT_LOGIN = 1002,
+	PKT_ACK_BOT_LOGIN = 1003,
+	PKT_REQ_LOGOUT = 1004,
+	PKT_ACK_LOGOUT = 1005,
+	PKT_REQ_CHAT = 1006,
+	PKT_ACK_CHAT = 1007,
+	PKT_ACK_SEND_CHAT = 1008,
 };
 
 bool Handle_INVALID(shared_ptr<TestSession>& session, BYTE* buffer, int32 len);
 bool Handle_ACK_LOGIN(shared_ptr<TestSession>& session, Protocol::ACK_LOGIN& pkt);
+bool Handle_ACK_BOT_LOGIN(shared_ptr<TestSession>& session, Protocol::ACK_BOT_LOGIN& pkt);
 bool Handle_ACK_LOGOUT(shared_ptr<TestSession>& session, Protocol::ACK_LOGOUT& pkt);
 bool Handle_ACK_CHAT(shared_ptr<TestSession>& session, Protocol::ACK_CHAT& pkt);
 bool Handle_ACK_SEND_CHAT(shared_ptr<TestSession>& session, Protocol::ACK_SEND_CHAT& pkt);
@@ -37,6 +40,7 @@ public:
 		for (int32 i = 0; i < UINT16_MAX; i++)
 			GPacketHandler[i] = Handle_INVALID;
 		GPacketHandler[PKT_ACK_LOGIN] = [](shared_ptr<TestSession>& session, BYTE* buffer, int32 len) { return HandlePacket<Protocol::ACK_LOGIN>(Handle_ACK_LOGIN, session, buffer, len); };
+		GPacketHandler[PKT_ACK_BOT_LOGIN] = [](shared_ptr<TestSession>& session, BYTE* buffer, int32 len) { return HandlePacket<Protocol::ACK_BOT_LOGIN>(Handle_ACK_BOT_LOGIN, session, buffer, len); };
 		GPacketHandler[PKT_ACK_LOGOUT] = [](shared_ptr<TestSession>& session, BYTE* buffer, int32 len) { return HandlePacket<Protocol::ACK_LOGOUT>(Handle_ACK_LOGOUT, session, buffer, len); };
 		GPacketHandler[PKT_ACK_CHAT] = [](shared_ptr<TestSession>& session, BYTE* buffer, int32 len) { return HandlePacket<Protocol::ACK_CHAT>(Handle_ACK_CHAT, session, buffer, len); };
 		GPacketHandler[PKT_ACK_SEND_CHAT] = [](shared_ptr<TestSession>& session, BYTE* buffer, int32 len) { return HandlePacket<Protocol::ACK_SEND_CHAT>(Handle_ACK_SEND_CHAT, session, buffer, len); };
@@ -48,6 +52,7 @@ public:
 		return GPacketHandler[header->id](session, buffer, len);
 	}
 	static shared_ptr<SendBuffer> MakeSendBuffer(Protocol::REQ_LOGIN& pkt) { return MakeSendBuffer(pkt, PKT_REQ_LOGIN); }
+	static shared_ptr<SendBuffer> MakeSendBuffer(Protocol::REQ_BOT_LOGIN& pkt) { return MakeSendBuffer(pkt, PKT_REQ_BOT_LOGIN); }
 	static shared_ptr<SendBuffer> MakeSendBuffer(Protocol::REQ_LOGOUT& pkt) { return MakeSendBuffer(pkt, PKT_REQ_LOGOUT); }
 	static shared_ptr<SendBuffer> MakeSendBuffer(Protocol::REQ_CHAT& pkt) { return MakeSendBuffer(pkt, PKT_REQ_CHAT); }
 

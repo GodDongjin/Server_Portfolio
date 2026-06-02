@@ -121,13 +121,10 @@ void Session::register_send()
 	_send_event.set_owner(shared_from_this());
 
 	{
-		//int32 writeSize = 0;
 		while (_send_queue.empty() == false)
 		{
 			// 뭔가 수정 필요.
 			SendBufferRef sendBuffer = _send_queue.front();
-
-			//writeSize += sendBuffer->get_write_size();
 
 			_send_queue.pop();
 			_send_event.send_Buffers_push(sendBuffer);
@@ -171,6 +168,8 @@ void Session::process_disconnect()
 {
 	_disconnect_event.set_owner(nullptr);
 	
+	on_disconnect();
+
 	auto service = _service.lock();
 	if (service)
 		service->get_sessionManager()->on_disconnected(get_session());
@@ -247,13 +246,7 @@ void Session::handle_error(int32 errorCode)
 
 void Session::on_disconnect()
 {
-	_disconnect_event.set_owner(nullptr);
 
-	on_disconnect();
-
-	auto service = _service.lock();
-	if (service)
-		service->get_sessionManager()->on_disconnected(get_session());
 }
 
 int32 Session::on_recv(BYTE* get_buffer, int32 len)

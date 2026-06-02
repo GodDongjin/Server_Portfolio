@@ -47,6 +47,9 @@ struct TableStruct_Protocol_2eproto {
 };
 extern const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_Protocol_2eproto;
 namespace Protocol {
+class ACK_BOT_LOGIN;
+struct ACK_BOT_LOGINDefaultTypeInternal;
+extern ACK_BOT_LOGINDefaultTypeInternal _ACK_BOT_LOGIN_default_instance_;
 class ACK_CHAT;
 struct ACK_CHATDefaultTypeInternal;
 extern ACK_CHATDefaultTypeInternal _ACK_CHAT_default_instance_;
@@ -59,6 +62,9 @@ extern ACK_LOGOUTDefaultTypeInternal _ACK_LOGOUT_default_instance_;
 class ACK_SEND_CHAT;
 struct ACK_SEND_CHATDefaultTypeInternal;
 extern ACK_SEND_CHATDefaultTypeInternal _ACK_SEND_CHAT_default_instance_;
+class REQ_BOT_LOGIN;
+struct REQ_BOT_LOGINDefaultTypeInternal;
+extern REQ_BOT_LOGINDefaultTypeInternal _REQ_BOT_LOGIN_default_instance_;
 class REQ_CHAT;
 struct REQ_CHATDefaultTypeInternal;
 extern REQ_CHATDefaultTypeInternal _REQ_CHAT_default_instance_;
@@ -70,10 +76,12 @@ struct REQ_LOGOUTDefaultTypeInternal;
 extern REQ_LOGOUTDefaultTypeInternal _REQ_LOGOUT_default_instance_;
 }  // namespace Protocol
 PROTOBUF_NAMESPACE_OPEN
+template<> ::Protocol::ACK_BOT_LOGIN* Arena::CreateMaybeMessage<::Protocol::ACK_BOT_LOGIN>(Arena*);
 template<> ::Protocol::ACK_CHAT* Arena::CreateMaybeMessage<::Protocol::ACK_CHAT>(Arena*);
 template<> ::Protocol::ACK_LOGIN* Arena::CreateMaybeMessage<::Protocol::ACK_LOGIN>(Arena*);
 template<> ::Protocol::ACK_LOGOUT* Arena::CreateMaybeMessage<::Protocol::ACK_LOGOUT>(Arena*);
 template<> ::Protocol::ACK_SEND_CHAT* Arena::CreateMaybeMessage<::Protocol::ACK_SEND_CHAT>(Arena*);
+template<> ::Protocol::REQ_BOT_LOGIN* Arena::CreateMaybeMessage<::Protocol::REQ_BOT_LOGIN>(Arena*);
 template<> ::Protocol::REQ_CHAT* Arena::CreateMaybeMessage<::Protocol::REQ_CHAT>(Arena*);
 template<> ::Protocol::REQ_LOGIN* Arena::CreateMaybeMessage<::Protocol::REQ_LOGIN>(Arena*);
 template<> ::Protocol::REQ_LOGOUT* Arena::CreateMaybeMessage<::Protocol::REQ_LOGOUT>(Arena*);
@@ -453,6 +461,377 @@ class ACK_LOGIN final :
 };
 // -------------------------------------------------------------------
 
+class REQ_BOT_LOGIN final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:Protocol.REQ_BOT_LOGIN) */ {
+ public:
+  inline REQ_BOT_LOGIN() : REQ_BOT_LOGIN(nullptr) {}
+  ~REQ_BOT_LOGIN() override;
+  explicit PROTOBUF_CONSTEXPR REQ_BOT_LOGIN(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  REQ_BOT_LOGIN(const REQ_BOT_LOGIN& from);
+  REQ_BOT_LOGIN(REQ_BOT_LOGIN&& from) noexcept
+    : REQ_BOT_LOGIN() {
+    *this = ::std::move(from);
+  }
+
+  inline REQ_BOT_LOGIN& operator=(const REQ_BOT_LOGIN& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline REQ_BOT_LOGIN& operator=(REQ_BOT_LOGIN&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const REQ_BOT_LOGIN& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const REQ_BOT_LOGIN* internal_default_instance() {
+    return reinterpret_cast<const REQ_BOT_LOGIN*>(
+               &_REQ_BOT_LOGIN_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    2;
+
+  friend void swap(REQ_BOT_LOGIN& a, REQ_BOT_LOGIN& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(REQ_BOT_LOGIN* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(REQ_BOT_LOGIN* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  REQ_BOT_LOGIN* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<REQ_BOT_LOGIN>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const REQ_BOT_LOGIN& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const REQ_BOT_LOGIN& from) {
+    REQ_BOT_LOGIN::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(REQ_BOT_LOGIN* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "Protocol.REQ_BOT_LOGIN";
+  }
+  protected:
+  explicit REQ_BOT_LOGIN(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kIdFieldNumber = 2,
+    kPwFieldNumber = 3,
+    kNameFieldNumber = 4,
+    kIsCreateFieldNumber = 1,
+  };
+  // string id = 2;
+  void clear_id();
+  const std::string& id() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_id(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_id();
+  PROTOBUF_NODISCARD std::string* release_id();
+  void set_allocated_id(std::string* id);
+  private:
+  const std::string& _internal_id() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_id(const std::string& value);
+  std::string* _internal_mutable_id();
+  public:
+
+  // string pw = 3;
+  void clear_pw();
+  const std::string& pw() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_pw(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_pw();
+  PROTOBUF_NODISCARD std::string* release_pw();
+  void set_allocated_pw(std::string* pw);
+  private:
+  const std::string& _internal_pw() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_pw(const std::string& value);
+  std::string* _internal_mutable_pw();
+  public:
+
+  // string name = 4;
+  void clear_name();
+  const std::string& name() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_name(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_name();
+  PROTOBUF_NODISCARD std::string* release_name();
+  void set_allocated_name(std::string* name);
+  private:
+  const std::string& _internal_name() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_name(const std::string& value);
+  std::string* _internal_mutable_name();
+  public:
+
+  // bool is_create = 1;
+  void clear_is_create();
+  bool is_create() const;
+  void set_is_create(bool value);
+  private:
+  bool _internal_is_create() const;
+  void _internal_set_is_create(bool value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:Protocol.REQ_BOT_LOGIN)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr id_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr pw_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr name_;
+    bool is_create_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_Protocol_2eproto;
+};
+// -------------------------------------------------------------------
+
+class ACK_BOT_LOGIN final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:Protocol.ACK_BOT_LOGIN) */ {
+ public:
+  inline ACK_BOT_LOGIN() : ACK_BOT_LOGIN(nullptr) {}
+  ~ACK_BOT_LOGIN() override;
+  explicit PROTOBUF_CONSTEXPR ACK_BOT_LOGIN(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  ACK_BOT_LOGIN(const ACK_BOT_LOGIN& from);
+  ACK_BOT_LOGIN(ACK_BOT_LOGIN&& from) noexcept
+    : ACK_BOT_LOGIN() {
+    *this = ::std::move(from);
+  }
+
+  inline ACK_BOT_LOGIN& operator=(const ACK_BOT_LOGIN& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ACK_BOT_LOGIN& operator=(ACK_BOT_LOGIN&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ACK_BOT_LOGIN& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const ACK_BOT_LOGIN* internal_default_instance() {
+    return reinterpret_cast<const ACK_BOT_LOGIN*>(
+               &_ACK_BOT_LOGIN_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    3;
+
+  friend void swap(ACK_BOT_LOGIN& a, ACK_BOT_LOGIN& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(ACK_BOT_LOGIN* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ACK_BOT_LOGIN* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ACK_BOT_LOGIN* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<ACK_BOT_LOGIN>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const ACK_BOT_LOGIN& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const ACK_BOT_LOGIN& from) {
+    ACK_BOT_LOGIN::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(ACK_BOT_LOGIN* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "Protocol.ACK_BOT_LOGIN";
+  }
+  protected:
+  explicit ACK_BOT_LOGIN(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kUserNameFieldNumber = 2,
+    kIdxFieldNumber = 1,
+    kResultFieldNumber = 3,
+  };
+  // string user_name = 2;
+  void clear_user_name();
+  const std::string& user_name() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_user_name(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_user_name();
+  PROTOBUF_NODISCARD std::string* release_user_name();
+  void set_allocated_user_name(std::string* user_name);
+  private:
+  const std::string& _internal_user_name() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_user_name(const std::string& value);
+  std::string* _internal_mutable_user_name();
+  public:
+
+  // uint64 idx = 1;
+  void clear_idx();
+  uint64_t idx() const;
+  void set_idx(uint64_t value);
+  private:
+  uint64_t _internal_idx() const;
+  void _internal_set_idx(uint64_t value);
+  public:
+
+  // .Protocol.LOGIN_ERROR result = 3;
+  void clear_result();
+  ::Protocol::LOGIN_ERROR result() const;
+  void set_result(::Protocol::LOGIN_ERROR value);
+  private:
+  ::Protocol::LOGIN_ERROR _internal_result() const;
+  void _internal_set_result(::Protocol::LOGIN_ERROR value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:Protocol.ACK_BOT_LOGIN)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr user_name_;
+    uint64_t idx_;
+    int result_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_Protocol_2eproto;
+};
+// -------------------------------------------------------------------
+
 class REQ_LOGOUT final :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:Protocol.REQ_LOGOUT) */ {
  public:
@@ -501,7 +880,7 @@ class REQ_LOGOUT final :
                &_REQ_LOGOUT_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    2;
+    4;
 
   friend void swap(REQ_LOGOUT& a, REQ_LOGOUT& b) {
     a.Swap(&b);
@@ -649,7 +1028,7 @@ class ACK_LOGOUT final :
                &_ACK_LOGOUT_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    3;
+    5;
 
   friend void swap(ACK_LOGOUT& a, ACK_LOGOUT& b) {
     a.Swap(&b);
@@ -797,7 +1176,7 @@ class REQ_CHAT final :
                &_REQ_CHAT_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    4;
+    6;
 
   friend void swap(REQ_CHAT& a, REQ_CHAT& b) {
     a.Swap(&b);
@@ -961,7 +1340,7 @@ class ACK_CHAT final :
                &_ACK_CHAT_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    5;
+    7;
 
   friend void swap(ACK_CHAT& a, ACK_CHAT& b) {
     a.Swap(&b);
@@ -1109,7 +1488,7 @@ class ACK_SEND_CHAT final :
                &_ACK_SEND_CHAT_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    6;
+    8;
 
   friend void swap(ACK_SEND_CHAT& a, ACK_SEND_CHAT& b) {
     a.Swap(&b);
@@ -1505,6 +1884,274 @@ inline void ACK_LOGIN::set_result(::Protocol::LOGIN_ERROR value) {
 
 // -------------------------------------------------------------------
 
+// REQ_BOT_LOGIN
+
+// bool is_create = 1;
+inline void REQ_BOT_LOGIN::clear_is_create() {
+  _impl_.is_create_ = false;
+}
+inline bool REQ_BOT_LOGIN::_internal_is_create() const {
+  return _impl_.is_create_;
+}
+inline bool REQ_BOT_LOGIN::is_create() const {
+  // @@protoc_insertion_point(field_get:Protocol.REQ_BOT_LOGIN.is_create)
+  return _internal_is_create();
+}
+inline void REQ_BOT_LOGIN::_internal_set_is_create(bool value) {
+  
+  _impl_.is_create_ = value;
+}
+inline void REQ_BOT_LOGIN::set_is_create(bool value) {
+  _internal_set_is_create(value);
+  // @@protoc_insertion_point(field_set:Protocol.REQ_BOT_LOGIN.is_create)
+}
+
+// string id = 2;
+inline void REQ_BOT_LOGIN::clear_id() {
+  _impl_.id_.ClearToEmpty();
+}
+inline const std::string& REQ_BOT_LOGIN::id() const {
+  // @@protoc_insertion_point(field_get:Protocol.REQ_BOT_LOGIN.id)
+  return _internal_id();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void REQ_BOT_LOGIN::set_id(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.id_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:Protocol.REQ_BOT_LOGIN.id)
+}
+inline std::string* REQ_BOT_LOGIN::mutable_id() {
+  std::string* _s = _internal_mutable_id();
+  // @@protoc_insertion_point(field_mutable:Protocol.REQ_BOT_LOGIN.id)
+  return _s;
+}
+inline const std::string& REQ_BOT_LOGIN::_internal_id() const {
+  return _impl_.id_.Get();
+}
+inline void REQ_BOT_LOGIN::_internal_set_id(const std::string& value) {
+  
+  _impl_.id_.Set(value, GetArenaForAllocation());
+}
+inline std::string* REQ_BOT_LOGIN::_internal_mutable_id() {
+  
+  return _impl_.id_.Mutable(GetArenaForAllocation());
+}
+inline std::string* REQ_BOT_LOGIN::release_id() {
+  // @@protoc_insertion_point(field_release:Protocol.REQ_BOT_LOGIN.id)
+  return _impl_.id_.Release();
+}
+inline void REQ_BOT_LOGIN::set_allocated_id(std::string* id) {
+  if (id != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.id_.SetAllocated(id, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.id_.IsDefault()) {
+    _impl_.id_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:Protocol.REQ_BOT_LOGIN.id)
+}
+
+// string pw = 3;
+inline void REQ_BOT_LOGIN::clear_pw() {
+  _impl_.pw_.ClearToEmpty();
+}
+inline const std::string& REQ_BOT_LOGIN::pw() const {
+  // @@protoc_insertion_point(field_get:Protocol.REQ_BOT_LOGIN.pw)
+  return _internal_pw();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void REQ_BOT_LOGIN::set_pw(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.pw_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:Protocol.REQ_BOT_LOGIN.pw)
+}
+inline std::string* REQ_BOT_LOGIN::mutable_pw() {
+  std::string* _s = _internal_mutable_pw();
+  // @@protoc_insertion_point(field_mutable:Protocol.REQ_BOT_LOGIN.pw)
+  return _s;
+}
+inline const std::string& REQ_BOT_LOGIN::_internal_pw() const {
+  return _impl_.pw_.Get();
+}
+inline void REQ_BOT_LOGIN::_internal_set_pw(const std::string& value) {
+  
+  _impl_.pw_.Set(value, GetArenaForAllocation());
+}
+inline std::string* REQ_BOT_LOGIN::_internal_mutable_pw() {
+  
+  return _impl_.pw_.Mutable(GetArenaForAllocation());
+}
+inline std::string* REQ_BOT_LOGIN::release_pw() {
+  // @@protoc_insertion_point(field_release:Protocol.REQ_BOT_LOGIN.pw)
+  return _impl_.pw_.Release();
+}
+inline void REQ_BOT_LOGIN::set_allocated_pw(std::string* pw) {
+  if (pw != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.pw_.SetAllocated(pw, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.pw_.IsDefault()) {
+    _impl_.pw_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:Protocol.REQ_BOT_LOGIN.pw)
+}
+
+// string name = 4;
+inline void REQ_BOT_LOGIN::clear_name() {
+  _impl_.name_.ClearToEmpty();
+}
+inline const std::string& REQ_BOT_LOGIN::name() const {
+  // @@protoc_insertion_point(field_get:Protocol.REQ_BOT_LOGIN.name)
+  return _internal_name();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void REQ_BOT_LOGIN::set_name(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.name_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:Protocol.REQ_BOT_LOGIN.name)
+}
+inline std::string* REQ_BOT_LOGIN::mutable_name() {
+  std::string* _s = _internal_mutable_name();
+  // @@protoc_insertion_point(field_mutable:Protocol.REQ_BOT_LOGIN.name)
+  return _s;
+}
+inline const std::string& REQ_BOT_LOGIN::_internal_name() const {
+  return _impl_.name_.Get();
+}
+inline void REQ_BOT_LOGIN::_internal_set_name(const std::string& value) {
+  
+  _impl_.name_.Set(value, GetArenaForAllocation());
+}
+inline std::string* REQ_BOT_LOGIN::_internal_mutable_name() {
+  
+  return _impl_.name_.Mutable(GetArenaForAllocation());
+}
+inline std::string* REQ_BOT_LOGIN::release_name() {
+  // @@protoc_insertion_point(field_release:Protocol.REQ_BOT_LOGIN.name)
+  return _impl_.name_.Release();
+}
+inline void REQ_BOT_LOGIN::set_allocated_name(std::string* name) {
+  if (name != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.name_.SetAllocated(name, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.name_.IsDefault()) {
+    _impl_.name_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:Protocol.REQ_BOT_LOGIN.name)
+}
+
+// -------------------------------------------------------------------
+
+// ACK_BOT_LOGIN
+
+// uint64 idx = 1;
+inline void ACK_BOT_LOGIN::clear_idx() {
+  _impl_.idx_ = uint64_t{0u};
+}
+inline uint64_t ACK_BOT_LOGIN::_internal_idx() const {
+  return _impl_.idx_;
+}
+inline uint64_t ACK_BOT_LOGIN::idx() const {
+  // @@protoc_insertion_point(field_get:Protocol.ACK_BOT_LOGIN.idx)
+  return _internal_idx();
+}
+inline void ACK_BOT_LOGIN::_internal_set_idx(uint64_t value) {
+  
+  _impl_.idx_ = value;
+}
+inline void ACK_BOT_LOGIN::set_idx(uint64_t value) {
+  _internal_set_idx(value);
+  // @@protoc_insertion_point(field_set:Protocol.ACK_BOT_LOGIN.idx)
+}
+
+// string user_name = 2;
+inline void ACK_BOT_LOGIN::clear_user_name() {
+  _impl_.user_name_.ClearToEmpty();
+}
+inline const std::string& ACK_BOT_LOGIN::user_name() const {
+  // @@protoc_insertion_point(field_get:Protocol.ACK_BOT_LOGIN.user_name)
+  return _internal_user_name();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void ACK_BOT_LOGIN::set_user_name(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.user_name_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:Protocol.ACK_BOT_LOGIN.user_name)
+}
+inline std::string* ACK_BOT_LOGIN::mutable_user_name() {
+  std::string* _s = _internal_mutable_user_name();
+  // @@protoc_insertion_point(field_mutable:Protocol.ACK_BOT_LOGIN.user_name)
+  return _s;
+}
+inline const std::string& ACK_BOT_LOGIN::_internal_user_name() const {
+  return _impl_.user_name_.Get();
+}
+inline void ACK_BOT_LOGIN::_internal_set_user_name(const std::string& value) {
+  
+  _impl_.user_name_.Set(value, GetArenaForAllocation());
+}
+inline std::string* ACK_BOT_LOGIN::_internal_mutable_user_name() {
+  
+  return _impl_.user_name_.Mutable(GetArenaForAllocation());
+}
+inline std::string* ACK_BOT_LOGIN::release_user_name() {
+  // @@protoc_insertion_point(field_release:Protocol.ACK_BOT_LOGIN.user_name)
+  return _impl_.user_name_.Release();
+}
+inline void ACK_BOT_LOGIN::set_allocated_user_name(std::string* user_name) {
+  if (user_name != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.user_name_.SetAllocated(user_name, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.user_name_.IsDefault()) {
+    _impl_.user_name_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:Protocol.ACK_BOT_LOGIN.user_name)
+}
+
+// .Protocol.LOGIN_ERROR result = 3;
+inline void ACK_BOT_LOGIN::clear_result() {
+  _impl_.result_ = 0;
+}
+inline ::Protocol::LOGIN_ERROR ACK_BOT_LOGIN::_internal_result() const {
+  return static_cast< ::Protocol::LOGIN_ERROR >(_impl_.result_);
+}
+inline ::Protocol::LOGIN_ERROR ACK_BOT_LOGIN::result() const {
+  // @@protoc_insertion_point(field_get:Protocol.ACK_BOT_LOGIN.result)
+  return _internal_result();
+}
+inline void ACK_BOT_LOGIN::_internal_set_result(::Protocol::LOGIN_ERROR value) {
+  
+  _impl_.result_ = value;
+}
+inline void ACK_BOT_LOGIN::set_result(::Protocol::LOGIN_ERROR value) {
+  _internal_set_result(value);
+  // @@protoc_insertion_point(field_set:Protocol.ACK_BOT_LOGIN.result)
+}
+
+// -------------------------------------------------------------------
+
 // REQ_LOGOUT
 
 // uint64 idx = 1;
@@ -1756,6 +2403,10 @@ inline void ACK_SEND_CHAT::set_allocated_message(std::string* message) {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

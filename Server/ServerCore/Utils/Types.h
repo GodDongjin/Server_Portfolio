@@ -31,8 +31,10 @@ USING_SHARED_PTR(DBConnect)
 #define len16(arr)		static_cast<int16>(sizeof(arr)/sizeof(arr[0]))
 #define len32(arr)		static_cast<int32>(sizeof(arr)/sizeof(arr[0]))
 
+#pragma pack(push, 1)
 struct PacketHeader
 {
 	uint16 size;
 	uint16 id;
 };
+#pragma pack(pop)

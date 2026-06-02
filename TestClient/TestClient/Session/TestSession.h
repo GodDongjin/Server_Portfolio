@@ -6,6 +6,16 @@
 #include "../NetWork/IocpEvent.h"
 #include "../Protocol/Protocol.pb.h"
 
+enum class TEST_SESSION_STATE
+{
+	NONE,
+	DISCONNECTED,
+	CONNECTED,
+	LOGIN_SEND,
+	LOGIN,
+	CHAT
+};
+
 class TestSession : public enable_shared_from_this<TestSession>
 {
 public:
@@ -13,6 +23,7 @@ public:
 	{ 
 		_recv_buffer = make_shared<RecvBuffer>(0x10000); 
 		//_send_buffer = make_shared<SendBuffer>(0x10000);
+		_test_session_state = TEST_SESSION_STATE::NONE;
 	}
 
 	bool start();
@@ -25,10 +36,12 @@ public:
 
 public:
 	void login();
+	void test_login(uint32 index);
+
 	void logout();
-	
 
 	void send_chat(const wstring& message, Protocol::CHAT_STATE chat_state);
+
 public:
 	bool is_connected() { return _is_connect; }
 
@@ -36,6 +49,14 @@ public:
 
 	void set_account(uint64 idx) { _account_idx = idx; }
 	uint64& get_account() { return _account_idx; }
+
+	void set_test_session_state(TEST_SESSION_STATE state) { _test_session_state = state; }
+
+	void set_bot_index(int32 index) { _bot_index = index; }
+	int32 get_bot_index() { return _bot_index; }
+
+	void set_is_login(bool is_login) { _is_login = is_login; }
+	bool get_is_login() { return _is_login; }
 
 private:
 
@@ -48,14 +69,16 @@ private:
 private:
 	atomic<bool> _is_connect = false;
 	bool _is_disconnect = false;
+	bool _is_login = false;
 
 	uint64 _account_idx;
+	wstring _name = L"";
+	int32 _bot_index = 0;
+
+	TEST_SESSION_STATE _test_session_state;
 
 private:
 	SOCKET _socket = INVALID_SOCKET;
-
-	/*WSAOVERLAPPED _recv_overlapped = {};
-	WSAOVERLAPPED _send_overlapped = {};*/
 
 	WSABUF _recv_wsa_buf = {};
 	WSABUF _send_wsa_buf = {};

@@ -20,6 +20,21 @@ message ACK_LOGIN
 	LOGIN_ERROR result = 3;
 }
 
+message REQ_BOT_LOGIN
+{
+	bool is_create = 1;
+	string id = 2;
+	string pw = 3;
+	string name = 4;
+}
+
+message ACK_BOT_LOGIN
+{
+	uint64 idx = 1;
+	string user_name = 2;
+	LOGIN_ERROR result = 3;
+}
+
 message REQ_LOGOUT
 {
 	uint64 idx = 1;

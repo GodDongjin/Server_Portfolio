@@ -162,6 +162,53 @@ bool Handle_REQ_LOGOUT(GameSessionRef& session, Protocol::REQ_LOGOUT& pkt)
 	return true;
 }
 
+bool Handle_REQ_BOT_LOGIN(GameSessionRef& session, Protocol::REQ_BOT_LOGIN& pkt)
+{
+	if (session == nullptr) {
+		ERROR_LOG("Handle_REQ_LOGIN : session nullptr");
+		return false;
+	}
+
+
+	Protocol::ACK_BOT_LOGIN loginPkt;
+
+	uint64 idx = 0;
+	wstring user_name = L"";
+	BYTE result = 0;
+	//DB 환경 만들었을 때 사용.
+	/*wstring userID = stringToWstring(pkt.id());
+	wstring userPass = stringToWstring(pkt.pw());
+
+	if (!GDBManager->Select_LoginData(OUT idx, OUT userID, OUT userPass)) {
+		loginPkt.set_success(false);
+		SEND_PACKET(loginPkt);
+		return false;
+	}*/
+
+	if (pkt.is_create()) {
+		user_name = Utf8ToWString(pkt.name());
+
+		result = GLogin->create_account(pkt.id(), pkt.pw(), user_name, OUT idx);
+	}
+	else if (!pkt.is_create()) {
+		result = GLogin->login(pkt.id(), pkt.pw(), OUT user_name, OUT idx);
+	}
+
+	if (result == Protocol::LOGIN_ERROR::LOGIN_SUCCESS) {
+		session->set_is_login(true);
+		session->set_account_idx(idx);
+		session->set_name(user_name);
+	}
+
+	loginPkt.set_idx(idx);
+	loginPkt.set_user_name(WStringToUtf8(user_name));
+	loginPkt.set_result((Protocol::LOGIN_ERROR)result);
+
+	SEND_PACKET(loginPkt);
+
+	return true;
+}
+
 bool Handle_REQ_CHAT(GameSessionRef& session, Protocol::REQ_CHAT& pkt)
 {
 	if (session == nullptr) {
