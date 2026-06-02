@@ -36,7 +36,7 @@ public:
 
 public:
 	void login();
-	void test_login(uint32 index);
+	void test_login(uint32 index, bool is_create_has_account);
 
 	void logout();
 

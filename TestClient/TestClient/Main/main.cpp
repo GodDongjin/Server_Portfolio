@@ -4,6 +4,7 @@
 #include "../NetWork/ClientServer.h"
 #include "../Session/TestSession.h"
 #include "../Packet/ClientPacketHandler.h"
+#include "../Utils/GlobalStruct.h"
 
 int main()
 {
@@ -60,7 +61,7 @@ int main()
 			continue;
 		}
 
-		session->test_login(i);
+		session->test_login(i, false);
 
 		sessions.push_back(session);
 	}
@@ -95,6 +96,13 @@ int main()
 
 	while (true)
 	{
+		wcout << L"connect = " << GTestStats.connect_success
+			<< L" login = " << GTestStats.login_success
+			<< L" send = " << GTestStats.send_chat
+			<< L" recv = " << GTestStats.recv_chat
+			<< L" disconnect = " << GTestStats.disconnect
+			<< endl;
+
 		::Sleep(1000);
 	}
 

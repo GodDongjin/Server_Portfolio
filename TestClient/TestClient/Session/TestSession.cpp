@@ -2,6 +2,7 @@
 #include "../Protocol/Protocol.pb.h"
 #include "../Packet/ClientPacketHandler.h"
 #include "../Utils/StringUtil.h"
+#include "../Utils/GlobalStruct.h"
 
 bool TestSession::start()
 {
@@ -49,7 +50,7 @@ bool TestSession::connect(SOCKADDR_IN server_addr)
 	_is_connect.store(true);
 	_test_session_state = TEST_SESSION_STATE::CONNECTED;
 
-	cout << "connect succes" << endl;
+	GTestStats.connect_success++;
 
 	return true;
 }
@@ -71,6 +72,7 @@ void TestSession::disconnect()
 	}
 
 	_is_disconnect = true;
+	GTestStats.disconnect++;
 
 	::shutdown(_socket, SD_BOTH);
 	::closesocket(_socket);
@@ -82,14 +84,6 @@ void TestSession::send(shared_ptr<SendBuffer> send_buffer)
 		return;
 
 	bool registerSend = false;
-	
-	//shared_ptr<SendBuffer> temp;
-	//{
-	//	Protocol::REQ_LOGIN Login_pkt;
-
-	//	temp = ClientPacketHandler::MakeSendBuffer(chat_pkt);
-	//	//_send_buffer = temp;
-	//}
 
 	{
 		lock_guard<mutex> lock(_send_lock);
@@ -106,7 +100,7 @@ void TestSession::send(shared_ptr<SendBuffer> send_buffer)
 		if (!register_send())
 		{
 			// Log Âï¾î¾ßÇÔ.
-			
+			wcout << L"register_send Fail" << endl;
 			return;
 		}
 	}
@@ -149,17 +143,24 @@ void TestSession::login()
 	send(send_buffer);
 }
 
-void TestSession::test_login(uint32 index)
+void TestSession::test_login(uint32 index, bool is_create_has_account)
 {
 	wstring name = L"Bot_" + to_wstring(index);
 	string id = "bot_" + to_string(index);
 	string pw = "1234";
 
 	Protocol::REQ_BOT_LOGIN _login_pkt;
-	_login_pkt.set_is_create(true);
 	_login_pkt.set_id(id);
 	_login_pkt.set_pw(pw);
 	_login_pkt.set_name(WStringToUtf8(name));
+	
+	if (!is_create_has_account) {
+		_login_pkt.set_is_create(true);
+	}
+	else if (is_create_has_account) {
+		_login_pkt.set_is_create(false);
+	}
+	
 
 	shared_ptr<SendBuffer> send_buffer = ClientPacketHandler::MakeSendBuffer(_login_pkt);
 	send(send_buffer);
@@ -182,6 +183,8 @@ void TestSession::send_chat(const wstring& message, Protocol::CHAT_STATE chat_st
 
 	auto sendBuffer = ClientPacketHandler::MakeSendBuffer(pkt);
 	send(sendBuffer);
+
+	GTestStats.send_chat++;
 }
 
 void TestSession::dispatch(IocpEvent* iocp_evnet, INT32 numOfbyte)
@@ -223,8 +226,6 @@ bool TestSession::register_recv()
 			return false;
 		}
 	}
-
-	cout << "register_recv succes" << endl;
 
 	return true;
 }

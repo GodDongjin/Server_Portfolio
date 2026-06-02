@@ -57,6 +57,9 @@
     <ClInclude Include="Utils\StringUtil.h">
       <Filter>Utils</Filter>
     </ClInclude>
+    <ClInclude Include="Utils\GlobalStruct.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Session\TestSession.cpp">
@@ -85,6 +88,9 @@
     </ClCompile>
     <ClCompile Include="Packet\ClientPacketHandler.cpp">
       <Filter>Packet</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\GlobalStruct.cpp">
+      <Filter>Utils</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
