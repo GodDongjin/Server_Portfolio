@@ -116,6 +116,7 @@
     <ClInclude Include="Utils\LockQueue.h" />
     <ClInclude Include="Utils\Logger.h" />
     <ClInclude Include="Utils\pch.h" />
+    <ClInclude Include="Utils\ServerStates.h" />
     <ClInclude Include="Utils\SocketUtils.h" />
     <ClInclude Include="Utils\Types.h" />
   </ItemGroup>
@@ -145,6 +146,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Utils\ServerStates.cpp" />
     <ClCompile Include="Utils\SocketUtils.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

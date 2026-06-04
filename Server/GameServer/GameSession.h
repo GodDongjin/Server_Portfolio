@@ -8,7 +8,6 @@ class GameSession : public Session
 public:
 	~GameSession()
 	{
-		cout << "~GameSession" << endl;
 	}
 
 public:
@@ -25,6 +24,6 @@ private:
 public:
 	AccountInfo _account_info;
 	wstring _name;
-	bool _is_login = false;
+	atomic<bool> _is_login = false;
 };
 

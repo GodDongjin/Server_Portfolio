@@ -100,17 +100,27 @@ void ClientServer::dispatch()
 		ULONG_PTR key = 0;
 		IocpEvent* iocp_event = nullptr;
 
-		if (::GetQueuedCompletionStatus(_iocp_handle, OUT & numOfBytes, OUT & key, OUT reinterpret_cast<LPOVERLAPPED*>(&iocp_event), INFINITE))
+		BOOL result = ::GetQueuedCompletionStatus(
+			_iocp_handle,
+			OUT & numOfBytes,
+			OUT & key,
+			OUT reinterpret_cast<LPOVERLAPPED*>(&iocp_event),
+			INFINITE
+		);
+
+		if (iocp_event == nullptr)
+			break;
+
+		TestSession* session = reinterpret_cast<TestSession*>(key);
+		if (session == nullptr)
+			continue;
+
+		if (result == FALSE)
 		{
-			if (iocp_event == nullptr)
-				break;
-
-			TestSession* session = reinterpret_cast<TestSession*>(key);
-			if (session == nullptr) {
-				continue;
-			}
-
-			session->dispatch(iocp_event, numOfBytes);
+			session->disconnect();
+			continue;
 		}
+
+		session->dispatch(iocp_event, numOfBytes);
 	}
 }

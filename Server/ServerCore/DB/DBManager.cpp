@@ -23,10 +23,10 @@ bool DBManager::send_packet(SQLHSTMT& hStmt, SQLRETURN& _retcode)
 {
     _retcode = SQLExecute(hStmt);
     if (_retcode == SQL_SUCCESS || _retcode == SQL_SUCCESS_WITH_INFO) {
-        std::cout << "Packet sent successfully." << std::endl;
+        wcout << L"Packet sent successfully." << std::endl;
     }
     else {
-        std::cerr << "Failed to send packet." << std::endl;
+       wcerr << L"Failed to send packet." << std::endl;
         return false;
     }
 

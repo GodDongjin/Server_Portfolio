@@ -7,7 +7,6 @@
 
 #include "GameSession.h"
 #include "ServerPacketHandler.h"
-#include "PlayerManager.h"
 #include "GameGlobal.h"
 
 void do_worker_job(ServerServiceRef& service)
@@ -43,9 +42,11 @@ int main()
 		NetAddress(L"127.0.0.1", 7777),
 		make_shared<IocpCore>(),
 		[=]() {return make_shared<GameSession>(); },
-		make_shared<SessionManager>(100));
+		make_shared<SessionManager>(2000));
 
 	ASSERT_CRASH(service->start());
+
+	// DB 시스템 구정 되면 사용
 	////ASSERT_CRASH(GDBManager->DBConnectStart());
 
 	
@@ -57,6 +58,39 @@ int main()
 				do_worker_job(service);
 			});
 	}
+
+	GThreadManager->launch([]()
+	{
+		uint64 prevRecvChat = 0;
+		uint64 prevBroadcastTarget = 0;
+
+		while (true)
+		{
+			uint64 recvChat = GServerStats.recv_chat.load();
+			uint64 broadcastTarget = GServerStats.broadcast_target.load();
+
+			uint64 recvChatDelta = recvChat - prevRecvChat;
+			uint64 broadcastDelta = broadcastTarget - prevBroadcastTarget;
+
+			prevRecvChat = recvChat;
+			prevBroadcastTarget = broadcastTarget;
+
+			wcout << L"[SERVER] "
+				<< L"connect = " << GServerStats.connect.load()
+				<< L" login = " << GServerStats.login.load()
+				<< L" recv_chat = " << recvChat
+				<< L" recv_chat/s = " << recvChatDelta
+				<< L" broadcast_target = " << broadcastTarget
+				<< L" broadcast/s = " << broadcastDelta
+				<< L" send_complete = " << GServerStats.send_complete.load()
+				<< L" send_bytes = " << GServerStats.send_complete_bytes.load()
+				<< L" disconnect = " << GServerStats.disconnect.load()
+				<< endl;
+
+			::Sleep(1000);
+		}
+	});
+
 
 	GThreadManager->join();
 }

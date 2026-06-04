@@ -28,9 +28,6 @@ public:
 
 	void				set_sessionFactory(SessionFactory func) { _sessionFactory = func; }
 
-	//int32				GetCurrentSessionCount() { return _sessionManager; }
-	//int32				get_max_session_count() { return _max_session_count; }
-
 public:
 	ServiceType			get_service_type() { return _service_type; }
 	NetAddress			get_net_address() { return _net_address; }

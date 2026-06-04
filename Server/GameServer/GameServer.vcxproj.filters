@@ -7,9 +7,6 @@
     <Filter Include="Pch">
       <UniqueIdentifier>{b1286307-cbaa-4fea-9907-33654930afb9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Player">
-      <UniqueIdentifier>{52b72e4d-8c79-4ddb-bd9b-42bbbfe47b92}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Utils">
       <UniqueIdentifier>{0eb1a900-ac5c-4fd0-a3c0-8df7bbb123f6}</UniqueIdentifier>
     </Filter>
@@ -32,12 +29,6 @@
     </ClCompile>
     <ClCompile Include="pch.cpp">
       <Filter>Pch</Filter>
-    </ClCompile>
-    <ClCompile Include="Player.cpp">
-      <Filter>Player</Filter>
-    </ClCompile>
-    <ClCompile Include="PlayerManager.cpp">
-      <Filter>Player</Filter>
     </ClCompile>
     <ClCompile Include="ObjectUtils.cpp">
       <Filter>Utils</Filter>
@@ -68,12 +59,6 @@
     <ClInclude Include="pch.h">
       <Filter>Pch</Filter>
     </ClInclude>
-    <ClInclude Include="Player.h">
-      <Filter>Player</Filter>
-    </ClInclude>
-    <ClInclude Include="PlayerManager.h">
-      <Filter>Player</Filter>
-    </ClInclude>
     <ClInclude Include="ObjectUtils.h">
       <Filter>Utils</Filter>
     </ClInclude>
@@ -97,9 +82,6 @@
     </ClInclude>
     <ClInclude Include="Login.h">
       <Filter>Login</Filter>
-    </ClInclude>
-    <ClInclude Include="UserInfo.h">
-      <Filter>struct_Info</Filter>
     </ClInclude>
     <ClInclude Include="GameGlobal.h">
       <Filter>Pch</Filter>

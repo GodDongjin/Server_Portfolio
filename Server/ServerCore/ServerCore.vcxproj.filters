@@ -84,6 +84,9 @@
     <ClCompile Include="Thread\ThreadManager.cpp">
       <Filter>Thread</Filter>
     </ClCompile>
+    <ClCompile Include="Utils\ServerStates.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DB\DBConnect.h">
@@ -165,6 +168,9 @@
       <Filter>Thread</Filter>
     </ClInclude>
     <ClInclude Include="Utils\Types.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\ServerStates.h">
       <Filter>Utils</Filter>
     </ClInclude>
   </ItemGroup>

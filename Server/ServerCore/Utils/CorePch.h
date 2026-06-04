@@ -5,6 +5,7 @@
 #include "CoreTLS.h"
 #include "CoreGlobal.h"
 #include "Logger.h"
+#include "ServerStates.h"
 
 #include <array>
 #include <vector>

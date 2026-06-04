@@ -1,3 +1,3 @@
 #include "GlobalStruct.h"
 
-TestStats GTestStats;
+ServerStats GServerStats;

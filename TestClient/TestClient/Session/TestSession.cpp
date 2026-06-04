@@ -50,7 +50,7 @@ bool TestSession::connect(SOCKADDR_IN server_addr)
 	_is_connect.store(true);
 	_test_session_state = TEST_SESSION_STATE::CONNECTED;
 
-	GTestStats.connect_success++;
+	GServerStats.connect_success++;
 
 	return true;
 }
@@ -72,7 +72,7 @@ void TestSession::disconnect()
 	}
 
 	_is_disconnect = true;
-	GTestStats.disconnect++;
+	GServerStats.disconnect++;
 
 	::shutdown(_socket, SD_BOTH);
 	::closesocket(_socket);
@@ -184,7 +184,8 @@ void TestSession::send_chat(const wstring& message, Protocol::CHAT_STATE chat_st
 	auto sendBuffer = ClientPacketHandler::MakeSendBuffer(pkt);
 	send(sendBuffer);
 
-	GTestStats.send_chat++;
+	GServerStats.send_chat++;
+	GServerStats.expected_chat_recv += GServerStats.login_success.load();
 }
 
 void TestSession::dispatch(IocpEvent* iocp_evnet, INT32 numOfbyte)
@@ -239,6 +240,8 @@ bool TestSession::register_send()
 	_send_event.init();
 
 	{
+		lock_guard<mutex> lock(_send_lock);
+
 		while (_send_queue.empty() == false)
 		{
 			shared_ptr<SendBuffer> sendBuffer = _send_queue.front();
@@ -255,6 +258,12 @@ bool TestSession::register_send()
 		wsaBuf.buf = reinterpret_cast<char*>(sendBuffer->get_buffer());
 		wsaBuf.len = static_cast<LONG>(sendBuffer->get_write_size());
 		wsaBufs.push_back(wsaBuf);
+	}
+
+	if (wsaBufs.empty())
+	{
+		_is_send_register.store(false);
+		return true;
 	}
 
 	DWORD numOfBytes = 0;
@@ -284,12 +293,23 @@ void TestSession::process_send(uint32 num_bytes)
 		return;
 	}
 
-	lock_guard<mutex> _lock(_send_lock);
+	bool need_register = false;
 
-	if (_send_queue.empty())
-		_is_send_register.store(false);
-	else
+	{
+		lock_guard<mutex> lock(_send_lock);
+
+		if (_send_queue.empty()){
+			_is_send_register.store(false);
+		}
+		else{
+			need_register = true;
+		}
+	}
+
+	if (need_register)
+	{
 		register_send();
+	}
 }
 
 void TestSession::process_recv(uint32 num_bytes)

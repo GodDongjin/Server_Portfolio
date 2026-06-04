@@ -28,10 +28,10 @@ void Session::send(SendBufferRef sendBuffer)
 
 		if (_is_send_register.exchange(true) == false)
 			registerSend = true;
-
-		if (registerSend)
-			register_send();
 	}
+
+	if (registerSend)
+		register_send();
 }
 
 void Session::disconnect()
@@ -121,9 +121,10 @@ void Session::register_send()
 	_send_event.set_owner(shared_from_this());
 
 	{
+		WRITE_LOCK;
+
 		while (_send_queue.empty() == false)
 		{
-			// 뭔가 수정 필요.
 			SendBufferRef sendBuffer = _send_queue.front();
 
 			_send_queue.pop();
@@ -139,6 +140,12 @@ void Session::register_send()
 		wsaBuf.buf = reinterpret_cast<char*>(sendBuffer->get_buffer());
 		wsaBuf.len = static_cast<LONG>(sendBuffer->get_write_size());
 		wsaBufs.push_back(wsaBuf);
+	}
+
+	if (wsaBufs.empty())
+	{
+		_is_send_register.store(false);
+		return;
 	}
 
 	DWORD numOfBytes = 0;
@@ -158,8 +165,9 @@ void Session::register_send()
 void Session::process_connect()
 {
 	_connect_event.set_owner(nullptr);
-
 	_is_connect.store(true);
+
+	GServerStats.connect++;
 
 	register_recv();
 }
@@ -221,10 +229,18 @@ void Session::process_send(int32 numOfBytes)
 
 	on_send(numOfBytes);
 
-	WRITE_LOCK;
-	if (_send_queue.empty())
-		_is_send_register.store(false);
-	else
+	bool need_register = false;
+
+	{
+		WRITE_LOCK;
+
+		if (_send_queue.empty())
+			_is_send_register.store(false);
+		else
+			need_register = true;
+	}
+
+	if (need_register)
 		register_send();
 }
 
@@ -237,9 +253,7 @@ void Session::handle_error(int32 errorCode)
 		ERROR_LOG("disconnect : handle_error");
 		break;
 	default:
-		// TODO : Log
-		//ERROR_LOG("disconnect : handle_error");
-		cout << "Handle Error : " << errorCode << endl;
+		wcout << L"Handle Error : " << errorCode << endl;
 		break;
 	}
 }
@@ -272,6 +286,7 @@ int32 Session::on_recv(BYTE* get_buffer, int32 len)
 
 		if (dataSize < header.size)
 			break;
+
 
 		// 패킷 처리 작업 진행.
 		on_recv_packet(&get_buffer[processLen], header.size);

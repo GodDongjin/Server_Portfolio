@@ -6,16 +6,19 @@
 
 void GameSession::on_disconnect()
 {
-	if (_is_login)
+	GServerStats.disconnect++;
+
+	if (_is_login.exchange(false))
 	{
 		GLogin->logout(get_account_idx());
 		set_account_idx(0);
-		_is_login = false;
 	}
 }
 
 void GameSession::on_send(int32 len)
 {
+	GServerStats.send_complete++;
+	GServerStats.send_complete_bytes += len;
 }
 
 void GameSession::on_recv_packet(BYTE* buffer, int32 len)
@@ -27,6 +30,6 @@ void GameSession::on_recv_packet(BYTE* buffer, int32 len)
 	{
 		PacketHeader* header = reinterpret_cast<PacketHeader*>(buffer);
 
-		cout << "HandlePacket ERROR - ID : " << header->id << endl;
+		wcout << L"HandlePacket ERROR - ID : " << header->id << endl;
 	}
 }

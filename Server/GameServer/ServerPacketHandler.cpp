@@ -12,7 +12,7 @@ bool Handle_INVALID(GameSessionRef& session, BYTE* buffer, int32 len)
 {
 	PacketHeader* header = reinterpret_cast<PacketHeader*>(buffer);
 	
-	return true;
+	return false;
 }
 
 std::wstring stringToWstring(const std::string& str) {
@@ -100,6 +100,7 @@ bool Handle_REQ_LOGIN(GameSessionRef& session, Protocol::REQ_LOGIN& pkt)
 	uint64 idx = 0;
 	wstring user_name = L"";
 	BYTE result = 0;
+
 	//DB 환경 만들었을 때 사용.
 	/*wstring userID = stringToWstring(pkt.id());
 	wstring userPass = stringToWstring(pkt.pw());
@@ -123,6 +124,8 @@ bool Handle_REQ_LOGIN(GameSessionRef& session, Protocol::REQ_LOGIN& pkt)
 		session->set_is_login(true);
 		session->set_account_idx(idx);
 		session->set_name(user_name);
+
+		GServerStats.login++;
 	}
 
 	loginPkt.set_idx(idx);
@@ -175,6 +178,7 @@ bool Handle_REQ_BOT_LOGIN(GameSessionRef& session, Protocol::REQ_BOT_LOGIN& pkt)
 	uint64 idx = 0;
 	wstring user_name = L"";
 	BYTE result = 0;
+
 	//DB 환경 만들었을 때 사용.
 	/*wstring userID = stringToWstring(pkt.id());
 	wstring userPass = stringToWstring(pkt.pw());
@@ -198,6 +202,8 @@ bool Handle_REQ_BOT_LOGIN(GameSessionRef& session, Protocol::REQ_BOT_LOGIN& pkt)
 		session->set_is_login(true);
 		session->set_account_idx(idx);
 		session->set_name(user_name);
+
+		GServerStats.login++;
 	}
 
 	loginPkt.set_idx(idx);
@@ -216,10 +222,10 @@ bool Handle_REQ_CHAT(GameSessionRef& session, Protocol::REQ_CHAT& pkt)
 		return false;
 	}
 
-	INFO_LOG(pkt.message());
+	GServerStats.recv_chat++;
+	//INFO_LOG(pkt.message());
 
 	// 여기서 귓 or 전체 or 룸 나눠서 적용할 예정 
-	
 	if(pkt.chat_state() == Protocol::CHAT_STATE::CHAT_ALL)
 	{
 			auto service = session->get_service().lock();
@@ -234,24 +240,14 @@ bool Handle_REQ_CHAT(GameSessionRef& session, Protocol::REQ_CHAT& pkt)
 			send_chat_pkt.set_message(pkt.message());
 
 			SendBufferRef sendBuffer = ServerPacketHandler::MakeSendBuffer(send_chat_pkt);
-			service->get_sessionManager()->broad_cast(sendBuffer);
+			const int32 targetCount = service->get_sessionManager()->broad_cast(sendBuffer);
+
+			GServerStats.broadcast_packet++;
+			GServerStats.broadcast_target += targetCount;
 
 			return true;
 	}
 
-	//Protocol::ACK_CHAT log
 	return true;
 }
-
-//bool Handle_C_CHAR(GameSessionRef& session, Protocol::C_CHAR& pkt)
-//{
-//	cout << "Session ID : " << session->get_account_idx() << " - " << pkt.message() << endl;
-//
-//	Protocol::S_CHAR chat_pkt;
-//
-//	chat_pkt.set_message(pkt.message());
-//
-//	SEND_PACKET(chat_pkt);
-//	return true;
-//}
 

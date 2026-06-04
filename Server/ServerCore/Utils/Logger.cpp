@@ -32,11 +32,11 @@ void Logger::init(std::string directory)
 	ofstream file(_full_path, ios::app);
 
 	if (!file) {
-		cout << "颇老 积己 角菩\n";
+		wcout << L"颇老 积己 角菩\n";
 		return;
 	}
 
-	cout << "颇老 积己 肯丰: " << _full_path << endl;
+	wcout << L"颇老 积己 肯丰: " << _full_path << endl;
 }
 
 void Logger::shutdown()
@@ -51,7 +51,7 @@ void Logger::write(LogLevel level, const std::string& message)
 	ofstream file(_full_path, ios::app);
 
 	if (!file) {
-		cout << "颇老 积己 角菩\n";
+		wcout << L"颇老 积己 角菩\n";
 		return;
 	}
 

@@ -55,8 +55,8 @@ public:
 	void set_bot_index(int32 index) { _bot_index = index; }
 	int32 get_bot_index() { return _bot_index; }
 
-	void set_is_login(bool is_login) { _is_login = is_login; }
-	bool get_is_login() { return _is_login; }
+	void set_is_login(bool is_login) { _is_login.store(is_login); }
+	bool get_is_login() { return _is_login.load(); }
 
 private:
 
@@ -68,8 +68,9 @@ private:
 
 private:
 	atomic<bool> _is_connect = false;
+	atomic<bool> _is_login = false;
+
 	bool _is_disconnect = false;
-	bool _is_login = false;
 
 	uint64 _account_idx;
 	wstring _name = L"";

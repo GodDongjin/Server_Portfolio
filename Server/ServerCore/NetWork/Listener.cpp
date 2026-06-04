@@ -51,7 +51,7 @@ bool Listener::start_accept(ServerServiceRef service)
 		register_accept(acceptEvent);
 	}
 	INFO_LOG("start accept");
-	cout << "start accept" << endl;
+	wcout << L"start accept" << endl;
 
 	return true;
 }
@@ -113,7 +113,6 @@ void Listener::process_accept(AcceptEvent* acceptEvent)
 	INFO_LOG("Success Accept");
 
 	session->set_net_address(NetAddress(sockAddress));
-	//session->set_process_connect();
 	_service->get_sessionManager()->on_connected(session);
 	register_accept(acceptEvent);
 }

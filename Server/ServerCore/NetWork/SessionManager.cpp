@@ -2,48 +2,64 @@
 #include "SessionManager.h"
 
 SessionManager::SessionManager(int32 sessionMaxCount)
-	: _max_session_count(sessionMaxCount)
+	: _max_session_count(sessionMaxCount), _session_count(0)
 {
 }
 
 void SessionManager::add_session(SessionRef session)
 {
 	WRITE_LOCK;
+
+	if (_session_count >= _max_session_count)
+	{
+		session->disconnect();
+		return;
+	}
+
 	_sessions.insert(session);
 	session->set_process_connect();
-	_sessionCount++;
+	_session_count++;
 }
 
 void SessionManager::release_session(SessionRef session)
 {
 	WRITE_LOCK;
-	ASSERT_CRASH(_sessions.erase(session) != 0);
-	_sessionCount--;
+	if (_sessions.erase(session) == 0)
+		return;
+
+	_session_count--;
 }
 
-bool SessionManager::broad_cast(SendBufferRef sendBuffer)
+int32 SessionManager::broad_cast(SendBufferRef sendBuffer)
 {
-	WRITE_LOCK;
+	vector<SessionRef> sessions;
 
-	if (_sessions.empty())
-		return false;
-
-	for (auto session : _sessions)
 	{
-		session->send(sendBuffer);
+		WRITE_LOCK;
+		sessions.reserve(_session_count);
+		sessions.assign(_sessions.begin(), _sessions.end());
 	}
 
-	return true;
+	int32 count = 0;
+
+	for (SessionRef& session : sessions)
+	{
+		if (session->is_connected() == false)
+			continue;
+
+		session->send(sendBuffer);
+		count++;
+	}
+
+	return count;
 }
 
 void SessionManager::on_connected(SessionRef session)
 {
-	cout << "Success connect" << endl;
 	add_session(session);
 }
 
 void SessionManager::on_disconnected(SessionRef session)
 {
-	cout << "Disconnected" << endl;
 	release_session(session);
 }
