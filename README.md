@@ -41,7 +41,7 @@ Server_Portfolio
    └─ Utils
 ```
 
-## Architecture
+## 아키텍처(Architecture)
 
 ### ServerCore
 
@@ -107,7 +107,7 @@ All Clients
 
 TestClient의 Load Test Mode를 사용해 1,000개 클라이언트 세션을 생성하고, 전체 채팅 broadcast 부하를 측정했습니다.
 
-### Test Environment
+### Test 환경
 
 ```txt
 Server: GameServer
@@ -120,20 +120,20 @@ Chat Type: Full Broadcast
 
 ### Result
 
-| Clients | Chat Interval | Approx Broadcast/sec | Result |
+| Clients | 채팅 주기 | 초당 예상 브로드캐스트 전달량 | 결과 |
 |---:|---:|---:|---|
 | 1,000 | 5000ms | 200K/sec | Stable |
 | 1,000 | 3000ms | 333K/sec | Stable |
 | 1,000 | 2500ms | 400K/sec | Stable |
 | 1,000 | 2000ms | 500K/sec | Backlog Increasing |
 
-### Summary
+### 요약
 
-- 1,000 client sessions connected successfully
-- 1,000 login requests completed successfully
-- Full broadcast to 1,000 clients was verified
-- 2500ms interval test recovered backlog to zero before the next burst
-- 2000ms interval test showed increasing backlog
+- 1,000개 클라이언트 connect 성공
+- 1,000 login 성공
+- 1000명의 클라이언트 에게 Full broadcast 성공적으로 완료되었음을 확인했습니다.
+- 2500ms 간격 송수신 테스트 결과 순간적인 broadcast 트래픽 증가로 일시적인 backlog가 발생했지만, 다음 요청 주기 전에 모두 처리되어 안정적으로 회복되는 것을 확인했습니다.
+- 2000ms 간격 송수신 테스트 결과 backlog가 발생했습니다.
 
 ## Example Stats
 
@@ -196,12 +196,12 @@ TestClient/TestClient.sln
 ```cpp
 struct LoadTestConfig
 {
-    int32 session_count = 1000;
-    int32 bot_thread_count = 4;
-    int32 worker_thread_count = 4;
-    int32 chat_interval_ms = 2500;
-    wstring ip = L"127.0.0.1";
-    uint16 port = 7777;
+    int32 session_count = 1000;     //생성할 봇 개수 설정
+    int32 bot_thread_count = 4;     // bot 작업 처리 스레드 수 설정
+    int32 worker_thread_count = 4;  // 워커 스레드 수 설정
+    int32 chat_interval_ms = 2500;  // 채팅 간격
+    wstring ip = L"127.0.0.1";      // 서버 ip
+    uint16 port = 7777;             // 서버 port
 };
 ```
 

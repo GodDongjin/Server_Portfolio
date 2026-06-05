@@ -91,6 +91,5 @@ int main()
 		}
 	});
 
-
 	GThreadManager->join();
 }
