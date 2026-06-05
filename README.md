@@ -182,7 +182,7 @@ TestClient/TestClient.sln
 2. Load Test
 ```
 
-### Manual Test Commands
+### 테스트 명령
 
 ```txt
 /chat message
@@ -191,7 +191,7 @@ TestClient/TestClient.sln
 
 ### Load Test Config
 
-`LoadTestConfig`에서 부하 테스트 설정을 변경할 수 있습니다.
+`ClientConfig.cpp -> LoadTestConfig`에서 부하 테스트 설정을 변경할 수 있습니다.
 
 ```cpp
 struct LoadTestConfig
@@ -205,7 +205,7 @@ struct LoadTestConfig
 };
 ```
 
-## Current Limitations
+## 현재 미지원 사항
 
 - 현재 채팅은 전체 broadcast 중심입니다.
 - Room / Channel 단위 채팅은 아직 구현되지 않았습니다.
@@ -213,7 +213,7 @@ struct LoadTestConfig
 - 서버 종료 처리와 graceful shutdown은 추가 개선이 필요합니다.
 - 부하 테스트는 단일 PC 환경 기준입니다.
 
-## Next Improvements
+## 다음 개선 사항
 
 - Room / Channel 기반 채팅 구조
 - DB 기반 계정 저장
