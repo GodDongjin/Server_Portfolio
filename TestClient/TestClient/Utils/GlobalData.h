@@ -1,6 +1,12 @@
 #pragma once
 #include "Types.h"
 
+enum class ClientMode
+{
+    MANUAL,
+    LOAD_TEST
+};
+
 struct ServerStats
 {
     atomic<uint64> connect_success = 0;
@@ -12,3 +18,4 @@ struct ServerStats
 };
 
 extern ServerStats GServerStats;
+extern ClientMode GClientMode;

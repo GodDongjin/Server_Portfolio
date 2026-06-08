@@ -87,6 +87,12 @@
     <ClCompile Include="Utils\ServerStates.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
+    <ClCompile Include="Utils\StringUtil.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\ConfigReader.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DB\DBConnect.h">
@@ -171,6 +177,12 @@
       <Filter>Utils</Filter>
     </ClInclude>
     <ClInclude Include="Utils\ServerStates.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\StringUtil.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\ConfigReader.h">
       <Filter>Utils</Filter>
     </ClInclude>
   </ItemGroup>

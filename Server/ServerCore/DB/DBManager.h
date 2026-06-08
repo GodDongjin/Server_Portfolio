@@ -13,7 +13,7 @@ public:
 	~DBManager();
 
 public:
-	bool db_connect_start();
+	bool db_connect_start(const wstring driver, const wstring ip, const wstring database, const wstring user, const wstring pw);
 	bool send_packet(SQLHSTMT& hStmt, SQLRETURN& _retcode);
 
 public:

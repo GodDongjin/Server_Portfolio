@@ -1,6 +1,6 @@
 #pragma once
 #include "../ServerCore/NetWork/Session.h"
-#include "AccountInfo.h"
+#include "../Struct_info/AccountInfo.h"
 
 
 class GameSession : public Session

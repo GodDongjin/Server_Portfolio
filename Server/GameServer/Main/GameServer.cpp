@@ -4,10 +4,11 @@
 #include "../ServerCore/DB/DBManager.h"
 #include "../ServerCore/Thread/ThreadManager.h"
 #include "../ServerCore/Utils/Logger.h"
+#include "../ServerCore/Utils/ConfigReader.h"
 
 #include "GameSession.h"
-#include "ServerPacketHandler.h"
-#include "GameGlobal.h"
+#include "../Packet/ServerPacketHandler.h"
+#include "../Utils/GameGlobal.h"
 
 void do_worker_job(ServerServiceRef& service)
 {
@@ -35,23 +36,57 @@ int main()
 	wcout.imbue(std::locale());
 
 	ServerPacketHandler::Init();
+	ConfigReader config(L"Config/config.ini");
+
+	if (!config.load())
+	{
+		wcerr << L"Failed to load config.ini" << endl;
+		return 0;
+	}
+
+	const wstring server_ip = config.get_wstring("server", "ip");
+	const uint16 port_value = static_cast<uint16>(config.get_int("server", "port"));
+	const int32 session_max_count = config.get_int("server", "session_max_count");
+	const int32 worker_thread_count = config.get_int("server", "work_thread_count");
+
+	if (port_value <= 0 || port_value > 65535)
+	{
+		wcerr << L"Invalid server port: " << port_value << endl;
+		return 0;
+	}
+
+	if (session_max_count <= 0)
+	{
+		wcerr << L"Invalid session max count: " << session_max_count << endl;
+		return 0;
+	}
+
+	if (worker_thread_count <= 0)
+	{
+		wcerr << L"Invalid worker thread count: " << worker_thread_count << endl;
+		return 0;
+	}
 
 	GLogger->init("./Log");
 
 	ServerServiceRef service = make_shared<ServerService>(
-		NetAddress(L"127.0.0.1", 7777),
+		NetAddress(server_ip, port_value),
 		make_shared<IocpCore>(),
 		[=]() {return make_shared<GameSession>(); },
-		make_shared<SessionManager>(2000));
+		make_shared<SessionManager>(session_max_count));
 
 	ASSERT_CRASH(service->start());
 
 	// DB 시스템 구정 되면 사용
-	////ASSERT_CRASH(GDBManager->DBConnectStart());
+	/*ASSERT_CRASH(GDBManager->db_connect_start(
+		config.get_wstring("database_info", "driver"),
+		config.get_wstring("database_info", "ip"),
+		config.get_wstring("database_info", "database"),
+		config.get_wstring("database_info", "user"),
+		config.get_wstring("database_info", "password"))
+	);*/
 
-	
-
-	for (int32 i = 0; i < 5; i++)
+	for (int32 i = 0; i < worker_thread_count; i++)
 	{
 		GThreadManager->launch([&service]()
 			{

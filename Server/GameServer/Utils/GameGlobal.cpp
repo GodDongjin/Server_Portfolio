@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "GameGlobal.h"
-#include "Login.h"
+#include "../Login/Login.h"
 
 Login* GLogin = nullptr;
 

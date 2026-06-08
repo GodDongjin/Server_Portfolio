@@ -9,7 +9,7 @@ DBConnect::~DBConnect()
 {
 }
 
-bool DBConnect::connect(SQLHENV& henv, SQLHDBC& hdbc)
+bool DBConnect::connect(SQLHENV& henv, SQLHDBC& hdbc, const wstring driver, const wstring ip, const wstring database, const wstring user, const wstring pw)
 {
     // ODBC 환경 초기화
     SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &henv);
@@ -19,11 +19,17 @@ bool DBConnect::connect(SQLHENV& henv, SQLHDBC& hdbc)
     SQLAllocHandle(SQL_HANDLE_DBC, henv, &hdbc);
 
     // 연결 문자열 생성
-    wchar_t connectionString[] = L"DRIVER={MySQL ODBC 9.0 Unicode Driver};SERVER=localhost;DATABASE=2drpg;USER=root;PASSWORD=Qew0135@;";
+    const std::wstring connectionString =
+        L"DRIVER={" + driver + L"};"
+        L"SERVER=" + ip + L";"
+        L"DATABASE=" + database + L";"
+        L"USER=" + user + L";"
+        L"PASSWORD=" + pw + L";";
 
     // 연결 설정
-    _retcode = SQLDriverConnectW(hdbc, NULL, connectionString, SQL_NTS,
-        NULL, 0, NULL, SQL_DRIVER_NOPROMPT);
+    _retcode = SQLDriverConnectW(hdbc, NULL, 
+        reinterpret_cast<SQLWCHAR*>(const_cast<wchar_t*>(connectionString.c_str())),
+        SQL_NTS, NULL, 0, NULL, SQL_DRIVER_NOPROMPT);
 
     if (_retcode == SQL_SUCCESS || _retcode == SQL_SUCCESS_WITH_INFO) {
         std::wcout << L"Connected to MySQL successfully!" << std::endl;

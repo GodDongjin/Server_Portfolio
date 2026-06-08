@@ -2,7 +2,7 @@
 #include "../Protocol/Protocol.pb.h"
 #include "../Packet/ClientPacketHandler.h"
 #include "../Utils/StringUtil.h"
-#include "../Utils/GlobalStruct.h"
+#include "../Utils/GlobalData.h"
 
 bool TestSession::start()
 {

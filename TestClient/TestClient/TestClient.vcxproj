@@ -28,8 +28,8 @@
     <ClInclude Include="Protocol\Protocol.pb.h" />
     <ClInclude Include="Protocol\Struct.pb.h" />
     <ClInclude Include="Session\TestSession.h" />
-    <ClInclude Include="Utils\ClientConfig.h" />
-    <ClInclude Include="Utils\GlobalStruct.h" />
+    <ClInclude Include="Utils\ConfigReader.h" />
+    <ClInclude Include="Utils\GlobalData.h" />
     <ClInclude Include="Utils\StringUtil.h" />
     <ClInclude Include="Utils\Types.h" />
   </ItemGroup>
@@ -49,13 +49,15 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="Session\TestSession.cpp" />
-    <ClCompile Include="Utils\ClientConfig.cpp" />
-    <ClCompile Include="Utils\GlobalStruct.cpp" />
+    <ClCompile Include="Utils\ConfigReader.cpp" />
+    <ClCompile Include="Utils\GlobalData.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Common\protoc-28.1-win64\bin\Enum.proto" />
     <None Include="..\Common\protoc-28.1-win64\bin\protocol.proto" />
     <None Include="..\Common\protoc-28.1-win64\bin\Struct.proto" />
+    <None Include="Config\config.example.ini" />
+    <None Include="Config\config.ini" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

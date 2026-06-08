@@ -1,8 +1,8 @@
 #include "pch.h"
-#include "GameSession.h"
-#include "ServerPacketHandler.h"
-#include "GameGlobal.h"
-#include "Login.h"
+#include "../Main/GameSession.h"
+#include "../Packet/ServerPacketHandler.h"
+#include "../Utils/GameGlobal.h"
+#include "../Login/Login.h"
 
 void GameSession::on_disconnect()
 {

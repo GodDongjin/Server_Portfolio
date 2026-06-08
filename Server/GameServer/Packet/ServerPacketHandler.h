@@ -1,6 +1,6 @@
 #pragma once
-#include "Protocol.pb.h"
-#include "GameSession.h"
+#include "../Protobuf/Protocol.pb.h"
+#include "../Main/GameSession.h"
 #include "../ServerCore/NetWork/SendBuffer.h"
 
 using PacketHandlerFunc = std::function<bool(GameSessionRef&, BYTE*, int32)>;

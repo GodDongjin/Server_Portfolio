@@ -1,7 +1,6 @@
 #include "ClientPacketHandler.h"
 #include "../Utils/StringUtil.h"
-#include "../Utils/GlobalStruct.h"
-#include "../Utils/ClientConfig.h"
+#include "../Utils/GlobalData.h"
 
 PacketHandlerFunc GPacketHandler[UINT16_MAX];
 

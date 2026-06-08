@@ -114,7 +114,11 @@ sysinfo.txt
 # Generated C# protocol files are not used by the C++ TestClient
 TestClient/TestClient/Protocol/*.cs
 
+# config
+TestClient/TestClient/Config/config.ini
+
 # Runtime logs
 *.log
 *.txt.log
 Server/GameServer/Log/
+Server/GameServer/Config/config.ini

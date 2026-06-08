@@ -16,75 +16,78 @@
     <Filter Include="Packet">
       <UniqueIdentifier>{78c0f86d-ba50-40ef-b7e5-ee6b1bb445d8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="struct_Info">
-      <UniqueIdentifier>{2bc55a61-4367-4293-bbc0-539444cf93a4}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Login">
       <UniqueIdentifier>{ce6605b0-4ff3-4019-b8a9-372aab95c18d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Struct_Info">
+      <UniqueIdentifier>{2bc55a61-4367-4293-bbc0-539444cf93a4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Config">
+      <UniqueIdentifier>{36baa8cf-3fd8-4b18-9ec0-662f07178ad7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="GameServer.cpp">
-      <Filter>Main</Filter>
-    </ClCompile>
-    <ClCompile Include="pch.cpp">
-      <Filter>Pch</Filter>
-    </ClCompile>
-    <ClCompile Include="ObjectUtils.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
-    <ClCompile Include="Enum.pb.cc">
-      <Filter>Protobuf</Filter>
-    </ClCompile>
-    <ClCompile Include="Protocol.pb.cc">
-      <Filter>Protobuf</Filter>
-    </ClCompile>
-    <ClCompile Include="Struct.pb.cc">
-      <Filter>Protobuf</Filter>
-    </ClCompile>
-    <ClCompile Include="GameSession.cpp">
-      <Filter>Main</Filter>
-    </ClCompile>
-    <ClCompile Include="ServerPacketHandler.cpp">
-      <Filter>Packet</Filter>
-    </ClCompile>
-    <ClCompile Include="Login.cpp">
+    <ClCompile Include="Login\Login.cpp">
       <Filter>Login</Filter>
     </ClCompile>
-    <ClCompile Include="GameGlobal.cpp">
+    <ClCompile Include="Main\GameServer.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="Main\GameSession.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="Packet\ServerPacketHandler.cpp">
+      <Filter>Packet</Filter>
+    </ClCompile>
+    <ClCompile Include="Pch\pch.cpp">
       <Filter>Pch</Filter>
+    </ClCompile>
+    <ClCompile Include="Protobuf\Enum.pb.cc">
+      <Filter>Protobuf</Filter>
+    </ClCompile>
+    <ClCompile Include="Protobuf\Protocol.pb.cc">
+      <Filter>Protobuf</Filter>
+    </ClCompile>
+    <ClCompile Include="Protobuf\Struct.pb.cc">
+      <Filter>Protobuf</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\GameGlobal.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\ObjectUtils.cpp">
+      <Filter>Utils</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="pch.h">
-      <Filter>Pch</Filter>
-    </ClInclude>
-    <ClInclude Include="ObjectUtils.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="Enum.pb.h">
-      <Filter>Protobuf</Filter>
-    </ClInclude>
-    <ClInclude Include="Protocol.pb.h">
-      <Filter>Protobuf</Filter>
-    </ClInclude>
-    <ClInclude Include="Struct.pb.h">
-      <Filter>Protobuf</Filter>
-    </ClInclude>
-    <ClInclude Include="GameSession.h">
-      <Filter>Main</Filter>
-    </ClInclude>
-    <ClInclude Include="ServerPacketHandler.h">
-      <Filter>Packet</Filter>
-    </ClInclude>
-    <ClInclude Include="AccountInfo.h">
-      <Filter>struct_Info</Filter>
-    </ClInclude>
-    <ClInclude Include="Login.h">
+    <ClInclude Include="Login\Login.h">
       <Filter>Login</Filter>
     </ClInclude>
-    <ClInclude Include="GameGlobal.h">
+    <ClInclude Include="Main\GameSession.h">
+      <Filter>Main</Filter>
+    </ClInclude>
+    <ClInclude Include="Packet\ServerPacketHandler.h">
+      <Filter>Packet</Filter>
+    </ClInclude>
+    <ClInclude Include="Pch\pch.h">
       <Filter>Pch</Filter>
+    </ClInclude>
+    <ClInclude Include="Protobuf\Enum.pb.h">
+      <Filter>Protobuf</Filter>
+    </ClInclude>
+    <ClInclude Include="Protobuf\Protocol.pb.h">
+      <Filter>Protobuf</Filter>
+    </ClInclude>
+    <ClInclude Include="Protobuf\Struct.pb.h">
+      <Filter>Protobuf</Filter>
+    </ClInclude>
+    <ClInclude Include="Struct_info\AccountInfo.h">
+      <Filter>Struct_Info</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\GameGlobal.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\ObjectUtils.h">
+      <Filter>Utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -96,6 +99,12 @@
     </None>
     <None Include="..\Common\protoc-21.12-win64\bin\Struct.proto">
       <Filter>Protobuf</Filter>
+    </None>
+    <None Include="Config\config.ini">
+      <Filter>Config</Filter>
+    </None>
+    <None Include="Config\config.example.ini">
+      <Filter>Config</Filter>
     </None>
   </ItemGroup>
 </Project>

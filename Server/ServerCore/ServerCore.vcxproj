@@ -109,6 +109,7 @@
     <ClInclude Include="NetWork\Session.h" />
     <ClInclude Include="NetWork\SessionManager.h" />
     <ClInclude Include="Thread\ThreadManager.h" />
+    <ClInclude Include="Utils\ConfigReader.h" />
     <ClInclude Include="Utils\CoreGlobal.h" />
     <ClInclude Include="Utils\CoreMacro.h" />
     <ClInclude Include="Utils\CorePch.h" />
@@ -118,6 +119,7 @@
     <ClInclude Include="Utils\pch.h" />
     <ClInclude Include="Utils\ServerStates.h" />
     <ClInclude Include="Utils\SocketUtils.h" />
+    <ClInclude Include="Utils\StringUtil.h" />
     <ClInclude Include="Utils\Types.h" />
   </ItemGroup>
   <ItemGroup>
@@ -138,6 +140,7 @@
     <ClCompile Include="Thread\ThreadManager.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Utils\ConfigReader.cpp" />
     <ClCompile Include="Utils\CoreGlobal.cpp" />
     <ClCompile Include="Utils\CorePch.cpp" />
     <ClCompile Include="Utils\CoreTLS.cpp" />
@@ -148,6 +151,7 @@
     </ClCompile>
     <ClCompile Include="Utils\ServerStates.cpp" />
     <ClCompile Include="Utils\SocketUtils.cpp" />
+    <ClCompile Include="Utils\StringUtil.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

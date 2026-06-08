@@ -10,12 +10,10 @@
 
 #include "../ServerCore/Utils/CorePch.h"
 
-#include "Enum.pb.h"
-#include "Struct.pb.h"
-#include "Protocol.pb.h"
+#include "../Protobuf/Enum.pb.h"
+#include "../Protobuf/Struct.pb.h"
+#include "../Protobuf/Protocol.pb.h"
 
 #define USING_SHARED_PTR(name)	using name##Ref = std::shared_ptr<class name>;
 
-USING_SHARED_PTR(Player);
-USING_SHARED_PTR(PlayerManager);
 USING_SHARED_PTR(GameSession)

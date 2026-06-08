@@ -10,12 +10,12 @@ DBManager::~DBManager()
 {
 }
 
-bool DBManager::db_connect_start()
+bool DBManager::db_connect_start(const wstring driver, const wstring ip, const wstring database, const wstring user, const wstring pw)
 {
 	if (hdbc != nullptr || henv != nullptr)
 		return false;
 
-	return db_connect->connect(henv, hdbc);;
+	return db_connect->connect(henv, hdbc, driver, ip, database, user, pw);
 }
 
 

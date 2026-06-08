@@ -4,12 +4,11 @@
 #include "../NetWork/ClientServer.h"
 #include "../Session/TestSession.h"
 #include "../Packet/ClientPacketHandler.h"
-#include "../Utils/GlobalStruct.h"
-#include "../Utils/ClientConfig.h"
+#include "../Utils/GlobalData.h"
+#include "../Utils/ConfigReader.h"
 
-
-void run_load_test();
-void run_manual_test();
+void run_load_test(ConfigReader& config);
+void run_manual_test(ConfigReader& config);
 void print_load_test_stats_loop(atomic<bool>& running);
 
 int main()
@@ -17,6 +16,13 @@ int main()
 	std::locale::global(std::locale(""));
 	wcin.imbue(std::locale());
 	wcout.imbue(std::locale());
+
+	ConfigReader config(L"Config/config.ini");
+	if (!config.load())
+	{
+		wcerr << L"Failed to load config.ini" << endl;
+		return 0;
+	}
 
 	ClientPacketHandler::Init();
 
@@ -41,30 +47,41 @@ int main()
 		GClientMode = ClientMode::MANUAL;
 
 	if (GClientMode == ClientMode::MANUAL)
-		run_manual_test();
+		run_manual_test(config);
 	else
-		run_load_test();
+		run_load_test(config);
 
 	WSACleanup();
 	return 0;
 }
 
-void run_load_test()
+void run_load_test(ConfigReader& config)
 {
-	LoadTestConfig config;
-
 	ClientServer server;
 	if (!server.CreateIocpHandle())
 		return;
 
-	server.start_worker_thread(config.worker_thread_count);
+	const wstring server_ip = config.get_wstring("server", "ip");
+	const uint16 port_value = static_cast<uint16>(config.get_int("server", "port"));
+	const int32 session_count = config.get_int("client", "session_max_count");
+	const int32 worker_thread_count = config.get_int("client", "work_thread_count");
+	const int32 bot_thread_count = config.get_int("client", "bot_thread_count");
+	const int32 chat_interval_ms = config.get_int("client", "chat_interval_ms");
 
-	SOCKADDR_IN server_addr = server.start_server(config.ip, config.port);
+	if (port_value <= 0 || port_value > 65535)
+	{
+		wcerr << L"Invalid server port: " << port_value << endl;
+		return;
+	}
+
+	server.start_worker_thread(worker_thread_count);
+
+	SOCKADDR_IN server_addr = server.start_server(server_ip, port_value);
 
 	vector<shared_ptr<TestSession>> sessions;
-	sessions.reserve(config.session_count);
+	sessions.reserve(session_count);
 
-	for (int32 i = 0; i < config.session_count; i++)
+	for (int32 i = 0; i < session_count; i++)
 	{
 		shared_ptr<TestSession> session = make_shared<TestSession>();
 		session->set_bot_index(i);
@@ -85,15 +102,15 @@ void run_load_test()
 	atomic<bool> running = true;
 
 	vector<thread> bot_threads;
-	bot_threads.reserve(config.bot_thread_count);
+	bot_threads.reserve(bot_thread_count);
 
-	for (int32 i = 0; i < config.bot_thread_count; i++)
+	for (int32 i = 0; i < bot_thread_count; i++)
 	{
 		bot_threads.push_back(thread([&, i]()
 		{
 			vector<shared_ptr<TestSession>> my_sessions;
 
-			for (int32 index = i; index < static_cast<int32>(sessions.size()); index += config.bot_thread_count)
+			for (int32 index = i; index < static_cast<int32>(sessions.size()); index += bot_thread_count)
 			{
 				my_sessions.push_back(sessions[index]);
 			}
@@ -108,7 +125,7 @@ void run_load_test()
 					}
 				}
 
-				::Sleep(config.chat_interval_ms);
+				::Sleep(chat_interval_ms);
 			}
 		}));
 	}
@@ -126,15 +143,24 @@ void run_load_test()
 	server.stop();
 }
 
-void run_manual_test()
+void run_manual_test(ConfigReader& config)
 {
 	ClientServer server;
 	if (!server.CreateIocpHandle())
 		return;
 
+	const wstring server_ip = config.get_wstring("server", "ip");
+	const uint16 port_value = static_cast<uint16>(config.get_int("server", "port"));
+
+	if (port_value <= 0 || port_value > 65535)
+	{
+		wcerr << L"Invalid server port: " << port_value << endl;
+		return;
+	}
+
 	server.start_worker_thread(1);
 
-	SOCKADDR_IN server_addr = server.start_server(L"127.0.0.1", 7777);
+	SOCKADDR_IN server_addr = server.start_server(server_ip, port_value);
 
 	shared_ptr<TestSession> session = make_shared<TestSession>();
 

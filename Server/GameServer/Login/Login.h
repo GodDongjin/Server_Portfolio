@@ -1,7 +1,6 @@
 #pragma once
-#include "pch.h"
-#include "AccountInfo.h"
-#include "Protocol.pb.h"
+#include "../Struct_info/AccountInfo.h"
+#include "../Protobuf/Protocol.pb.h"
 
 class Login
 {

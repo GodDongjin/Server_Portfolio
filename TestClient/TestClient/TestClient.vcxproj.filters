@@ -22,6 +22,9 @@
     <Filter Include="Packet">
       <UniqueIdentifier>{641facb8-1caf-48dd-bef3-6d50b92e1728}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Config">
+      <UniqueIdentifier>{c0384982-04a2-4f29-a002-7045589c20e3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Session\TestSession.h">
@@ -57,10 +60,10 @@
     <ClInclude Include="Utils\StringUtil.h">
       <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="Utils\GlobalStruct.h">
+    <ClInclude Include="Utils\GlobalData.h">
       <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="Utils\ClientConfig.h">
+    <ClInclude Include="Utils\ConfigReader.h">
       <Filter>Utils</Filter>
     </ClInclude>
   </ItemGroup>
@@ -92,10 +95,10 @@
     <ClCompile Include="Packet\ClientPacketHandler.cpp">
       <Filter>Packet</Filter>
     </ClCompile>
-    <ClCompile Include="Utils\GlobalStruct.cpp">
+    <ClCompile Include="Utils\GlobalData.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
-    <ClCompile Include="Utils\ClientConfig.cpp">
+    <ClCompile Include="Utils\ConfigReader.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
   </ItemGroup>
@@ -108,6 +111,12 @@
     </None>
     <None Include="..\Common\protoc-28.1-win64\bin\Struct.proto">
       <Filter>Protocol</Filter>
+    </None>
+    <None Include="Config\config.ini">
+      <Filter>Config</Filter>
+    </None>
+    <None Include="Config\config.example.ini">
+      <Filter>Config</Filter>
     </None>
   </ItemGroup>
 </Project>

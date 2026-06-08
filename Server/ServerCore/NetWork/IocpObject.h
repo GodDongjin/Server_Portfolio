@@ -1,5 +1,4 @@
 #pragma once
-#include "pch.h"
 
 class IocpObject : public enable_shared_from_this<IocpObject>
 {

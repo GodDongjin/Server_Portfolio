@@ -1,10 +1,12 @@
 #include "pch.h"
 #include "ServerPacketHandler.h"
-#include "GameSession.h"
-#include "GameGlobal.h"
-#include "Login.h"
 #include "../ServerCore/NetWork/Service.h"
 #include "../ServerCore/NetWork/SessionManager.h"
+#include "../ServerCore/Utils/StringUtil.h"
+
+#include "../Main/GameSession.h"
+#include "../Utils/GameGlobal.h"
+#include "../Login/Login.h"
 
 PacketHandlerFunc GPacketHandler[UINT16_MAX];
 
@@ -13,78 +15,6 @@ bool Handle_INVALID(GameSessionRef& session, BYTE* buffer, int32 len)
 	PacketHeader* header = reinterpret_cast<PacketHeader*>(buffer);
 	
 	return false;
-}
-
-std::wstring stringToWstring(const std::string& str) {
-	// MultiByteToWideChar를 사용하여 UTF-8 문자열을 UTF-16 문자열로 변환
-	int wideCharSize = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, nullptr, 0);
-
-	// 변환된 문자열을 저장할 wstring 생성
-	std::wstring wideString(wideCharSize, 0);
-
-	// 변환된 내용을 wstring에 저장
-	MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, &wideString[0], wideCharSize);
-
-	return wideString;
-}
-
-std::string wstringToString(const std::wstring& wstr) {
-	// WideCharToMultiByte를 사용하여 UTF-16 문자열을 UTF-8 문자열로 변환
-	int utf8Size = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, nullptr, 0, nullptr, nullptr);
-
-	// 변환된 문자열을 저장할 string 생성
-	std::string utf8String(utf8Size - 1, 0);  // null terminator 제외
-
-	// 변환된 내용을 string에 저장
-	WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, &utf8String[0], utf8Size, nullptr, nullptr);
-
-	return utf8String;
-}
-
-inline std::string WStringToUtf8(const std::wstring& wstr)
-{
-	if (wstr.empty())
-		return "";
-
-	int len = ::WideCharToMultiByte(
-		CP_UTF8, 0,
-		wstr.data(), static_cast<int>(wstr.size()),
-		nullptr, 0,
-		nullptr, nullptr
-	);
-
-	std::string result(len, 0);
-
-	::WideCharToMultiByte(
-		CP_UTF8, 0,
-		wstr.data(), static_cast<int>(wstr.size()),
-		result.data(), len,
-		nullptr, nullptr
-	);
-
-	return result;
-}
-
-inline std::wstring Utf8ToWString(const std::string& str)
-{
-	if (str.empty())
-		return L"";
-
-	int len = ::MultiByteToWideChar(
-		CP_UTF8, 0,
-		str.data(), static_cast<int>(str.size()),
-		nullptr, 0
-	);
-
-	std::wstring result(len, 0);
-
-	::MultiByteToWideChar(
-		CP_UTF8, 0,
-		str.data(), static_cast<int>(str.size()),
-		result.data(), len
-	);
-
-	return result;
 }
 
 bool Handle_REQ_LOGIN(GameSessionRef& session, Protocol::REQ_LOGIN& pkt)
@@ -112,7 +42,7 @@ bool Handle_REQ_LOGIN(GameSessionRef& session, Protocol::REQ_LOGIN& pkt)
 	}*/
 
 	if (pkt.is_create()) {
-		user_name = Utf8ToWString(pkt.name());
+		user_name = StringUtil::Utf8ToWString(pkt.name());
 
 		result = GLogin->create_account(pkt.id(), pkt.pw(), user_name, OUT idx);
 	}
@@ -129,7 +59,7 @@ bool Handle_REQ_LOGIN(GameSessionRef& session, Protocol::REQ_LOGIN& pkt)
 	}
 
 	loginPkt.set_idx(idx);
-	loginPkt.set_user_name(WStringToUtf8(user_name));
+	loginPkt.set_user_name(StringUtil::WStringToUtf8(user_name));
 	loginPkt.set_result((Protocol::LOGIN_ERROR)result);
 
 	SEND_PACKET(loginPkt);
@@ -190,7 +120,7 @@ bool Handle_REQ_BOT_LOGIN(GameSessionRef& session, Protocol::REQ_BOT_LOGIN& pkt)
 	}*/
 
 	if (pkt.is_create()) {
-		user_name = Utf8ToWString(pkt.name());
+		user_name = StringUtil::Utf8ToWString(pkt.name());
 
 		result = GLogin->create_account(pkt.id(), pkt.pw(), user_name, OUT idx);
 	}
@@ -207,7 +137,7 @@ bool Handle_REQ_BOT_LOGIN(GameSessionRef& session, Protocol::REQ_BOT_LOGIN& pkt)
 	}
 
 	loginPkt.set_idx(idx);
-	loginPkt.set_user_name(WStringToUtf8(user_name));
+	loginPkt.set_user_name(StringUtil::WStringToUtf8(user_name));
 	loginPkt.set_result((Protocol::LOGIN_ERROR)result);
 
 	SEND_PACKET(loginPkt);
@@ -236,7 +166,7 @@ bool Handle_REQ_CHAT(GameSessionRef& session, Protocol::REQ_CHAT& pkt)
 			}
 
 			Protocol::ACK_SEND_CHAT send_chat_pkt;
-			send_chat_pkt.set_user_name(WStringToUtf8(session->_name));
+			send_chat_pkt.set_user_name(StringUtil::WStringToUtf8(session->_name));
 			send_chat_pkt.set_message(pkt.message());
 
 			SendBufferRef sendBuffer = ServerPacketHandler::MakeSendBuffer(send_chat_pkt);

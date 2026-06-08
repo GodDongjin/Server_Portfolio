@@ -1,4 +1,3 @@
-#include "pch.h"
 #include <sqlext.h>
 #include <sqltypes.h>
 #include <sql.h>
@@ -10,7 +9,8 @@ public:
 	~DBConnect();
 
 
-	bool connect(SQLHENV& henv, SQLHDBC& hdbc);
+	bool connect(SQLHENV& henv, SQLHDBC& hdbc, const wstring driver, const wstring ip, 
+		const wstring database, const wstring user, const wstring pw);
 
 private:
 	SQLRETURN _retcode;
