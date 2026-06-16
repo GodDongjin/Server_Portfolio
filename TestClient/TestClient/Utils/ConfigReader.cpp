@@ -52,7 +52,7 @@ bool ConfigReader::load()
 	return true;
 }
 
-string ConfigReader::get_string(const string& section, const string& key, const string& default_value)
+string ConfigReader::get_string(const string& section, const string& key, const string& default_value) const
 {
 	auto section_iter = _sections.find(section);
 	if (section_iter == _sections.end()) {
@@ -67,7 +67,7 @@ string ConfigReader::get_string(const string& section, const string& key, const 
 	return key_iter->second;
 }
 
-wstring ConfigReader::get_wstring(const string& section, const string& key, const wstring& default_value)
+wstring ConfigReader::get_wstring(const string& section, const string& key, const wstring& default_value) const
 {
 	const string value = get_string(section, key, "");
 
@@ -78,7 +78,7 @@ wstring ConfigReader::get_wstring(const string& section, const string& key, cons
 	return Utf8ToWString(value);
 }
 
-int32 ConfigReader::get_int(const string& section, const string& key, int32 default_value)
+int32 ConfigReader::get_int(const string& section, const string& key, int32 default_value) const
 {
 	const string value = get_string(section, key, "");
 

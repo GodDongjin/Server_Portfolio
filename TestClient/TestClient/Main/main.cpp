@@ -63,8 +63,8 @@ void run_load_test(ConfigReader& config)
 
 	const wstring server_ip = config.get_wstring("server", "ip");
 	const uint16 port_value = static_cast<uint16>(config.get_int("server", "port"));
-	const int32 session_count = config.get_int("client", "session_max_count");
-	const int32 worker_thread_count = config.get_int("client", "work_thread_count");
+	const int32 session_count = config.get_int("client", "session_count");
+	const int32 worker_thread_count = config.get_int("client", "worker_thread_count");
 	const int32 bot_thread_count = config.get_int("client", "bot_thread_count");
 	const int32 chat_interval_ms = config.get_int("client", "chat_interval_ms");
 
