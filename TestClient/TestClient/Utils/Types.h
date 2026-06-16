@@ -4,9 +4,9 @@
 
 // Types.h
 #ifdef _DEBUG
-#pragma comment(lib, "../Libraries/Libs/Protobuf/Debug/libprotobufd.lib")
+#pragma comment(lib, "libprotobufd.lib")
 #else
-#pragma comment(lib, "../Libraries/Libs/Protobuf/Release/libprotobuf.lib")
+#pragma comment(lib, "libprotobuf.lib")
 #endif
 
 #include <array>
