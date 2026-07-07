@@ -184,32 +184,6 @@ inline bool CHAT_STATE_Parse(
   return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<CHAT_STATE>(
     CHAT_STATE_descriptor(), name, value);
 }
-enum ENTER_GAME_ERROR : int {
-  ENTER_GAME_NONE = 0,
-  ENTER_GAME_FAIL = 1,
-  ENTER_GAME_SUCCESS = 2,
-  ENTER_GAME_ERROR_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
-  ENTER_GAME_ERROR_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
-};
-bool ENTER_GAME_ERROR_IsValid(int value);
-constexpr ENTER_GAME_ERROR ENTER_GAME_ERROR_MIN = ENTER_GAME_NONE;
-constexpr ENTER_GAME_ERROR ENTER_GAME_ERROR_MAX = ENTER_GAME_SUCCESS;
-constexpr int ENTER_GAME_ERROR_ARRAYSIZE = ENTER_GAME_ERROR_MAX + 1;
-
-const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* ENTER_GAME_ERROR_descriptor();
-template<typename T>
-inline const std::string& ENTER_GAME_ERROR_Name(T enum_t_value) {
-  static_assert(::std::is_same<T, ENTER_GAME_ERROR>::value ||
-    ::std::is_integral<T>::value,
-    "Incorrect type passed to function ENTER_GAME_ERROR_Name.");
-  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
-    ENTER_GAME_ERROR_descriptor(), enum_t_value);
-}
-inline bool ENTER_GAME_ERROR_Parse(
-    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, ENTER_GAME_ERROR* value) {
-  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<ENTER_GAME_ERROR>(
-    ENTER_GAME_ERROR_descriptor(), name, value);
-}
 enum ENTER_ROOM_ERROR : int {
   ENTER_ROOM_NONE = 0,
   ENTER_ROOM_FAIL = 1,
@@ -235,6 +209,32 @@ inline bool ENTER_ROOM_ERROR_Parse(
     ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, ENTER_ROOM_ERROR* value) {
   return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<ENTER_ROOM_ERROR>(
     ENTER_ROOM_ERROR_descriptor(), name, value);
+}
+enum EXIT_ROOM_ERROR : int {
+  EXIT_ROOM_NONE = 0,
+  EXIT_ROOM_FAIL = 1,
+  EXIT_ROOM_SUCCESS = 2,
+  EXIT_ROOM_ERROR_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
+  EXIT_ROOM_ERROR_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
+};
+bool EXIT_ROOM_ERROR_IsValid(int value);
+constexpr EXIT_ROOM_ERROR EXIT_ROOM_ERROR_MIN = EXIT_ROOM_NONE;
+constexpr EXIT_ROOM_ERROR EXIT_ROOM_ERROR_MAX = EXIT_ROOM_SUCCESS;
+constexpr int EXIT_ROOM_ERROR_ARRAYSIZE = EXIT_ROOM_ERROR_MAX + 1;
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* EXIT_ROOM_ERROR_descriptor();
+template<typename T>
+inline const std::string& EXIT_ROOM_ERROR_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, EXIT_ROOM_ERROR>::value ||
+    ::std::is_integral<T>::value,
+    "Incorrect type passed to function EXIT_ROOM_ERROR_Name.");
+  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
+    EXIT_ROOM_ERROR_descriptor(), enum_t_value);
+}
+inline bool EXIT_ROOM_ERROR_Parse(
+    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, EXIT_ROOM_ERROR* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<EXIT_ROOM_ERROR>(
+    EXIT_ROOM_ERROR_descriptor(), name, value);
 }
 // ===================================================================
 
@@ -283,15 +283,15 @@ template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::CHAT_STATE>() {
   return ::Protocol::CHAT_STATE_descriptor();
 }
-template <> struct is_proto_enum< ::Protocol::ENTER_GAME_ERROR> : ::std::true_type {};
-template <>
-inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::ENTER_GAME_ERROR>() {
-  return ::Protocol::ENTER_GAME_ERROR_descriptor();
-}
 template <> struct is_proto_enum< ::Protocol::ENTER_ROOM_ERROR> : ::std::true_type {};
 template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::ENTER_ROOM_ERROR>() {
   return ::Protocol::ENTER_ROOM_ERROR_descriptor();
+}
+template <> struct is_proto_enum< ::Protocol::EXIT_ROOM_ERROR> : ::std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::Protocol::EXIT_ROOM_ERROR>() {
+  return ::Protocol::EXIT_ROOM_ERROR_descriptor();
 }
 
 PROTOBUF_NAMESPACE_CLOSE

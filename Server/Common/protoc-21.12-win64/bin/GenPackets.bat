@@ -8,13 +8,13 @@ GenPackets.exe --path=./Protocol.proto --output=ServerPacketHandler --recv=REQ -
 
 IF ERRORLEVEL 1 PAUSE
 
-XCOPY /Y Enum.pb.h "../../../GameServer"
-XCOPY /Y Enum.pb.cc "../../../GameServer"
-XCOPY /Y Struct.pb.h "../../../GameServer"
-XCOPY /Y Struct.pb.cc "../../../GameServer"
-XCOPY /Y Protocol.pb.h "../../../GameServer"
-XCOPY /Y Protocol.pb.cc "../../../GameServer"
-XCOPY /Y ServerPacketHandler.h "../../../GameServer"
+XCOPY /Y Enum.pb.h "../../../GameServer/Protobuf"
+XCOPY /Y Enum.pb.cc "../../../GameServer/Protobuf"
+XCOPY /Y Struct.pb.h "../../../GameServer/Protobuf"
+XCOPY /Y Struct.pb.cc "../../../GameServer/Protobuf"
+XCOPY /Y Protocol.pb.h "../../../GameServer/Protobuf"
+XCOPY /Y Protocol.pb.cc "../../../GameServer/Protobuf"
+XCOPY /Y ServerPacketHandler.h "../../../GameServer/Packet"
 
 DEL /Q /F *.pb.h
 DEL /Q /F *.pb.cc

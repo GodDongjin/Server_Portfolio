@@ -1,4 +1,4 @@
-#include "ConfigReader.h"
+﻿#include "ConfigReader.h"
 #include "../Utils/StringUtil.h"
 
 ConfigReader::ConfigReader(wstring path) : _path(path)
@@ -100,12 +100,24 @@ string ConfigReader::trim(const string& value)
 {
 	const char* whitespace = " \t\r\n";
 
-	const size_t start = value.find_first_not_of(whitespace);
+	size_t start = value.find_first_not_of(whitespace);
 	if (start == string::npos) {
 		return "";
 	}
 
+	if (value.size() >= start + 3 &&
+		static_cast<unsigned char>(value[start]) == 0xEF &&
+		static_cast<unsigned char>(value[start + 1]) == 0xBB &&
+		static_cast<unsigned char>(value[start + 2]) == 0xBF)
+	{
+		start += 3;
+	}
+
 	const size_t end = value.find_last_not_of(whitespace);
+	if (start > end) {
+		return "";
+	}
 
 	return value.substr(start, end - start + 1);
 }
+

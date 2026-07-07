@@ -1,6 +1,6 @@
 #pragma once
-#include "Protocol.pb.h"
-#include "GameSession.h"
+#include "../Main/GameSession.h"
+#include "../Protobuf/Protocol.pb.h"
 #include "../ServerCore/NetWork/SendBuffer.h"
 
 using PacketHandlerFunc = std::function<bool(GameSessionRef&, BYTE*, int32)>;
@@ -13,8 +13,6 @@ enum : uint16
 {%- endfor %}
 };
 
-bool Handle_INVALID(GameSessionRef& session, BYTE* buffer, int32 len);
-
 {%- for pkt in parser.recv_pkt %}
 bool Handle_{{pkt.name}}(GameSessionRef& session, Protocol::{{pkt.name}}& pkt);
 {%- endfor %}
@@ -25,7 +23,7 @@ public:
 	static void Init()
 	{
 		for (int32 i = 0; i < UINT16_MAX; i++)
-			GPacketHandler[i] = Handle_INVALID;
+			GPacketHandler[i] = nullptr;
 
 {%- for pkt in parser.recv_pkt %}
 		GPacketHandler[PKT_{{pkt.name}}] = [](GameSessionRef& session, BYTE* buffer, int32 len) { return HandlePacket<Protocol::{{pkt.name}}>(Handle_{{pkt.name}}, session, buffer, len); };
@@ -35,7 +33,19 @@ public:
 	static bool HandlePacket(GameSessionRef& session, BYTE* buffer, int32 len)
 	{
 		PacketHeader* header = reinterpret_cast<PacketHeader*>(buffer);
-		return GPacketHandler[header->id](session, buffer, len);
+
+		if (header->id >= UINT16_MAX)
+			return false;
+
+		PacketHandlerFunc handler = GPacketHandler[header->id];
+
+		if (handler == nullptr)
+		{
+			ERROR_LOG("Invalid packet id : %d", header->id);
+			return false;
+		}
+
+		return handler(session, buffer, len);
 	}
 
 {%- for pkt in parser.send_pkt %}
@@ -48,7 +58,10 @@ private:
 	{
 		PacketType pkt;
 		if (pkt.ParseFromArray(buffer + sizeof(PacketHeader), len - sizeof(PacketHeader)) == false)
+		{
+			ERROR_LOG("Parse packet failed");
 			return false;
+		}
 
 		return func(session, pkt);
 	}

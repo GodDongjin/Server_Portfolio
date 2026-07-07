@@ -19,8 +19,6 @@ enum : uint16
 {%- endfor %}
 };
 
-bool Handle_INVALID(shared_ptr<TestSession>& session, BYTE* buffer, int32 len);
-
 {%- for pkt in parser.recv_pkt %}
 bool Handle_{{pkt.name}}(shared_ptr<TestSession>& session, Protocol::{{pkt.name}}& pkt);
 {%- endfor %}
@@ -31,7 +29,7 @@ public:
 	static void Init()
 	{
 		for (int32 i = 0; i < UINT16_MAX; i++)
-			GPacketHandler[i] = Handle_INVALID;
+			GPacketHandler[i] = nullptr;
 
 {%- for pkt in parser.recv_pkt %}
 		GPacketHandler[PKT_{{pkt.name}}] = [](shared_ptr<TestSession>& session, BYTE* buffer, int32 len) { return HandlePacket<Protocol::{{pkt.name}}>(Handle_{{pkt.name}}, session, buffer, len); };
@@ -41,7 +39,19 @@ public:
 	static bool HandlePacket(shared_ptr<TestSession>& session, BYTE* buffer, int32 len)
 	{
 		PacketHeader* header = reinterpret_cast<PacketHeader*>(buffer);
-		return GPacketHandler[header->id](session, buffer, len);
+
+		if (header->id >= UINT16_MAX)
+			return false;
+
+		PacketHandlerFunc handler = GPacketHandler[header->id];
+
+		if (handler == nullptr)
+		{
+			wcout << L"HandlePacket ERROR - ID : " << header->id << endl;
+			return false;
+		}
+
+		return handler(session, buffer, len);
 	}
 
 {%- for pkt in parser.send_pkt %}
@@ -54,7 +64,10 @@ private:
 	{
 		PacketType pkt;
 		if (pkt.ParseFromArray(buffer + sizeof(PacketHeader), len - sizeof(PacketHeader)) == false)
+		{
+			wcout << L"Parse packet failed" << endl;
 			return false;
+		}
 
 		return func(session, pkt);
 	}

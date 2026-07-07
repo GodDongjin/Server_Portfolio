@@ -23,7 +23,6 @@ void JobQueue::push(JobRef job, bool pushOnly)
 	}
 }
 
-// 1) 일감이 너~무 몰리면?
 void JobQueue::execute()
 {
 	LCurrentJobQueue = this;

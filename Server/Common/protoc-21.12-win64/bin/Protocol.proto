@@ -45,10 +45,44 @@ message ACK_LOGOUT
 	LOGOUT_ERROR result = 1;
 }
 
+message REQ_GET_ROOM_INFO
+{
+	
+}
+
+message ACK_GET_ROOM_INFO
+{
+	repeated RoomInfo room_info_list = 1;
+}
+
+message REQ_ENTER_ROOM
+{
+	int32 room_id = 1;
+}
+
+message ACK_ENTER_ROOM
+{
+	int32 room_id = 1;
+	ENTER_ROOM_ERROR result = 2;
+}
+
+message REQ_EXIT_ROOM
+{
+	
+}
+
+message ACK_EXIT_ROOM
+{
+	EXIT_ROOM_ERROR result = 1;
+}
+
+
 message REQ_CHAT
 {
 	string message = 1;
 	CHAT_STATE chat_state = 2;
+	int32 room_id = 3;
+	string target_name = 4;
 }
 
 message ACK_CHAT
@@ -60,4 +94,16 @@ message ACK_SEND_CHAT
 {
 	string user_name = 1;
 	string message = 2;
+}
+
+// Client -> Server heartbeat pong º¸³¿
+message REQ_CONNECT_PONG
+{
+	uint64 server_tick = 1;
+}
+
+// Server -> Client heartbeat ping º¸³¿
+message ACK_SEND_CONNECT_PING
+{
+	uint64 server_tick = 1;
 }

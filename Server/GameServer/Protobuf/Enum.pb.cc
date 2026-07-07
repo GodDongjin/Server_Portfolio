@@ -43,15 +43,15 @@ const char descriptor_table_protodef_Enum_2eproto[] PROTOBUF_SECTION_VARIABLE(pr
   "AT_ERROR_FAIL\020\001\022\031\n\025CHAT_ERROR_NOT_TARGET"
   "\020\002\022\026\n\022CHAT_ERROR_SUCCESS\020\003*=\n\nCHAT_STATE"
   "\022\014\n\010CHAT_ALL\020\000\022\017\n\013CHAT_NORMAL\020\001\022\020\n\014CHAT_"
-  "WHISPER\020\002*T\n\020ENTER_GAME_ERROR\022\023\n\017ENTER_G"
-  "AME_NONE\020\000\022\023\n\017ENTER_GAME_FAIL\020\001\022\026\n\022ENTER"
-  "_GAME_SUCCESS\020\002*T\n\020ENTER_ROOM_ERROR\022\023\n\017E"
-  "NTER_ROOM_NONE\020\000\022\023\n\017ENTER_ROOM_FAIL\020\001\022\026\n"
-  "\022ENTER_ROOM_SUCCESS\020\002b\006proto3"
+  "WHISPER\020\002*T\n\020ENTER_ROOM_ERROR\022\023\n\017ENTER_R"
+  "OOM_NONE\020\000\022\023\n\017ENTER_ROOM_FAIL\020\001\022\026\n\022ENTER"
+  "_ROOM_SUCCESS\020\002*P\n\017EXIT_ROOM_ERROR\022\022\n\016EX"
+  "IT_ROOM_NONE\020\000\022\022\n\016EXIT_ROOM_FAIL\020\001\022\025\n\021EX"
+  "IT_ROOM_SUCCESS\020\002b\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_Enum_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_Enum_2eproto = {
-    false, false, 749, descriptor_table_protodef_Enum_2eproto,
+    false, false, 745, descriptor_table_protodef_Enum_2eproto,
     "Enum.proto",
     &descriptor_table_Enum_2eproto_once, nullptr, 0, 0,
     schemas, file_default_instances, TableStruct_Enum_2eproto::offsets,
@@ -147,11 +147,11 @@ bool CHAT_STATE_IsValid(int value) {
   }
 }
 
-const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* ENTER_GAME_ERROR_descriptor() {
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* ENTER_ROOM_ERROR_descriptor() {
   ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_Enum_2eproto);
   return file_level_enum_descriptors_Enum_2eproto[5];
 }
-bool ENTER_GAME_ERROR_IsValid(int value) {
+bool ENTER_ROOM_ERROR_IsValid(int value) {
   switch (value) {
     case 0:
     case 1:
@@ -162,11 +162,11 @@ bool ENTER_GAME_ERROR_IsValid(int value) {
   }
 }
 
-const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* ENTER_ROOM_ERROR_descriptor() {
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* EXIT_ROOM_ERROR_descriptor() {
   ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_Enum_2eproto);
   return file_level_enum_descriptors_Enum_2eproto[6];
 }
-bool ENTER_ROOM_ERROR_IsValid(int value) {
+bool EXIT_ROOM_ERROR_IsValid(int value) {
   switch (value) {
     case 0:
     case 1:

@@ -1,4 +1,4 @@
-#include "TestSession.h"
+Ôªø#include "TestSession.h"
 #include "../Protocol/Protocol.pb.h"
 #include "../Packet/ClientPacketHandler.h"
 #include "../Utils/StringUtil.h"
@@ -57,25 +57,26 @@ bool TestSession::connect(SOCKADDR_IN server_addr)
 
 void TestSession::disconnect()
 {
-	if (_test_session_state == TEST_SESSION_STATE::DISCONNECTED) {
-		cout << "test_session_state is DISCONNECTED" << endl;
+	if (_is_connect.exchange(false) == false){
 		return;
 	}
 
-	if (_is_connect.exchange(false) == false)
-	{
+	if (_is_disconnect.exchange(true) == true) {
 		return;
 	}
 
-	if (_socket == INVALID_SOCKET) {
-		return;
-	}
+	_test_session_state = TEST_SESSION_STATE::DISCONNECTED;
+	_is_login.store(false);
+	_is_send_register.store(false);
 
-	_is_disconnect = true;
 	GServerStats.disconnect++;
 
-	::shutdown(_socket, SD_BOTH);
-	::closesocket(_socket);
+	if (_socket != INVALID_SOCKET)
+	{
+		::shutdown(_socket, SD_BOTH);
+		::closesocket(_socket);
+		_socket = INVALID_SOCKET;
+	}
 }
 
 void TestSession::send(shared_ptr<SendBuffer> send_buffer)
@@ -99,7 +100,7 @@ void TestSession::send(shared_ptr<SendBuffer> send_buffer)
 
 		if (!register_send())
 		{
-			// Log ¬ÔæÓæﬂ«‘.
+			// Log Ï∞çÏñ¥ÏïºÌï®.
 			wcout << L"register_send Fail" << endl;
 			return;
 		}
@@ -110,7 +111,7 @@ void TestSession::login()
 {
 	int is_create = 0;
 
-	cout << "1. ∑Œ±◊¿Œ    2. ∞Ë¡§ ª˝º∫   3. ≥™∞°±‚ " << endl;
+	cout << "1. Î°úÍ∑∏Ïù∏    2. Í≥ÑÏ†ï ÏÉùÏÑ±   3. ÎÇòÍ∞ÄÍ∏∞ " << endl;
 	cin >> is_create;
 
 	if (is_create == 3) {
@@ -122,14 +123,14 @@ void TestSession::login()
 	string pw;
 	wstring name;
 
-	cout << "id ¿‘∑¬ : ";
+	cout << "id ÏûÖÎ†• : ";
 	cin >> id;
-	cout << "passward ¿‘∑¬ : ";
+	cout << "passward ÏûÖÎ†• : ";
 	cin >> pw;
 
 	if (is_create == 2)
 	{
-		cout << "¿Ã∏ß ¿‘∑¬ : ";
+		cout << "Ïù¥Î¶Ñ ÏûÖÎ†• : ";
 		wcin >> name;
 	}
 
@@ -175,17 +176,91 @@ void TestSession::logout()
 	send(send_buffer);
 }
 
-void TestSession::send_chat(const wstring& message, Protocol::CHAT_STATE chat_state)
+void TestSession::send_get_room_info()
+{
+	Protocol::REQ_GET_ROOM_INFO pkt;
+
+	shared_ptr<SendBuffer> send_buffer = ClientPacketHandler::MakeSendBuffer(pkt);
+	send(send_buffer);
+}
+
+void TestSession::send_enter_room(uint8 room_id)
+{
+	Protocol::REQ_ENTER_ROOM pkt;
+	pkt.set_room_id(room_id);
+
+	shared_ptr<SendBuffer> send_buffer = ClientPacketHandler::MakeSendBuffer(pkt);
+	send(send_buffer);
+}
+
+void TestSession::send_exit_room()
+{
+	Protocol::REQ_EXIT_ROOM pkt;
+
+	shared_ptr<SendBuffer> send_buffer = ClientPacketHandler::MakeSendBuffer(pkt);
+	send(send_buffer);
+}
+
+void TestSession::send_chat(const wstring& message, Protocol::CHAT_STATE chat_state, int32 room_id)
 {
 	Protocol::REQ_CHAT pkt;
 	pkt.set_message(WStringToUtf8(message));
 	pkt.set_chat_state(chat_state);
+	pkt.set_room_id(room_id);
 
 	auto sendBuffer = ClientPacketHandler::MakeSendBuffer(pkt);
 	send(sendBuffer);
 
 	GServerStats.send_chat++;
-	GServerStats.expected_chat_recv += GServerStats.login_success.load();
+
+	uint64 expected_recv = 0;
+	switch (chat_state)
+	{
+	case Protocol::CHAT_STATE::CHAT_ALL:
+		expected_recv = GServerStats.login_success.load();
+		break;
+	case Protocol::CHAT_STATE::CHAT_NORMAL:
+		expected_recv = static_cast<uint64>(GExpectedRoomRecvCount.load());
+		break;
+	case Protocol::CHAT_STATE::CHAT_WHISPER:
+		expected_recv = 1;
+		break;
+	default:
+		break;
+	}
+
+	GServerStats.expected_chat_recv += expected_recv;
+}
+
+void TestSession::send_whisper_chat(const wstring& target_name, const wstring& message, Protocol::CHAT_STATE chat_state, int32 room_id)
+{
+	Protocol::REQ_CHAT pkt;
+	pkt.set_message(WStringToUtf8(message));
+	pkt.set_chat_state(chat_state);
+	pkt.set_target_name(WStringToUtf8(target_name));
+
+	auto sendBuffer = ClientPacketHandler::MakeSendBuffer(pkt);
+	send(sendBuffer);
+
+	GServerStats.send_chat++;
+
+	uint64 expected_recv = 0;
+	switch (chat_state)
+	{
+	case Protocol::CHAT_STATE::CHAT_ALL:
+		expected_recv = GServerStats.login_success.load();
+		break;
+	case Protocol::CHAT_STATE::CHAT_NORMAL:
+		expected_recv = static_cast<uint64>(GExpectedRoomRecvCount.load());
+		break;
+	case Protocol::CHAT_STATE::CHAT_WHISPER:
+		expected_recv = 1;
+		break;
+	default:
+		break;
+	}
+
+	GServerStats.expected_chat_recv += expected_recv;
 }
 
 void TestSession::dispatch(IocpEvent* iocp_evnet, INT32 numOfbyte)
@@ -286,6 +361,10 @@ void TestSession::process_send(uint32 num_bytes)
 {
 	_send_event.clear();
 
+	if (is_connected() == false) {
+		return;
+	}
+
 	if (num_bytes == 0)
 	{
 		disconnect();
@@ -314,6 +393,10 @@ void TestSession::process_send(uint32 num_bytes)
 
 void TestSession::process_recv(uint32 num_bytes)
 {
+	if (is_connected() == false) {
+		return;
+	}
+
 	if (num_bytes == 0) {
 		disconnect();
 		cout << "process_recv - num_bytes is 0" << endl;
@@ -353,13 +436,13 @@ void TestSession::process_recv(uint32 num_bytes)
 			return;
 		}
 
-		// ∆–≈∂ ªÁ¿Ã¡Ó √§≈©.
+		// Ìå®ÌÇ∑ ÏÇ¨Ïù¥Ï¶à Ï±ÑÌÅ¨.
 		if (data_size < header.size) {
-			cout << "data_size∞° ∆–≈∂ ªÁ¿Ã¡Ó ∫∏¥Ÿ ¿€¿Ω " << endl;
+			cout << "data_sizeÍ∞Ä Ìå®ÌÇ∑ ÏÇ¨Ïù¥Ï¶à Î≥¥Îã§ ÏûëÏùå " << endl;
 			break;
 		}
 
-		// ∆–≈∂ √≥∏Æ ¿€æ˜ ¡¯«‡.
+		// Ìå®ÌÇ∑ Ï≤òÎ¶¨ ÏûëÏóÖ ÏßÑÌñâ.
 		auto session = shared_from_this();
 		if (!ClientPacketHandler::HandlePacket(session, &recv_buffer[process_len], header.size))
 		{
@@ -382,5 +465,9 @@ void TestSession::process_recv(uint32 num_bytes)
 
 	register_recv();
 }
+
+
+
+
 
 

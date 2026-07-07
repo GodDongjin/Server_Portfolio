@@ -20,26 +20,48 @@ void Session::send(SendBufferRef sendBuffer)
 		return;
 
 	bool registerSend = false;
+	bool needDisconnect = false;
 
 	{
 		WRITE_LOCK;
 
-		_send_queue.push(sendBuffer);
+		// 송신 큐가 무한히 증가하는 상황을 방지하기 위해 _send_queue.size 제한 및 체크.
+		if (_send_queue.size() >= MAX_SEND_QUEUE_SIZE)
+		{
+			needDisconnect = true;
+		}
+		else
+		{
+			_send_queue.push(sendBuffer);
 
-		if (_is_send_register.exchange(true) == false)
-			registerSend = true;
+			if (_is_send_register.exchange(true) == false) {
+				registerSend = true;
+			}	
+		}
 	}
 
-	if (registerSend)
+	if (needDisconnect)
+	{
+		ERROR_LOG("send queue overflow");
+		disconnect();
+		return;
+	}
+
+	if (registerSend) {
 		register_send();
+	}
 }
 
 void Session::disconnect()
 {
-	if (_is_connect.exchange(false) == false)
+	if (_is_connect.exchange(false) == false) {
 		return;
+	}
 
-	register_disconnect();
+	if (register_disconnect() == false) {
+		process_disconnect();
+	}
+	
 }
 
 HANDLE Session::get_handle()
@@ -175,17 +197,28 @@ void Session::process_connect()
 void Session::process_disconnect()
 {
 	_disconnect_event.set_owner(nullptr);
+
+	if (_is_disconnect.exchange(true) == true) {
+		return;
+	}	
+
+	_is_send_register.store(false);
 	
 	on_disconnect();
 
 	auto service = _service.lock();
-	if (service)
+	if (service) {
 		service->get_sessionManager()->on_disconnected(get_session());
+	}
 }
 
 void Session::process_recv(int32 numOfBytes)
 {
 	_recv_event.set_owner(nullptr);
+
+	if (is_connected() == false) {
+		return;
+	}		
 
 	if (numOfBytes == 0)
 	{
@@ -219,6 +252,10 @@ void Session::process_send(int32 numOfBytes)
 {
 	_send_event.set_owner(nullptr);
 	_send_event.send_Buffers_clear();
+
+	if (is_connected() == false) {
+		return;
+	}
 
 	if (numOfBytes == 0)
 	{
@@ -276,7 +313,7 @@ int32 Session::on_recv(BYTE* get_buffer, int32 len)
 			break;
 
 		PacketHeader header = *(reinterpret_cast<PacketHeader*>(&get_buffer[processLen]));
-		
+
 		// 패킷 사이즈 채크.
 		if (header.size < sizeof(PacketHeader))
 			return -1;

@@ -11,6 +11,7 @@ class Session : public IocpObject
 	enum
 	{
 		BUFFER_SIZE = 0x10000, // 64KB
+		MAX_SEND_QUEUE_SIZE = 1000,	// send_queue 누적 개수 제한 수.
 	};
 
 public:
@@ -36,6 +37,23 @@ public:
 
 	void				set_account_idx(uint64 idx) { _account_idx = idx; }
 	uint64				get_account_idx() { return _account_idx; }
+
+	void				set_room_id(int32 room_id) { _enter_room_id = room_id; }
+	int32				get_room_id() { return _enter_room_id; }
+
+	uint64				get_last_ping_tick() { return _last_ping_tick; }
+	void				set_last_ping_tick(uint64 ping_tick) { _last_ping_tick.exchange(ping_tick); }
+
+	uint64				get_last_pong_tick() { return _last_pong_tick; }
+	void				set_last_pong_tick(uint64 pong_tick) { _last_pong_tick.exchange(pong_tick); }
+
+	bool				get_waiting_pong() { return _waiting_pong; }
+	void				set_waiting_pong(bool is_waiting) { _waiting_pong.exchange(is_waiting); }
+
+	virtual void		send_ping(uint64 now) { }
+
+	void set_name(wstring name) { _user_name = name; }
+	wstring get_name() { return _user_name; }
 
 	void set_service(shared_ptr<Service> sevice) { _service = sevice; }
 	weak_ptr<Service> get_service() { return _service; }
@@ -65,10 +83,17 @@ protected:
 private:
 	SOCKET				_socket = INVALID_SOCKET;
 	NetAddress			_net_address = {};
+
 	atomic<bool>		_is_connect = false;
-	uint64				_account_idx = 0;
+	atomic<bool>		_is_disconnect = false;
 
 	weak_ptr<Service> _service;
+
+protected:
+	uint64				_account_idx = 0;
+	int32				_enter_room_id = -1;
+	wstring				_user_name = L"";
+
 private:
 	USE_LOCK;
 	RecvBuffer				_recv_buffer;
@@ -81,5 +106,10 @@ private:
 	DisconnectEvent		_disconnect_event;
 	RecvEvent			_recv_event;
 	SendEvent			_send_event;
+
+private:
+	atomic<uint64> _last_pong_tick = 0;
+	atomic<uint64> _last_ping_tick = 0;
+	atomic<bool>   _waiting_pong = false;
 };
 

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "Types.h"
 
 enum class ClientMode
@@ -19,3 +19,5 @@ struct ServerStats
 
 extern ServerStats GServerStats;
 extern ClientMode GClientMode;
+extern atomic<int32> GExpectedRoomRecvCount;
+

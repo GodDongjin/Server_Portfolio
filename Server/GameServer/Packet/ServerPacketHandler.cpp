@@ -7,15 +7,10 @@
 #include "../Main/GameSession.h"
 #include "../Utils/GameGlobal.h"
 #include "../Login/Login.h"
+#include "../Room/RoomManager.h"
+#include "../Room/Room.h"
 
 PacketHandlerFunc GPacketHandler[UINT16_MAX];
-
-bool Handle_INVALID(GameSessionRef& session, BYTE* buffer, int32 len)
-{
-	PacketHeader* header = reinterpret_cast<PacketHeader*>(buffer);
-	
-	return false;
-}
 
 bool Handle_REQ_LOGIN(GameSessionRef& session, Protocol::REQ_LOGIN& pkt)
 {
@@ -23,7 +18,6 @@ bool Handle_REQ_LOGIN(GameSessionRef& session, Protocol::REQ_LOGIN& pkt)
 		ERROR_LOG("Handle_REQ_LOGIN : session nullptr");
 		return false;
 	}
-
 
 	Protocol::ACK_LOGIN loginPkt;
 
@@ -41,6 +35,27 @@ bool Handle_REQ_LOGIN(GameSessionRef& session, Protocol::REQ_LOGIN& pkt)
 		return false;
 	}*/
 
+	// 로그인 및 계정 생성 시 아이디 검증
+	if (pkt.id().empty() || pkt.id().size() > 32)
+	{
+		ERROR_LOG("invalid login id");
+		return false;
+	}
+
+	// 로그인 및 계정 생성 시 비밀번호 검증
+	if (pkt.pw().empty() || pkt.pw().size() > 32)
+	{
+		ERROR_LOG("invalid login pw");
+		return false;
+	}
+
+	// 계정 생성 시 닉네임 검증
+	if (pkt.is_create() && (pkt.name().empty() || pkt.name().size() > 32))
+	{
+		ERROR_LOG("invalid login name");
+		return false;
+	}
+
 	if (pkt.is_create()) {
 		user_name = StringUtil::Utf8ToWString(pkt.name());
 
@@ -54,6 +69,12 @@ bool Handle_REQ_LOGIN(GameSessionRef& session, Protocol::REQ_LOGIN& pkt)
 		session->set_is_login(true);
 		session->set_account_idx(idx);
 		session->set_name(user_name);
+
+		auto service = session->get_service().lock();
+		if (service) {
+			service->get_sessionManager()->add_account_session(idx, session);
+			service->get_sessionManager()->add_name_session(user_name, session);
+		}
 
 		GServerStats.login++;
 	}
@@ -74,6 +95,13 @@ bool Handle_REQ_LOGOUT(GameSessionRef& session, Protocol::REQ_LOGOUT& pkt)
 		return false;
 	}
 
+	if (session->get_is_login() == false)
+	{
+		ERROR_LOG("not login session");
+		session->disconnect();
+		return false;
+	}
+
 	Protocol::ACK_LOGOUT logout_pkt;
 
 	if (!GLogin->logout(session->get_account_idx()))
@@ -85,12 +113,137 @@ bool Handle_REQ_LOGOUT(GameSessionRef& session, Protocol::REQ_LOGOUT& pkt)
 		return true;
 	}
 
+	if (session->get_room_id() >= 0)
+	{
+		RoomManager::get_instance()->exit_room(session->get_room_id(), session->get_account_idx());
+		session->set_room_id(-1);
+	}
+
+	auto service = session->get_service().lock();
+	if (service){
+		service->get_sessionManager()->release_logout_session(session->get_account_idx());
+		service->get_sessionManager()->release_name_session(session->get_name());
+	}
+
 	logout_pkt.set_result(Protocol::LOGOUT_ERROR::LOGOUT_SUCCESS);
 
 	session->set_account_idx(0);
 	session->set_is_login(false);
 
 	SEND_PACKET(logout_pkt);
+
+	return true;
+}
+
+bool Handle_REQ_GET_ROOM_INFO(GameSessionRef& session, Protocol::REQ_GET_ROOM_INFO& pkt)
+{
+	if (session == nullptr) 
+	{
+		ERROR_LOG("Handle_REQ_GET_ROOM_INFO : session nullptr");
+		return false;
+	}
+
+	if (session->get_is_login() == false) 
+	{
+		ERROR_LOG("not login session");
+		session->disconnect();
+		return false;
+	}
+
+	Protocol::ACK_GET_ROOM_INFO room_info_pkt;
+
+	const map<int32, shared_ptr<Room>>& room_list = RoomManager::get_instance()->get_room_list();
+
+	for (const auto& [room_id, room] : room_list)
+	{
+		if (room == nullptr)
+			continue;
+
+		Protocol::RoomInfo* room_info = room_info_pkt.add_room_info_list();
+
+		room_info->set_room_id(room->get_room_id());
+		room_info->set_cur_enter_user_count(room->get_room_cur_count());
+		room_info->set_cur_enter_max_count(room->get_room_max_count());
+	}
+
+	SEND_PACKET(room_info_pkt);
+
+	return true;
+}
+
+bool Handle_REQ_ENTER_ROOM(GameSessionRef& session, Protocol::REQ_ENTER_ROOM& pkt)
+{
+	if (session == nullptr) {
+		ERROR_LOG("Handle_REQ_GET_ROOM_INFO : session nullptr");
+		return false;
+	}
+
+	if (session->get_is_login() == false)
+	{
+		ERROR_LOG("not login session");
+		session->disconnect();
+		return false;
+	}
+
+	Protocol::ACK_ENTER_ROOM enter_room_pkt;
+	Protocol::ENTER_ROOM_ERROR result = Protocol::ENTER_ROOM_ERROR::ENTER_ROOM_SUCCESS;
+
+	int32 enter_room_id = pkt.room_id();
+
+	if (session->get_room_id() >= 0)
+	{
+		enter_room_pkt.set_result(Protocol::ENTER_ROOM_ERROR::ENTER_ROOM_FAIL);
+		SEND_PACKET(enter_room_pkt);
+		return true;
+	}
+
+	if (!RoomManager::get_instance()->enter_room(enter_room_id, session))
+	{
+		result = Protocol::ENTER_ROOM_ERROR::ENTER_ROOM_FAIL;
+		enter_room_pkt.set_result(result);
+		SEND_PACKET(enter_room_pkt);
+
+		return true;
+	}
+
+	session->set_room_id(enter_room_id);
+	enter_room_pkt.set_room_id(enter_room_id);
+	enter_room_pkt.set_result(result);
+	SEND_PACKET(enter_room_pkt);
+
+	return true;
+}
+
+bool Handle_REQ_EXIT_ROOM(GameSessionRef& session, Protocol::REQ_EXIT_ROOM& pkt)
+{
+	if (session == nullptr) {
+		ERROR_LOG("Handle_REQ_EXIT_ROOM : session nullptr");
+		return false;
+	}
+
+	if (session->get_is_login() == false)
+	{
+		ERROR_LOG("not login session");
+		session->disconnect();
+		return false;
+	}
+
+	Protocol::ACK_EXIT_ROOM exit_room_pkt;
+	Protocol::EXIT_ROOM_ERROR result = Protocol::EXIT_ROOM_ERROR::EXIT_ROOM_SUCCESS;
+
+	const int32 exit_room_id = session->get_room_id();
+
+	if (exit_room_id < 0 || !RoomManager::get_instance()->exit_room(exit_room_id, session->get_account_idx()))
+	{
+		result = Protocol::EXIT_ROOM_ERROR::EXIT_ROOM_FAIL;
+		exit_room_pkt.set_result(result);
+		SEND_PACKET(exit_room_pkt);
+		return true;
+	}
+
+	session->set_room_id(-1);
+	exit_room_pkt.set_result(result);
+	SEND_PACKET(exit_room_pkt);
 
 	return true;
 }
@@ -119,6 +272,24 @@ bool Handle_REQ_BOT_LOGIN(GameSessionRef& session, Protocol::REQ_BOT_LOGIN& pkt)
 		return false;
 	}*/
 
+	if (pkt.id().empty() || pkt.id().size() > 32)
+	{
+		ERROR_LOG("invalid login id");
+		return false;
+	}
+
+	if (pkt.pw().empty() || pkt.pw().size() > 32)
+	{
+		ERROR_LOG("invalid login pw");
+		return false;
+	}
+
+	if (pkt.is_create() && (pkt.name().empty() || pkt.name().size() > 32))
+	{
+		ERROR_LOG("invalid login name");
+		return false;
+	}
+
 	if (pkt.is_create()) {
 		user_name = StringUtil::Utf8ToWString(pkt.name());
 
@@ -132,6 +303,12 @@ bool Handle_REQ_BOT_LOGIN(GameSessionRef& session, Protocol::REQ_BOT_LOGIN& pkt)
 		session->set_is_login(true);
 		session->set_account_idx(idx);
 		session->set_name(user_name);
+
+		auto service = session->get_service().lock();
+		if (service) {
+			service->get_sessionManager()->add_account_session(idx, session);
+			service->get_sessionManager()->add_name_session(user_name, session);
+		}
 
 		GServerStats.login++;
 	}
@@ -152,32 +329,151 @@ bool Handle_REQ_CHAT(GameSessionRef& session, Protocol::REQ_CHAT& pkt)
 		return false;
 	}
 
-	GServerStats.recv_chat++;
-	//INFO_LOG(pkt.message());
+	if (session->get_is_login() == false)
+	{
+		ERROR_LOG("not login session");
+		session->disconnect();
+		return false;
+	}
+	
+	Protocol::ACK_CHAT ack_chat;
+	Protocol::CHAT_ERROR result = Protocol::CHAT_ERROR::CHAT_ERROR_SUCCESS;
+
+	if (pkt.message().empty() || pkt.message().size() > 256)
+	{
+		ack_chat.set_result(Protocol::CHAT_ERROR::CHAT_ERROR_FAIL);
+		SEND_PACKET(ack_chat);
+		return true;
+	}
 
 	// 여기서 귓 or 전체 or 룸 나눠서 적용할 예정 
-	if(pkt.chat_state() == Protocol::CHAT_STATE::CHAT_ALL)
+	if(pkt.chat_state() == Protocol::CHAT_STATE::CHAT_NORMAL)
 	{
 			auto service = session->get_service().lock();
 			if (service == nullptr)
 			{
 				ERROR_LOG("Handle_REQ_CHAT : service expired");
-				return false;
+				result = Protocol::CHAT_ERROR::CHAT_ERROR_FAIL;
+				ack_chat.set_result(result);
+				SEND_PACKET(ack_chat);
+				return true;
+			}
+
+			if (session->get_room_id() < 0)
+			{
+				ERROR_LOG("chat error room");
+				result = Protocol::CHAT_ERROR::CHAT_ERROR_FAIL;
+				ack_chat.set_result(result);
+				SEND_PACKET(ack_chat);
+				return true;
+			}
+
+			if (session->get_room_id() != pkt.room_id())
+			{
+				ERROR_LOG("room_id error");
+				result = Protocol::CHAT_ERROR::CHAT_ERROR_FAIL;
+				ack_chat.set_result(result);
+				SEND_PACKET(ack_chat);
+				return true;
 			}
 
 			Protocol::ACK_SEND_CHAT send_chat_pkt;
-			send_chat_pkt.set_user_name(StringUtil::WStringToUtf8(session->_name));
+			send_chat_pkt.set_user_name(StringUtil::WStringToUtf8(session->get_name()));
 			send_chat_pkt.set_message(pkt.message());
 
 			SendBufferRef sendBuffer = ServerPacketHandler::MakeSendBuffer(send_chat_pkt);
-			const int32 targetCount = service->get_sessionManager()->broad_cast(sendBuffer);
-
+			const int32 targetCount = service->get_sessionManager()->normal_chat(pkt.room_id(), sendBuffer);
 			GServerStats.broadcast_packet++;
 			GServerStats.broadcast_target += targetCount;
-
-			return true;
 	}
+
+	else if (pkt.chat_state() == Protocol::CHAT_STATE::CHAT_ALL)
+	{
+		auto service = session->get_service().lock();
+		if (service == nullptr)
+		{
+			ERROR_LOG("Handle_REQ_CHAT : service expired");
+			result = Protocol::CHAT_ERROR::CHAT_ERROR_FAIL;
+			ack_chat.set_result(result);
+			SEND_PACKET(ack_chat);
+			return true;
+		}
+
+		Protocol::ACK_SEND_CHAT send_chat_pkt;
+		send_chat_pkt.set_user_name(StringUtil::WStringToUtf8(session->get_name()));
+		send_chat_pkt.set_message(pkt.message());
+
+		SendBufferRef sendBuffer = ServerPacketHandler::MakeSendBuffer(send_chat_pkt);
+		const int32 targetCount = service->get_sessionManager()->all_chat(sendBuffer);
+		GServerStats.broadcast_packet++;
+		GServerStats.broadcast_target += targetCount;
+	}
+	else if (pkt.chat_state() == Protocol::CHAT_STATE::CHAT_WHISPER)
+	{
+		auto service = session->get_service().lock();
+		if (service == nullptr)
+		{
+			ERROR_LOG("Handle_REQ_CHAT : service expired");
+			result = Protocol::CHAT_ERROR::CHAT_ERROR_FAIL;
+			ack_chat.set_result(result);
+			SEND_PACKET(ack_chat);
+			return true;
+		}
+
+		if (pkt.target_name().empty() || pkt.target_name().size() > 32)
+		{
+			result = Protocol::CHAT_ERROR::CHAT_ERROR_FAIL;
+			ack_chat.set_result(result);
+			SEND_PACKET(ack_chat);
+			return true;
+		}
+
+		if (!service->get_sessionManager()->is_whisper_target_find(StringUtil::Utf8ToWString(pkt.target_name()))) {
+			result = Protocol::CHAT_ERROR::CHAT_ERROR_NOT_TARGET;
+			ack_chat.set_result(result);
+			SEND_PACKET(ack_chat);
+			return true;
+		}
+
+		Protocol::ACK_SEND_CHAT send_chat_pkt;
+		send_chat_pkt.set_user_name(StringUtil::WStringToUtf8(session->get_name()));
+		send_chat_pkt.set_message(pkt.message());
+
+		SendBufferRef sendBuffer = ServerPacketHandler::MakeSendBuffer(send_chat_pkt);
+		const int32 targetCount = service->get_sessionManager()->whisper_chat(StringUtil::Utf8ToWString(pkt.target_name()), sendBuffer);
+		GServerStats.broadcast_packet++;
+		GServerStats.broadcast_target += targetCount;
+	}
+	else
+	{
+		result = Protocol::CHAT_ERROR::CHAT_ERROR_FAIL;
+		ack_chat.set_result(result);
+		SEND_PACKET(ack_chat);
+		return true;
+	}
+
+	GServerStats.recv_chat++;
+
+	ack_chat.set_result(result);
+	SEND_PACKET(ack_chat);
+	return true;
+}
+
+bool Handle_REQ_CONNECT_PONG(GameSessionRef& session, Protocol::REQ_CONNECT_PONG& pkt)
+{
+	if (session == nullptr)
+	{
+		ERROR_LOG("Handle_REQ_CONNECT_PONG : session nullptr");
+		return false;
+	}
+
+	const uint64 now = ::GetTickCount64();
+
+	session->set_last_pong_tick(now);
+	session->set_waiting_pong(false);
 
 	return true;
 }
+
+
 

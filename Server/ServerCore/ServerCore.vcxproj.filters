@@ -185,5 +185,8 @@
     <ClInclude Include="Utils\ConfigReader.h">
       <Filter>Utils</Filter>
     </ClInclude>
+    <ClInclude Include="Utils\Singleton.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

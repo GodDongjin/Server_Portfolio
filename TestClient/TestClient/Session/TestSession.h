@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "../Utils/Types.h"
 #include "../Buffer/RecvBuffer.h"
@@ -19,9 +19,9 @@ enum class TEST_SESSION_STATE
 class TestSession : public enable_shared_from_this<TestSession>
 {
 public:
-	TestSession() 
-	{ 
-		_recv_buffer = make_shared<RecvBuffer>(0x10000); 
+	TestSession()
+	{
+		_recv_buffer = make_shared<RecvBuffer>(0x10000);
 		//_send_buffer = make_shared<SendBuffer>(0x10000);
 		_test_session_state = TEST_SESSION_STATE::NONE;
 	}
@@ -40,7 +40,12 @@ public:
 
 	void logout();
 
-	void send_chat(const wstring& message, Protocol::CHAT_STATE chat_state);
+	void send_get_room_info();
+	void send_enter_room(uint8 room_id);
+	void send_exit_room();
+
+	void send_chat(const wstring& message, Protocol::CHAT_STATE chat_state, int32 room_id);
+	void send_whisper_chat(const wstring& target_name, const wstring& message, Protocol::CHAT_STATE chat_state, int32 room_id);
 
 public:
 	bool is_connected() { return _is_connect; }
@@ -58,6 +63,9 @@ public:
 	void set_is_login(bool is_login) { _is_login.store(is_login); }
 	bool get_is_login() { return _is_login.load(); }
 
+	void set_room_id(int32 room_id) { _room_id = room_id; }
+	int32 get_room_id() { return _room_id; }
+
 private:
 
 	bool register_recv();
@@ -69,12 +77,12 @@ private:
 private:
 	atomic<bool> _is_connect = false;
 	atomic<bool> _is_login = false;
-
-	bool _is_disconnect = false;
+	atomic<bool> _is_disconnect = false;
 
 	uint64 _account_idx;
 	wstring _name = L"";
 	int32 _bot_index = 0;
+	int32 _room_id = -1;
 
 	TEST_SESSION_STATE _test_session_state;
 
@@ -85,7 +93,6 @@ private:
 	WSABUF _send_wsa_buf = {};
 	
 	shared_ptr<RecvBuffer> _recv_buffer;
-	//shared_ptr<SendBuffer> _send_buffer;
 
 	queue<shared_ptr<SendBuffer>> _send_queue;
 	atomic<bool>			_is_send_register = false;
@@ -96,3 +103,7 @@ private:
 	SendEvent _send_event;
 	RecvEvent _recv_event;
 };
+
+
+
+

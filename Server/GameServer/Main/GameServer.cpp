@@ -16,13 +16,13 @@ void do_worker_job(ServerServiceRef& service)
 	{
 		LEndTickCount = ::GetTickCount64() + 64;
 
-		// 네트워크 입출력 처리 -> 인게임 로직까지 (패킷 핸들러에 의해)
+		// 스레드 네트워크 IO, packet 로직 처리
 		service->get_iocp_core()->dispatch(10);
 
-		// 예약된 일감 처리
+		// 스레드에 작업 분배 등록
 		ThreadManager::distribute_reserved_jobs();
 
-		// 글로벌 큐
+		// 스레드 분배된 작업 처리
 		ThreadManager::do_global_queue_work();
 
 	}
@@ -77,7 +77,7 @@ int main()
 
 	ASSERT_CRASH(service->start());
 
-	// DB 시스템 구정 되면 사용
+	// Enable this when the DB system is configured.
 	/*ASSERT_CRASH(GDBManager->db_connect_start(
 		config.get_wstring("database_info", "driver"),
 		config.get_wstring("database_info", "ip"),
@@ -94,6 +94,15 @@ int main()
 			});
 	}
 
+	GThreadManager->launch([&service]()
+	{
+		while (true)
+		{
+			// 클라이언트 통신 상태 확인 ping <-> pong 작업 5초 마다.
+			service->get_sessionManager()->check_heartbeat(::GetTickCount64());
+			::Sleep(5000);
+		}
+	});
 	GThreadManager->launch([]()
 	{
 		uint64 prevRecvChat = 0;

@@ -42,16 +42,16 @@ enum CHAT_STATE
 	CHAT_WHISPER = 2;				// 귓속말 챗
 }
 
-enum ENTER_GAME_ERROR
-{
-	ENTER_GAME_NONE = 0;		// 인게임 진입 없음
-	ENTER_GAME_FAIL = 1;		// 인게임 진입 실패
-	ENTER_GAME_SUCCESS = 2;		// 인게임 진입 성공
-}
-
 enum ENTER_ROOM_ERROR
 {
-	ENTER_ROOM_NONE = 0;		// 인게임 진입 없음
-	ENTER_ROOM_FAIL = 1;		// 인게임 진입 실패
-	ENTER_ROOM_SUCCESS = 2;		// 인게임 진입 성공
+	ENTER_ROOM_NONE = 0;		// 챗팅방 진입 없음
+	ENTER_ROOM_FAIL = 1;		// 챗팅방 진입 실패
+	ENTER_ROOM_SUCCESS = 2;		// 챗팅방 진입 성공
+}
+
+enum EXIT_ROOM_ERROR
+{
+	EXIT_ROOM_NONE = 0;			// 챗팅방 나가기 없음
+	EXIT_ROOM_FAIL = 1;			// 챗팅방 나가기 실패
+	EXIT_ROOM_SUCCESS = 2;		// 챗팅방 나가기 성공
 }

@@ -81,6 +81,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>$(ProjectDir)Utils\;$(ProjectDir)DB\;$(ProjectDir)Job\;$(ProjectDir)NetWork\;$(ProjectDir)Thread\;$(SolutionDir)Libraries\Include\mysql;$(SolutionDir)Libraries\Include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -118,6 +119,7 @@
     <ClInclude Include="Utils\Logger.h" />
     <ClInclude Include="Utils\pch.h" />
     <ClInclude Include="Utils\ServerStates.h" />
+    <ClInclude Include="Utils\Singleton.h" />
     <ClInclude Include="Utils\SocketUtils.h" />
     <ClInclude Include="Utils\StringUtil.h" />
     <ClInclude Include="Utils\Types.h" />
