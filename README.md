@@ -101,7 +101,7 @@ Server_Portfolio
 - 클라이언트 송수신 통계 출력
 - IOCP 기반 비동기 recv / send 처리
 
-## Packet Flow
+## Packet 흐름
 
 ### Login
 
