@@ -6,7 +6,7 @@ Windows IOCP 기반 비동기 TCP 게임 서버 포트폴리오입니다.
 `GameServer`는 로그인, 룸 입장/퇴장, 룸 채팅, 전체 채팅, 귓속말, heartbeat 기반 연결 상태 관리를 구현합니다.  
 `TestClient`는 수동 테스트와 다중 세션 부하 테스트를 지원합니다.
 
-## Features
+## 특징
 
 - Windows IOCP 기반 비동기 네트워크 처리
 - `Session`, `Listener`, `Service`, `SessionManager` 기반 서버 구조
@@ -23,7 +23,7 @@ Windows IOCP 기반 비동기 TCP 게임 서버 포트폴리오입니다.
 - 서버 / 클라이언트 통계 출력
 - ini 기반 서버/클라이언트 실행 설정 분리
 
-## Tech Stack
+## 기술 스택
 
 - C++17 / C++20
 - Windows IOCP
@@ -32,7 +32,7 @@ Windows IOCP 기반 비동기 TCP 게임 서버 포트폴리오입니다.
 - Visual Studio 2022
 - MySQL ODBC, DB 연동 확장용
 
-## Project Structure
+## 프로젝트 구조
 
 ```txt
 Server_Portfolio
@@ -64,7 +64,7 @@ Server_Portfolio
       └─ Utils
 ```
 
-## Architecture
+## 구조
 
 ### ServerCore
 
@@ -137,9 +137,9 @@ Client
         ↓
 GameServer
   └─ chat_state에 따라 처리
-        ├─ CHAT_NORMAL  -> SessionManager::normal_chat()
-        ├─ CHAT_ALL     -> SessionManager::all_chat()
-        └─ CHAT_WHISPER -> SessionManager::whisper_chat()
+        ├─ CHAT_NORMAL  -> SessionManager::normal_chat()    // 일반 채팅
+        ├─ CHAT_ALL     -> SessionManager::all_chat()       // 전채 채팅
+        └─ CHAT_WHISPER -> SessionManager::whisper_chat()   // 귓속말 채팅
         ↓
 Target clients
   └─ ACK_SEND_CHAT
@@ -172,7 +172,7 @@ GameServer
 - disconnect 중복 처리 방지
 - heartbeat timeout disconnect
 
-## Configuration
+## Config
 
 실행 설정은 `config.ini`로 분리합니다. 실제 로컬 설정 파일은 Git에 포함하지 않고, 예시 파일만 커밋합니다.
 
@@ -220,7 +220,7 @@ ip=127.0.0.1
 port=7777
 ```
 
-## How to Run
+## 작동 방식
 
 ### 1. Clone
 
@@ -229,7 +229,7 @@ git clone https://github.com/GodDongjin/Server_Portfolio.git
 cd Server_Portfolio
 ```
 
-### 2. Create Local Config Files
+### 2. 로컬 설정 파일 생성
 
 예시 설정 파일을 복사해 로컬 실행 설정을 만듭니다.
 
@@ -240,7 +240,7 @@ copy TestClient\TestClient\Config\config.example.ini TestClient\TestClient\Confi
 
 필요하면 `ip`, `port`, `session_count`, `worker_thread_count` 등을 로컬 환경에 맞게 수정합니다.
 
-### 3. Run GameServer
+### 3. GameServer 실행
 
 Visual Studio 2022에서 다음 솔루션을 엽니다.
 
@@ -250,7 +250,7 @@ Server/GameServer.sln
 
 `GameServer` 프로젝트를 `Debug x64` 또는 `Release x64`로 실행합니다.
 
-### 4. Run TestClient
+### 4. TestClient 실행
 
 Visual Studio 2022에서 다음 솔루션을 엽니다.
 
@@ -277,11 +277,11 @@ Manual Mode 명령:
 /q                          로그아웃 후 종료
 ```
 
-## Load Test
+## 부하 테스트
 
 TestClient의 Load Test Mode를 사용해 1,000개 클라이언트 세션을 생성하고, 룸 채팅/전체 채팅/귓속말이 섞인 채팅 송수신 부하를 측정했습니다.
 
-### Test Environment
+### Test 환경
 
 ```txt
 Build: Release x64
@@ -293,9 +293,26 @@ Client Count: 1,000
 Chat Interval: 2,500ms
 ```
 
-### Result
+### 결과
 
-### Release x64 Result
+### Release x64 결과
+
+Debug x64 환경에서는 TestClient 1,000개 세션과 수동 접속 1개를 포함해 총 1,001개 세션으로 테스트했습니다
+
+| Item | Result |
+|---|---:|
+| Build | Debug x64 |
+| Connected Sessions | 1,001 |
+| Login Success | 1,001 |
+| Chat Interval | 2,500ms |
+| Total Broadcast Target | 3,411,262 |
+| Client Total Recv | 3,411,262 |
+| Backlog | 0으로 회복 / 누적 없음 |
+| Disconnect | 1001 정상 종료 |
+
+### Release x64 결과
+
+Release x64 환경에서는 TestClient 1,000개 세션으로 테스트했습니다.
 
 | Item | Result |
 |---|---:|
@@ -307,7 +324,7 @@ Chat Interval: 2,500ms
 | Backlog | 0으로 회복 / 누적 없음 |
 | Disconnect | 1,000 정상 종료 |
 
-### Load Test Summary
+### 부하 테스트 요약
 
 | Clients | Chat Interval | Expected Broadcast Delivery | Result |
 |---:|---:|---:|---|
@@ -316,7 +333,7 @@ Chat Interval: 2,500ms
 | 1,000 | 2500ms | 약 400K/sec | Stable |
 | 1,000 | 2000ms | 약 500K/sec | Backlog Increasing |
 
-### Example Stats
+### 통계 예시
 
 Client:
 
@@ -330,7 +347,7 @@ Server:
 [SERVER] connect = 1,000 login = 1,000 recv_chat = 6,321 broadcast_target = 6,321,000 disconnect = 0
 ```
 
-## Current Limitations
+## 현재 제한 사항
 
 - 계정 정보는 현재 DB가 아닌 메모리 기반으로 관리됩니다.
 - DB 연결 코드는 확장용으로 분리되어 있으며, 현재 로그인 로직에는 연결하지 않았습니다.
@@ -338,7 +355,7 @@ Server:
 - graceful shutdown은 추가 개선이 필요합니다.
 - Room 생성/삭제 정책은 현재 고정 설정 기반이며, 동적 확장은 향후 개선 항목입니다.
 
-## Next Improvements
+## 다음 개선 사항
 
 - DB 기반 계정 저장
 - graceful shutdown
