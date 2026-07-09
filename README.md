@@ -64,6 +64,8 @@ Server_Portfolio
       └─ Utils
 ```
 
+![Server Architecture](docs/images/server-architecture.png)
+
 ## 구조
 
 ### ServerCore
@@ -103,67 +105,23 @@ Server_Portfolio
 
 ## Packet 흐름
 
-### Login
+상세 패킷 흐름은 [docs/packet-flow.md](docs/packet-flow.md)에 정리했습니다.
 
-```txt
-Client
-  └─ REQ_LOGIN / REQ_BOT_LOGIN
-        ↓
-GameServer
-  └─ Login validation
-        ↓
-Client
-  └─ ACK_LOGIN / ACK_BOT_LOGIN
-```
+요약:
 
-### Room
+- Login: `REQ_LOGIN / REQ_BOT_LOGIN` 요청을 검증하고 `ACK_LOGIN / ACK_BOT_LOGIN`으로 결과를 응답합니다.
+- Room: 룸 목록 조회, 입장, 퇴장 요청을 `RoomManager`에서 처리합니다.
+- Chat: 요청 결과(`ACK_CHAT`)와 실제 메시지 전달(`ACK_SEND_CHAT`)을 분리합니다.
+- Heartbeat: 서버가 ping을 보내고 클라이언트 pong 응답으로 연결 생존 여부를 확인합니다.
 
-```txt
-Client
-  └─ REQ_GET_ROOM_INFO / REQ_ENTER_ROOM / REQ_EXIT_ROOM
-        ↓
-GameServer
-  └─ RoomManager
-        ↓
-Client
-  └─ ACK_GET_ROOM_INFO / ACK_ENTER_ROOM / ACK_EXIT_ROOM
-```
-
-### Chat
-
-```txt
-Client
-  └─ REQ_CHAT
-        ↓
-GameServer
-  └─ chat_state에 따라 처리
-        ├─ CHAT_NORMAL  -> SessionManager::normal_chat()    // 일반 채팅
-        ├─ CHAT_ALL     -> SessionManager::all_chat()       // 전채 채팅
-        └─ CHAT_WHISPER -> SessionManager::whisper_chat()   // 귓속말 채팅
-        ↓
-Target clients
-  └─ ACK_SEND_CHAT
-```
-
-### Heartbeat
-
-```txt
-GameServer
-  └─ ACK_SEND_CONNECT_PING(server_tick)
-        ↓
-Client
-  └─ REQ_CONNECT_PONG(server_tick)
-        ↓
-GameServer
-  └─ RTT 기록 및 timeout 상태 갱신
-```
 
 ## Reliability
 
-서버 안정성을 위해 다음 방어 로직을 추가했습니다.
+상세 안정성 보강 내용은 [docs/reliability.md](docs/reliability.md)에 정리했습니다.
 
-- packet size 검증
-- packet id 검증
+주요 방어 로직:
+
+- packet size / packet id 검증
 - Protobuf parse 실패 처리
 - 로그인 전 요청 제한
 - 룸 입장 상태 검증
@@ -171,6 +129,7 @@ GameServer
 - send queue 누적 제한
 - disconnect 중복 처리 방지
 - heartbeat timeout disconnect
+
 
 ## Config
 
@@ -295,7 +254,7 @@ Chat Interval: 2,500ms
 
 ### 결과
 
-### Release x64 결과
+### Debug x64 결과
 
 Debug x64 환경에서는 TestClient 1,000개 세션과 수동 접속 1개를 포함해 총 1,001개 세션으로 테스트했습니다
 

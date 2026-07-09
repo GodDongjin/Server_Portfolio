@@ -1,4 +1,4 @@
-﻿# Packet Flow
+# Packet Flow
 
 이 문서는 `GameServer`와 `TestClient` 사이에서 사용하는 주요 패킷 흐름을 정리합니다.
 
@@ -197,7 +197,7 @@ Client -> Server : REQ_CONNECT_PONG
 - `ACK_SEND_CONNECT_PING`에 `server_tick`을 담아 전송
 - ping 전송 후 `waiting_pong` 상태 설정
 - pong 수신 시 `last_pong_tick` 갱신
-- `rtt = now - server_tick` 계산
+- `waiting_pong` 상태 해제
 - timeout 시 disconnect 처리
 
 ## Summary

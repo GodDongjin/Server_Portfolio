@@ -1,8 +1,8 @@
-﻿# Reliability
+# Reliability
 
 이 문서는 서버의 안정성 보강 로직을 정리합니다.
 
-현재 서버는 잘못된 패킷, 비정상 연결 종료, 느린 클라이언트, heartbeat timeout 같은 상황에서 서버 상태가 깨지지 않도록 방어 로직을 둡니다.
+현재 서버는 잘못된 패킷, 비정상 연결 종료, 응답 없는 클라이언트, heartbeat timeout 같은 상황에서 서버 상태가 깨지지 않도록 방어 로직을 둡니다.
 
 ## Packet Validation
 
@@ -120,7 +120,6 @@ Client -> Server : REQ_CONNECT_PONG
 _last_ping_tick
 _last_pong_tick
 _waiting_pong
-_rtt
 ```
 
 동작:
@@ -139,7 +138,7 @@ disconnect
 
 - 비정상 클라이언트 감지
 - 끊어진 연결 정리
-- RTT 측정 기반 연결 상태 확인
+- 응답 없는 연결 정리
 
 ## Disconnect Trigger
 
