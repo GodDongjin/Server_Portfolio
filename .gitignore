@@ -1,4 +1,4 @@
-# OS files
+﻿# OS files
 .DS_Store
 Thumbs.db
 Desktop.ini
@@ -122,3 +122,6 @@ TestClient/TestClient/Config/config.ini
 *.txt.log
 Server/GameServer/Log/
 Server/GameServer/Config/config.ini
+# Local document source files
+프로젝트 문서/
+
