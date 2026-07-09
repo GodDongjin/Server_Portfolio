@@ -10,7 +10,7 @@ enum CREATE_PLAYER_ERROR {
 
 enum LOGIN_ERROR
 {
-	LOGIN_NUNE = 0;			
+	LOGIN_NONE = 0;			
 	LOGIN_FAILE = 1;				// 로그인 실패
 	LOGIN_ID_NONE = 2;				// 아이디가 없음
 	LOGIN_PW_NONE = 3;				// 비밀번호가 없음
@@ -22,7 +22,7 @@ enum LOGIN_ERROR
 
 enum LOGOUT_ERROR
 {
-	LOGOUT_NUNE = 0;			
+	LOGOUT_NONE = 0;			
 	LOGOUT_FAILE = 1;				// 로그아웃 실패
 	LOGOUT_SUCCESS = 6;				// 로그아웃 성공
 }
