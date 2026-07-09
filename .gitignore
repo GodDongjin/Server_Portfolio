@@ -1,4 +1,4 @@
-﻿# OS files
+# OS files
 .DS_Store
 Thumbs.db
 Desktop.ini
@@ -96,6 +96,14 @@ sysinfo.txt
 *.dmp
 *.trace
 
+
+# Project-shipped third-party binaries needed to build GameServer
+!Server/Libraries/Libs/
+!Server/Libraries/Libs/Protobuf/
+!Server/Libraries/Libs/Protobuf/Debug/
+!Server/Libraries/Libs/Protobuf/Debug/libprotobufd.lib
+!Server/Libraries/Libs/Protobuf/Release/
+!Server/Libraries/Libs/Protobuf/Release/libprotobuf.lib
 # Project-shipped third-party binaries needed to build TestClient
 !TestClient/Libraries/Libs/
 !TestClient/Libraries/Libs/Protobuf/
