@@ -46,7 +46,7 @@ Handle_REQ_XXX()
 
 로그인과 봇 로그인은 같은 흐름을 사용합니다. `is_create` 값에 따라 기존 계정 로그인 또는 계정 생성을 처리합니다.
 
-![LOGIN 패킷 시퀀스](../프로젝트%20문서/LOGIN%20패킷%20시퀀스.png)
+![LOGIN 패킷 시퀀스](images/LOGIN_PACKET_sequence.png)
 
 서버 처리:
 
@@ -60,7 +60,7 @@ Handle_REQ_XXX()
 
 클라이언트가 로그아웃을 요청하면 서버는 로그인 상태, room 상태, 세션 매핑 정보를 정리한 뒤 결과를 응답합니다.
 
-![LOGOUT 패킷 시퀀스](../프로젝트%20문서/Logout%20통신%20시퀀스.drawio.png)
+![LOGOUT 패킷 시퀀스](images/Logout_PACKET_sequence.png)
 
 서버 처리:
 
@@ -75,7 +75,7 @@ Handle_REQ_XXX()
 
 현재 생성된 room 목록과 각 room의 현재 인원, 최대 입장 가능 인원을 조회합니다.
 
-![GET_ROOM_INFO 패킷 시퀀스](../프로젝트%20문서/GET_ROOM_INFO%20패킷%20시퀀스.png)
+![GET_ROOM_INFO 패킷 시퀀스](images/GET_ROOM_INFO_PACKET_sequence.png)
 
 서버 처리:
 
@@ -96,7 +96,7 @@ int32 cur_enter_max_count
 
 클라이언트가 특정 room 입장을 요청하면 서버는 입장 가능 여부를 확인한 뒤 세션의 room 상태를 갱신합니다.
 
-![ENTER_ROOM 패킷 시퀀스](../프로젝트%20문서/ENTER_ROOM%20패킷%20시퀀스.png)
+![ENTER_ROOM 패킷 시퀀스](images/ENTER_ROOM_PACKET_sequence.png)
 
 서버 처리:
 
@@ -110,7 +110,7 @@ int32 cur_enter_max_count
 
 클라이언트가 room 퇴장을 요청하면 서버는 현재 room에서 유저를 제거하고 세션의 room 상태를 초기화합니다.
 
-![EXIT_ROOM 패킷 시퀀스](../프로젝트%20문서/EXIT_ROOM%20패킷%20시퀀스.png)
+![EXIT_ROOM 패킷 시퀀스](images/EXIT_ROOM_PACKET_sequence.png)
 
 서버 처리:
 
@@ -124,7 +124,7 @@ int32 cur_enter_max_count
 
 같은 room에 입장한 세션들에게 채팅 메시지를 전달합니다.
 
-![ROOM_CHAT 패킷 시퀀스](../프로젝트%20문서/ROOM_CHAT%20패킷%20시퀀스.png)
+![ROOM_CHAT 패킷 시퀀스](images/ROOM_CHAT_PACKET_sequence.png)
 
 서버 처리:
 
@@ -140,7 +140,7 @@ int32 cur_enter_max_count
 
 room에 입장한 전체 세션을 대상으로 채팅 메시지를 전달합니다.
 
-![ALL_CHAT 패킷 시퀀스](../프로젝트%20문서/ALL_CHAT%20패킷%20시퀀스.png)
+![ALL_CHAT 패킷 시퀀스](images/ALL_CHAT_PACKET_sequence.png)
 
 서버 처리:
 
@@ -154,7 +154,7 @@ room에 입장한 전체 세션을 대상으로 채팅 메시지를 전달합니
 
 닉네임 기준으로 대상 세션을 찾아 1:1 채팅 메시지를 전달합니다.
 
-![WHISPER_CHAT 패킷 시퀀스](../프로젝트%20문서/WHISPER_CHAT%20패킷%20시퀀스.png)
+![WHISPER_CHAT 패킷 시퀀스](images/WHISPER_CHAT_PACKET_sequence.png)
 
 서버 처리:
 
@@ -182,7 +182,7 @@ ACK_SEND_CHAT  : 실제 채팅 대상에게 전송하는 채팅 메시지
 
 Heartbeat는 서버 주도 방식입니다. 서버가 먼저 ping을 보내고, 클라이언트가 pong으로 응답합니다.
 
-![HEARTBEAT 패킷 시퀀스](../프로젝트%20문서/HEARTBEAT%20패킷%20시퀀스.png)
+![HEARTBEAT 패킷 시퀀스](images/Heartbeat%20Ping-Pong_PACKET_sequence.png)
 
 패킷 방향:
 
@@ -209,3 +209,4 @@ Client -> Server : REQ_CONNECT_PONG
 - 채팅은 요청 결과 패킷과 메시지 전달 패킷을 분리합니다.
 - Heartbeat는 서버가 먼저 ping을 보내는 구조입니다.
 - 비정상 상태는 disconnect cleanup으로 이어집니다.
+
