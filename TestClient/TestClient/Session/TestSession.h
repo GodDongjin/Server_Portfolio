@@ -97,6 +97,7 @@ private:
 	queue<shared_ptr<SendBuffer>> _send_queue;
 	atomic<bool>			_is_send_register = false;
 
+	// 송신 큐·이벤트와 소켓 등록·종료를 함께 보호한다.
 	mutex _send_lock;
 
 private:

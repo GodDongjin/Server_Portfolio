@@ -6,30 +6,30 @@ SessionManager::SessionManager(int32 sessionMaxCount)
 {
 }
 
-void SessionManager::add_session(SessionRef session)
+bool SessionManager::add_session(SessionRef session)
 {
 	if (session == nullptr) {
-		return;
+		return false;
 	}
-		
-
-	bool need_process_connect = false;
 
 	{
 		WRITE_LOCK;
 
-		auto [iter, inserted] = _sessions.emplace(session);
+		if (_sessions.count(session) > 0)
+			return true;
 
-		if (inserted)
-		{
-			_session_count++;
-			need_process_connect = true;
+		// 정원 확인과 등록을 같은 잠금 안에서 처리해 동시 접속 시 정원 초과를 막는다.
+		if (_session_count >= _max_session_count) {
+			return false;
 		}
+
+		_sessions.emplace(session);
+		_session_count++;
 	}
 
-	if (need_process_connect) {
-		session->set_process_connect();
-	}
+	// 등록에 성공한 세션만 수신을 시작한다.
+	session->set_process_connect();
+	return true;
 }
 
 void SessionManager::add_account_session(uint64 account_id, SessionRef session)
@@ -57,42 +57,48 @@ void SessionManager::release_session(SessionRef session)
 	if (session == nullptr)
 		return;
 
+	// 해당 세션의 작업 큐에서 호출하므로 계정 ID와 이름을 안전하게 읽을 수 있다.
+	// 각 등록 해제 함수가 내부에서 잠금을 잡고 풀기 때문에 바깥에서 중복으로 잠그지 않는다.
+	release_logout_session(session->get_account_idx(), session);
+	release_name_session(session->get_name(), session);
+
 	WRITE_LOCK;
-
-	const uint64 account_id = session->get_account_idx();
-
-	if (account_id != 0) {
-		_account_sessions.erase(account_id);
-	}
-
-	if (!session->get_name().empty()) {
-		_name_sessions.erase(session->get_name());
-	}
-
-	const size_t erased = _sessions.erase(session);
-
-	if (erased > 0)
+	if (_sessions.erase(session) > 0) {
 		_session_count--;
-
-	session->set_account_idx(0);
+	}
 }
 
-void SessionManager::release_logout_session(uint64 account_id)
+void SessionManager::release_logout_session(uint64 account_id, const SessionRef& expected_session)
 {
-	if (account_id == 0)
+	if (account_id == 0 || !expected_session) {
 		return;
+	}
 
 	WRITE_LOCK;
-	_account_sessions.erase(account_id);
+
+	// 이전 세션의 정리가 늦어져도 새로 로그인한 세션의 등록을 삭제하지 않도록 소유자를 확인한다.
+	auto iter = _account_sessions.find(account_id);
+	if (iter != _account_sessions.end() && iter->second == expected_session) 
+	{
+		_account_sessions.erase(iter);
+	}
 }
 
-void SessionManager::release_name_session(wstring user_name)
+void SessionManager::release_name_session(const wstring& user_name, const SessionRef& expected_session)
 {
-	if (user_name == L"")
+	if (user_name.empty() || !expected_session) {
 		return;
+	}
+		
 
 	WRITE_LOCK;
-	_name_sessions.erase(user_name);
+	// 현재 등록된 세션이 정리를 요청한 세션과 같을 때만 이름 등록을 삭제한다.
+	auto iter = _name_sessions.find(user_name);
+	if (iter != _name_sessions.end() && iter->second == expected_session) 
+	{
+		_name_sessions.erase(iter);
+	}
+		
 }
 
 bool SessionManager::is_whisper_target_find(wstring target_name)
@@ -121,8 +127,9 @@ int32 SessionManager::broad_cast(SendBufferRef sendBuffer)
 
 	for (SessionRef& session : sessions)
 	{
-		if (session->is_connected() == false)
+		if (session->is_connected() == false) {
 			continue;
+		}
 
 		session->send(sendBuffer);
 		count++;
@@ -145,8 +152,9 @@ void SessionManager::check_heartbeat(uint64 now)
 
 	for (SessionRef& session : sessions)
 	{
-		if (session == nullptr || !session->is_connected())
+		if (session == nullptr || !session->is_connected()) {
 			continue;
+		}
 
 		// pong 응답 대기중인지 채크
 		if (session->get_waiting_pong())
@@ -227,14 +235,17 @@ int32 SessionManager::whisper_chat(wstring target_name, SendBufferRef sendBuffer
 		WRITE_LOCK;
 
 		auto iter = _name_sessions.find(target_name);
-		if (iter == _name_sessions.end())
+		if (iter == _name_sessions.end()) {
 			return 0;
+		}
+			
 
 		session = iter->second;
 	}
 
-	if (session == nullptr || session->is_connected() == false)
+	if (session == nullptr || session->is_connected() == false) {
 		return 0;
+	}
 
 	session->send(sendBuffer);
 	count++;
@@ -242,9 +253,9 @@ int32 SessionManager::whisper_chat(wstring target_name, SendBufferRef sendBuffer
 	return count;
 }
 
-void SessionManager::on_connected(SessionRef session)
+bool SessionManager::on_connected(SessionRef session)
 {
-	add_session(session);
+	return add_session(session);
 }
 
 void SessionManager::on_disconnected(SessionRef session)

@@ -19,5 +19,4 @@ struct ServerStats
 
 extern ServerStats GServerStats;
 extern ClientMode GClientMode;
-extern atomic<int32> GExpectedRoomRecvCount;
 

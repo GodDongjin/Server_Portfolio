@@ -70,8 +70,6 @@ void run_load_test(ConfigReader& config)
 	const int32 bot_room_count = max(1, config.get_int("client", "bot_room_count", 10));
 	const int32 all_chat_interval = max(1, config.get_int("client", "all_chat_interval", 10));
 	const int32 whisper_interval = max(1, config.get_int("client", "whisper_interval", 15));
-	const int32 bot_room_target_count = max(1, config.get_int("client", "bot_room_target_count", 10));
-	GExpectedRoomRecvCount.store(bot_room_target_count);
 
 	if (port_value <= 0 || port_value > 65535)
 	{
@@ -325,6 +323,7 @@ void print_load_test_stats_loop(atomic<bool>& running)
 			<< L" login = " << login
 			<< L" send = " << send
 			<< L" recv = " << recv
+			<< L" expected_recv = " << expected_recv
 			<< L" disconnect = " << disconnect
 			<< L" send/s = " << static_cast<uint64>(send_per_sec)
 			<< L" recv/s = " << static_cast<uint64>(recv_per_sec)

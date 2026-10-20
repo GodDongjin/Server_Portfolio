@@ -37,6 +37,12 @@ bool Handle_ACK_LOGIN(shared_ptr<TestSession>& session, Protocol::ACK_LOGIN& pkt
            wcout << L"이미 이미 로그인 되어있습니다. " << endl;
            session->login();
            break;
+       case Protocol::LOGIN_ERROR::LOGIN_USER_DUPLICATION:
+           wcout << L"이미 사용 중인 닉네임입니다. 다른 닉네임을 입력하세요." << endl;
+           session->set_account(0);
+           session->set_is_login(false);
+           session->login();
+           break;
        case Protocol::LOGIN_ERROR::LOGIN_SUCCESS:
            wcout << L"로그인 성공" << endl;
            session->set_account(pkt.idx());
@@ -81,6 +87,13 @@ bool Handle_ACK_BOT_LOGIN(shared_ptr<TestSession>& session, Protocol::ACK_BOT_LO
     case Protocol::LOGIN_ERROR::LOGIN_ALREADY_LOGIN:
         wcout << L"이미 이미 로그인 되어있습니다. " << endl;
         session->test_login(session->get_bot_index(), false);
+        break;
+    case Protocol::LOGIN_ERROR::LOGIN_USER_DUPLICATION:
+        wcout << L"닉네임 중복으로 봇 로그인 실패: Bot_" << session->get_bot_index() << endl;
+        session->set_account(0);
+        session->set_is_login(false);
+        // 같은 닉네임으로 재시도하면 계속 실패하므로 이 봇의 연결을 종료한다.
+        session->disconnect();
         break;
     case Protocol::LOGIN_ERROR::LOGIN_SUCCESS:
         if (GClientMode == ClientMode::MANUAL)
@@ -189,6 +202,10 @@ bool Handle_ACK_CHAT(shared_ptr<TestSession>& session, Protocol::ACK_CHAT& pkt)
 
     switch (pkt.result())
     {
+    case Protocol::CHAT_ERROR_SUCCESS:
+        // 방 인원 설정값 대신 서버가 이번 요청에 선택한 실제 대상 수를 누적한다.
+        GServerStats.expected_chat_recv += pkt.target_count();
+        break;
     case Protocol::CHAT_ERROR_FAIL:
         wcout << L"채팅 전송 실패" << endl;
         break;
@@ -233,5 +250,19 @@ bool Handle_ACK_SEND_CONNECT_PING(shared_ptr<TestSession>& session, Protocol::AC
     shared_ptr<SendBuffer> send_buffer = ClientPacketHandler::MakeSendBuffer(pong);
     session->send(send_buffer);
 
+    return true;
+}
+
+bool Handle_ACK_SERVER_FULL(shared_ptr<TestSession>& session, Protocol::ACK_SERVER_FULL& pkt)
+{
+    if (session == nullptr)
+        return false;
+
+    wcout << L"서버 접속 인원이 가득 찼습니다. (최대 "
+          << pkt.max_session_count() << L"명)" << endl;
+    // 거절된 연결에서는 로그인 재시도를 하지 않고 종료한다.
+    session->set_account(0);
+    session->set_is_login(false);
+    session->disconnect();
     return true;
 }

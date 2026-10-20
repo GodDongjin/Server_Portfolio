@@ -88,6 +88,8 @@ message REQ_CHAT
 message ACK_CHAT
 {
 	CHAT_ERROR result = 1;
+	// 서버가 이번 채팅을 전송 대상으로 선택한 세션 수이며, 수신 완료 수는 아니다.
+	uint32 target_count = 2;
 }
 
 message ACK_SEND_CHAT
@@ -106,4 +108,9 @@ message REQ_CONNECT_PONG
 message ACK_SEND_CONNECT_PING
 {
 	uint64 server_tick = 1;
+}
+// 기존 패킷 번호가 바뀌지 않도록 정원 초과 안내는 마지막에 추가한다.
+message ACK_SERVER_FULL
+{
+	uint32 max_session_count = 1;
 }

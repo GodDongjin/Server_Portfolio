@@ -3,8 +3,10 @@
 #include "IocpObject.h"
 #include "NetAddress.h"
 #include "RecvBuffer.h"
+#include <functional>
 
 class Service;
+class JobQueue;
 
 class Session : public IocpObject
 {
@@ -21,6 +23,11 @@ public:
 public:
 	void				send(SendBufferRef sendBuffer);
 	void				disconnect();
+	// Accept 직후 정원 초과가 확인된 새 세션에서만 호출한다.
+	void				reject_connection(int32 max_session_count);
+	// 세션마다 작업 큐를 두고, 기존 IOCP 작업 스레드가 큐에 쌓인 작업을 처리한다.
+	// 같은 세션의 작업은 동시에 실행되지 않지만, 작업마다 실행 스레드는 달라질 수 있다.
+	void				post_logic(std::function<void()> callback);
 	void				set_process_connect() { this->process_connect(); }
 
 public:
@@ -35,11 +42,12 @@ public:
 
 	RecvBuffer&			get_recv_buffer() { return _recv_buffer; }
 
+	// 계정 ID와 이름은 해당 세션의 작업 큐 안에서만 읽고 변경한다.
 	void				set_account_idx(uint64 idx) { _account_idx = idx; }
 	uint64				get_account_idx() { return _account_idx; }
 
-	void				set_room_id(int32 room_id) { _enter_room_id = room_id; }
-	int32				get_room_id() { return _enter_room_id; }
+	void				set_room_id(int32 room_id) { _enter_room_id.store(room_id); }
+	int32				get_room_id() const { return _enter_room_id.load(); }
 
 	uint64				get_last_ping_tick() { return _last_ping_tick; }
 	void				set_last_ping_tick(uint64 ping_tick) { _last_ping_tick.exchange(ping_tick); }
@@ -52,6 +60,7 @@ public:
 
 	virtual void		send_ping(uint64 now) { }
 
+	// 이름 조회도 해당 세션의 작업 큐 안에서 수행해야 한다.
 	void set_name(wstring name) { _user_name = name; }
 	wstring get_name() { return _user_name; }
 
@@ -75,6 +84,8 @@ private:
 	void				handle_error(int32 errorCode);
 
 protected:
+	// 코어는 프로토콜에 의존하지 않고, 게임 세션이 거절 안내 패킷을 만든다.
+	virtual SendBufferRef make_server_full_notice(int32 max_session_count) { return nullptr; }
 	virtual void		on_disconnect();
 	virtual int32		on_recv(BYTE* get_buffer, int32 len);
 	virtual void		on_send(int32 len) { }
@@ -86,12 +97,22 @@ private:
 
 	atomic<bool>		_is_connect = false;
 	atomic<bool>		_is_disconnect = false;
+	// 거절 세션은 수신하지 않고 안내 패킷의 송신 완료를 기다린다.
+	atomic<bool>		_close_after_send = false;
 
 	weak_ptr<Service> _service;
 
+	// Session과 JobQueue의 shared_from_this가 충돌하지 않도록 상속 대신 멤버로 보관한다.
+	shared_ptr<JobQueue> _logic_queue;
+
 protected:
+
 	uint64				_account_idx = 0;
-	int32				_enter_room_id = -1;
+
+	// 다른 세션의 채팅 전송에서도 방 ID를 조회하므로 atomic으로 보관한다.
+	// 방 입퇴장에 따른 값 변경은 여전히 해당 세션의 작업 큐에서만 수행한다.
+	atomic<int32>		_enter_room_id = -1;
+
 	wstring				_user_name = L"";
 
 private:

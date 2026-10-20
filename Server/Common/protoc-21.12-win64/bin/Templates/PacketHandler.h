@@ -2,6 +2,7 @@
 #include "../Main/GameSession.h"
 #include "../Protobuf/Protocol.pb.h"
 #include "../ServerCore/NetWork/SendBuffer.h"
+#include <utility>
 
 using PacketHandlerFunc = std::function<bool(GameSessionRef&, BYTE*, int32)>;
 extern PacketHandlerFunc GPacketHandler[UINT16_MAX];
@@ -32,6 +33,9 @@ public:
 
 	static bool HandlePacket(GameSessionRef& session, BYTE* buffer, int32 len)
 	{
+		if (!session || !buffer || len < static_cast<int32>(sizeof(PacketHeader)))
+			return false;
+
 		PacketHeader* header = reinterpret_cast<PacketHeader*>(buffer);
 
 		if (header->id >= UINT16_MAX)
@@ -41,7 +45,7 @@ public:
 
 		if (handler == nullptr)
 		{
-			ERROR_LOG("Invalid packet id : %d", header->id);
+			ERROR_LOG("Invalid packet id");
 			return false;
 		}
 
@@ -63,7 +67,20 @@ private:
 			return false;
 		}
 
-		return func(session, pkt);
+		// 수신 버퍼는 이 함수가 끝난 뒤 재사용되므로 버퍼 주소를 작업에 넘기지 않는다.
+		// 파싱한 패킷은 이동하고, 세션 shared_ptr는 복사해 큐 작업이 각각 보관한다.
+		session->post_logic([self = session, func, pkt = std::move(pkt)]() mutable
+		{
+			// 큐에서 기다리는 동안 연결이 끊겼다면 이 패킷은 처리하지 않는다.
+			if (!self->is_connected())
+				return;
+
+			if (!func(self, pkt))
+				ERROR_LOG("Packet handler failed");
+		});
+
+		// true는 파싱과 큐 등록 성공을 의미한다. 실제 핸들러 처리는 이후에 실행된다.
+		return true;
 	}
 
 	template<typename T>

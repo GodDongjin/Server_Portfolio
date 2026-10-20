@@ -19,6 +19,9 @@ public:
 	void set_is_login(bool is_login) { _is_login = is_login; }
 	bool get_is_login() { return _is_login; }
 
+protected:
+	virtual SendBufferRef make_server_full_notice(int32 max_session_count) override;
+
 private:
 	GameSessionRef get_game_session() { return static_pointer_cast<GameSession>(shared_from_this()); }
 

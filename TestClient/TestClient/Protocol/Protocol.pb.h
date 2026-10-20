@@ -75,6 +75,9 @@ extern ACK_SEND_CHATDefaultTypeInternal _ACK_SEND_CHAT_default_instance_;
 class ACK_SEND_CONNECT_PING;
 struct ACK_SEND_CONNECT_PINGDefaultTypeInternal;
 extern ACK_SEND_CONNECT_PINGDefaultTypeInternal _ACK_SEND_CONNECT_PING_default_instance_;
+class ACK_SERVER_FULL;
+struct ACK_SERVER_FULLDefaultTypeInternal;
+extern ACK_SERVER_FULLDefaultTypeInternal _ACK_SERVER_FULL_default_instance_;
 class REQ_BOT_LOGIN;
 struct REQ_BOT_LOGINDefaultTypeInternal;
 extern REQ_BOT_LOGINDefaultTypeInternal _REQ_BOT_LOGIN_default_instance_;
@@ -110,6 +113,7 @@ template<> ::Protocol::ACK_LOGIN* Arena::CreateMaybeMessage<::Protocol::ACK_LOGI
 template<> ::Protocol::ACK_LOGOUT* Arena::CreateMaybeMessage<::Protocol::ACK_LOGOUT>(Arena*);
 template<> ::Protocol::ACK_SEND_CHAT* Arena::CreateMaybeMessage<::Protocol::ACK_SEND_CHAT>(Arena*);
 template<> ::Protocol::ACK_SEND_CONNECT_PING* Arena::CreateMaybeMessage<::Protocol::ACK_SEND_CONNECT_PING>(Arena*);
+template<> ::Protocol::ACK_SERVER_FULL* Arena::CreateMaybeMessage<::Protocol::ACK_SERVER_FULL>(Arena*);
 template<> ::Protocol::REQ_BOT_LOGIN* Arena::CreateMaybeMessage<::Protocol::REQ_BOT_LOGIN>(Arena*);
 template<> ::Protocol::REQ_CHAT* Arena::CreateMaybeMessage<::Protocol::REQ_CHAT>(Arena*);
 template<> ::Protocol::REQ_CONNECT_PONG* Arena::CreateMaybeMessage<::Protocol::REQ_CONNECT_PONG>(Arena*);
@@ -2322,6 +2326,7 @@ class ACK_CHAT final :
 
   enum : int {
     kResultFieldNumber = 1,
+    kTargetCountFieldNumber = 2,
   };
   // .Protocol.CHAT_ERROR result = 1;
   void clear_result();
@@ -2330,6 +2335,15 @@ class ACK_CHAT final :
   private:
   ::Protocol::CHAT_ERROR _internal_result() const;
   void _internal_set_result(::Protocol::CHAT_ERROR value);
+  public:
+
+  // uint32 target_count = 2;
+  void clear_target_count();
+  uint32_t target_count() const;
+  void set_target_count(uint32_t value);
+  private:
+  uint32_t _internal_target_count() const;
+  void _internal_set_target_count(uint32_t value);
   public:
 
   // @@protoc_insertion_point(class_scope:Protocol.ACK_CHAT)
@@ -2341,6 +2355,7 @@ class ACK_CHAT final :
   typedef void DestructorSkippable_;
   struct Impl_ {
     int result_;
+    uint32_t target_count_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -2806,6 +2821,154 @@ class ACK_SEND_CONNECT_PING final :
   typedef void DestructorSkippable_;
   struct Impl_ {
     uint64_t server_tick_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_Protocol_2eproto;
+};
+// -------------------------------------------------------------------
+
+class ACK_SERVER_FULL final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:Protocol.ACK_SERVER_FULL) */ {
+ public:
+  inline ACK_SERVER_FULL() : ACK_SERVER_FULL(nullptr) {}
+  ~ACK_SERVER_FULL() override;
+  explicit PROTOBUF_CONSTEXPR ACK_SERVER_FULL(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  ACK_SERVER_FULL(const ACK_SERVER_FULL& from);
+  ACK_SERVER_FULL(ACK_SERVER_FULL&& from) noexcept
+    : ACK_SERVER_FULL() {
+    *this = ::std::move(from);
+  }
+
+  inline ACK_SERVER_FULL& operator=(const ACK_SERVER_FULL& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ACK_SERVER_FULL& operator=(ACK_SERVER_FULL&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ACK_SERVER_FULL& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const ACK_SERVER_FULL* internal_default_instance() {
+    return reinterpret_cast<const ACK_SERVER_FULL*>(
+               &_ACK_SERVER_FULL_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    17;
+
+  friend void swap(ACK_SERVER_FULL& a, ACK_SERVER_FULL& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(ACK_SERVER_FULL* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ACK_SERVER_FULL* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ACK_SERVER_FULL* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<ACK_SERVER_FULL>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const ACK_SERVER_FULL& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const ACK_SERVER_FULL& from) {
+    ACK_SERVER_FULL::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(ACK_SERVER_FULL* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "Protocol.ACK_SERVER_FULL";
+  }
+  protected:
+  explicit ACK_SERVER_FULL(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kMaxSessionCountFieldNumber = 1,
+  };
+  // uint32 max_session_count = 1;
+  void clear_max_session_count();
+  uint32_t max_session_count() const;
+  void set_max_session_count(uint32_t value);
+  private:
+  uint32_t _internal_max_session_count() const;
+  void _internal_set_max_session_count(uint32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:Protocol.ACK_SERVER_FULL)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    uint32_t max_session_count_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -3711,6 +3874,26 @@ inline void ACK_CHAT::set_result(::Protocol::CHAT_ERROR value) {
   // @@protoc_insertion_point(field_set:Protocol.ACK_CHAT.result)
 }
 
+// uint32 target_count = 2;
+inline void ACK_CHAT::clear_target_count() {
+  _impl_.target_count_ = 0u;
+}
+inline uint32_t ACK_CHAT::_internal_target_count() const {
+  return _impl_.target_count_;
+}
+inline uint32_t ACK_CHAT::target_count() const {
+  // @@protoc_insertion_point(field_get:Protocol.ACK_CHAT.target_count)
+  return _internal_target_count();
+}
+inline void ACK_CHAT::_internal_set_target_count(uint32_t value) {
+  
+  _impl_.target_count_ = value;
+}
+inline void ACK_CHAT::set_target_count(uint32_t value) {
+  _internal_set_target_count(value);
+  // @@protoc_insertion_point(field_set:Protocol.ACK_CHAT.target_count)
+}
+
 // -------------------------------------------------------------------
 
 // ACK_SEND_CHAT
@@ -3863,9 +4046,35 @@ inline void ACK_SEND_CONNECT_PING::set_server_tick(uint64_t value) {
   // @@protoc_insertion_point(field_set:Protocol.ACK_SEND_CONNECT_PING.server_tick)
 }
 
+// -------------------------------------------------------------------
+
+// ACK_SERVER_FULL
+
+// uint32 max_session_count = 1;
+inline void ACK_SERVER_FULL::clear_max_session_count() {
+  _impl_.max_session_count_ = 0u;
+}
+inline uint32_t ACK_SERVER_FULL::_internal_max_session_count() const {
+  return _impl_.max_session_count_;
+}
+inline uint32_t ACK_SERVER_FULL::max_session_count() const {
+  // @@protoc_insertion_point(field_get:Protocol.ACK_SERVER_FULL.max_session_count)
+  return _internal_max_session_count();
+}
+inline void ACK_SERVER_FULL::_internal_set_max_session_count(uint32_t value) {
+  
+  _impl_.max_session_count_ = value;
+}
+inline void ACK_SERVER_FULL::set_max_session_count(uint32_t value) {
+  _internal_set_max_session_count(value);
+  // @@protoc_insertion_point(field_set:Protocol.ACK_SERVER_FULL.max_session_count)
+}
+
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

@@ -12,12 +12,15 @@ public:
 	
 public:
 	BYTE get_room_id() { return _room_id; }
-	int32 get_room_cur_count() { return _room_cur_count; }
+	int32 get_room_cur_count() const { return _room_cur_count.load(); }
 	int32 get_room_max_count() { return _room_max_count; }
 
 private:
 	int32 _room_max_count;
-	int32 _room_cur_count = 0;
+
+	// 방 입퇴장 변경은 기존 잠금으로 보호하고, 다른 세션의 인원 조회는 atomic으로 읽는다.
+	atomic<int32> _room_cur_count = 0;
+
 	BYTE _room_id;
 	map<uint64, shared_ptr<Session>> _room_session_list;
 

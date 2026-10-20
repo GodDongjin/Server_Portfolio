@@ -15,8 +15,9 @@ Service::~Service()
 
 bool Service::can_start()
 {
-	if (_service_type == ServiceType::NONE || _iocp_core == nullptr || _sessionManager == nullptr)
+	if (_service_type == ServiceType::NONE || _iocp_core == nullptr || _sessionManager == nullptr) {
 		return false;
+	}
 
 	return true;
 }
@@ -29,11 +30,16 @@ void Service::close_service()
 SessionRef Service::create_session()
 {
 	SessionRef session = _sessionFactory();
+	// 생성 실패를 리스너에 전달해 지연 재시도 경로에서 처리한다.
+	if (session == nullptr || session->get_socket() == INVALID_SOCKET) {
+		return nullptr;
+	}
 
 	session->set_service(shared_from_this());
 
-	if (_iocp_core->Register(session) == false)
+	if (_iocp_core->Register(session) == false) {
 		return nullptr;
+	}
 
 	return session;
 }

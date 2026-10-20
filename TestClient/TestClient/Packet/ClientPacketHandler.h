@@ -31,6 +31,7 @@ enum : uint16
 	PKT_ACK_SEND_CHAT = 1014,
 	PKT_REQ_CONNECT_PONG = 1015,
 	PKT_ACK_SEND_CONNECT_PING = 1016,
+	PKT_ACK_SERVER_FULL = 1017,
 };
 
 bool Handle_ACK_LOGIN(shared_ptr<TestSession>& session, Protocol::ACK_LOGIN& pkt);
@@ -42,6 +43,8 @@ bool Handle_ACK_EXIT_ROOM(shared_ptr<TestSession>& session, Protocol::ACK_EXIT_R
 bool Handle_ACK_CHAT(shared_ptr<TestSession>& session, Protocol::ACK_CHAT& pkt);
 bool Handle_ACK_SEND_CHAT(shared_ptr<TestSession>& session, Protocol::ACK_SEND_CHAT& pkt);
 bool Handle_ACK_SEND_CONNECT_PING(shared_ptr<TestSession>& session, Protocol::ACK_SEND_CONNECT_PING& pkt);
+
+bool Handle_ACK_SERVER_FULL(shared_ptr<TestSession>& session, Protocol::ACK_SERVER_FULL& pkt);
 
 class ClientPacketHandler
 {
@@ -59,6 +62,7 @@ public:
 		GPacketHandler[PKT_ACK_CHAT] = [](shared_ptr<TestSession>& session, BYTE* buffer, int32 len) { return HandlePacket<Protocol::ACK_CHAT>(Handle_ACK_CHAT, session, buffer, len); };
 		GPacketHandler[PKT_ACK_SEND_CHAT] = [](shared_ptr<TestSession>& session, BYTE* buffer, int32 len) { return HandlePacket<Protocol::ACK_SEND_CHAT>(Handle_ACK_SEND_CHAT, session, buffer, len); };
 		GPacketHandler[PKT_ACK_SEND_CONNECT_PING] = [](shared_ptr<TestSession>& session, BYTE* buffer, int32 len) { return HandlePacket<Protocol::ACK_SEND_CONNECT_PING>(Handle_ACK_SEND_CONNECT_PING, session, buffer, len); };
+		GPacketHandler[PKT_ACK_SERVER_FULL] = [](shared_ptr<TestSession>& session, BYTE* buffer, int32 len) { return HandlePacket<Protocol::ACK_SERVER_FULL>(Handle_ACK_SERVER_FULL, session, buffer, len); };
 	}
 
 	static bool HandlePacket(shared_ptr<TestSession>& session, BYTE* buffer, int32 len)

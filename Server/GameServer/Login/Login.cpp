@@ -10,12 +10,16 @@ BYTE Login::create_account(string id, string pw, wstring user_name, OUT uint64& 
         if (_memory_login_info_db.count(id)) {
             return Protocol::LOGIN_ERROR::LOGIN_CREATE_HAS_ACCOUNT;
         }
+
+		if (_name_sessions_info_db.count(user_name)) {
+			return Protocol::LOGIN_ERROR::LOGIN_USER_DUPLICATION;
+		}
     }
 
     uint64 idx = _account_id.fetch_add(1);
     AccountInfo account_info(idx, id, pw, user_name);
     _memory_login_info_db.insert(make_pair(id, account_info));
-
+    _name_sessions_info_db.insert(user_name);
     account_id = idx;
     _login_list.insert(account_id);
 
@@ -35,12 +39,15 @@ BYTE Login::login(string id, string pw, OUT wstring& user_name, OUT uint64& acco
     }
 
     AccountInfo account_info = _memory_login_info_db.find(id)->second;
+
     if (account_info._pw != pw) {
         return Protocol::LOGIN_ERROR::LOGIN_PW_NONE;
     }
 
     if (_login_list.count(account_info._account_id))
+    {
         return Protocol::LOGIN_ERROR::LOGIN_ALREADY_LOGIN;
+    }
 
     account_id = account_info._account_id;
     user_name = account_info._user_name;

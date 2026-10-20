@@ -17,7 +17,8 @@ enum LOGIN_ERROR
 	LOGIN_CREATE_FAILE = 4;			// 계성 생성 실패
 	LOGIN_CREATE_HAS_ACCOUNT =5;	// 이미 계정이 있음
 	LOGIN_ALREADY_LOGIN = 6;		// 이미 로그인 되어있음.
-	LOGIN_SUCCESS = 7;				// 로그인 성공
+	LOGIN_USER_DUPLICATION  = 7; 	// 플레이어 이름 중복
+	LOGIN_SUCCESS = 8;				// 로그인 성공
 }
 
 enum LOGOUT_ERROR

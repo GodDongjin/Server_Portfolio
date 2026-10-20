@@ -25,8 +25,13 @@ public:
 	void pop_all(OUT vector<T>& items)
 	{
 		WRITE_LOCK;
-		while (T item = pop())
-			items.push_back(item);
+		// 이미 잠금을 잡은 상태에서 pop()을 호출하면 같은 mutex를 다시 잠그며 교착된다.
+		// 내부 큐에서 직접 꺼내 한 번의 잠금으로 모든 항목을 옮긴다.
+		while (!_items.empty())
+		{
+			items.push_back(_items.front());
+			_items.pop();
+		}
 	}
 
 	void clear()

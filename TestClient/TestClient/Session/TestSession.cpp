@@ -57,6 +57,9 @@ bool TestSession::connect(SOCKADDR_IN server_addr)
 
 void TestSession::disconnect()
 {
+	// 송신 등록과 소켓 종료가 겹치지 않도록 같은 잠금을 사용한다.
+	lock_guard<mutex> lock(_send_lock);
+
 	if (_is_connect.exchange(false) == false){
 		return;
 	}
@@ -68,6 +71,10 @@ void TestSession::disconnect()
 	_test_session_state = TEST_SESSION_STATE::DISCONNECTED;
 	_is_login.store(false);
 	_is_send_register.store(false);
+
+	// 아직 등록하지 않은 데이터는 버린다. 진행 중인 버퍼는 완료 통지까지 유지한다.
+	queue<shared_ptr<SendBuffer>> empty_queue;
+	_send_queue.swap(empty_queue);
 
 	GServerStats.disconnect++;
 
@@ -81,13 +88,19 @@ void TestSession::disconnect()
 
 void TestSession::send(shared_ptr<SendBuffer> send_buffer)
 {
-	if (is_connected() == false)
+	if (send_buffer == nullptr || send_buffer->get_write_size() <= 0) {
 		return;
+	}
 
 	bool registerSend = false;
 
 	{
 		lock_guard<mutex> lock(_send_lock);
+
+		// 종료와 경합한 송신 요청이 큐에 남거나 새 송신을 시작하지 않도록 안에서 확인한다.
+		if (is_connected() == false) {
+			return;
+		}
 
 		_send_queue.push(send_buffer);
 
@@ -213,23 +226,7 @@ void TestSession::send_chat(const wstring& message, Protocol::CHAT_STATE chat_st
 
 	GServerStats.send_chat++;
 
-	uint64 expected_recv = 0;
-	switch (chat_state)
-	{
-	case Protocol::CHAT_STATE::CHAT_ALL:
-		expected_recv = GServerStats.login_success.load();
-		break;
-	case Protocol::CHAT_STATE::CHAT_NORMAL:
-		expected_recv = static_cast<uint64>(GExpectedRoomRecvCount.load());
-		break;
-	case Protocol::CHAT_STATE::CHAT_WHISPER:
-		expected_recv = 1;
-		break;
-	default:
-		break;
-	}
-
-	GServerStats.expected_chat_recv += expected_recv;
+	// 예상 수신량은 ACK_CHAT에 담긴 서버의 전송 대상 수로 집계한다.
 }
 
 void TestSession::send_whisper_chat(const wstring& target_name, const wstring& message, Protocol::CHAT_STATE chat_state, int32 room_id)
@@ -244,23 +241,7 @@ void TestSession::send_whisper_chat(const wstring& target_name, const wstring& m
 
 	GServerStats.send_chat++;
 
-	uint64 expected_recv = 0;
-	switch (chat_state)
-	{
-	case Protocol::CHAT_STATE::CHAT_ALL:
-		expected_recv = GServerStats.login_success.load();
-		break;
-	case Protocol::CHAT_STATE::CHAT_NORMAL:
-		expected_recv = static_cast<uint64>(GExpectedRoomRecvCount.load());
-		break;
-	case Protocol::CHAT_STATE::CHAT_WHISPER:
-		expected_recv = 1;
-		break;
-	default:
-		break;
-	}
-
-	GServerStats.expected_chat_recv += expected_recv;
+	// 예상 수신량은 ACK_CHAT에 담긴 서버의 전송 대상 수로 집계한다.
 }
 
 void TestSession::dispatch(IocpEvent* iocp_evnet, INT32 numOfbyte)
@@ -282,25 +263,32 @@ void TestSession::dispatch(IocpEvent* iocp_evnet, INT32 numOfbyte)
 
 bool TestSession::register_recv()
 {
-	if (is_connected() == false) {
-		return false;
-	}
-
-	WSABUF wsa_buf;
-	wsa_buf.buf = reinterpret_cast<char*>(_recv_buffer->write_pos());
-	wsa_buf.len = _recv_buffer->free_size();
-
-	DWORD numOfBytes = 0;
-	DWORD flags = 0;
-	if (SOCKET_ERROR == ::WSARecv(_socket, &wsa_buf, 1, OUT & numOfBytes, OUT & flags, &_recv_event, nullptr))
+	int32 errorCode = 0;
 	{
-		int32 errorCode = ::WSAGetLastError();
-		if (errorCode != WSA_IO_PENDING)
-		{
-			cout << "Handle Error : " << errorCode << endl;
-			_is_send_register.store(false);
+		// 소켓을 사용하는 동안 disconnect가 핸들을 닫지 않도록 보호한다.
+		lock_guard<mutex> lock(_send_lock);
+		if (is_connected() == false) {
 			return false;
 		}
+
+		_recv_event.init();
+		WSABUF wsa_buf;
+		wsa_buf.buf = reinterpret_cast<char*>(_recv_buffer->write_pos());
+		wsa_buf.len = _recv_buffer->free_size();
+
+		DWORD numOfBytes = 0;
+		DWORD flags = 0;
+		if (SOCKET_ERROR == ::WSARecv(_socket, &wsa_buf, 1, OUT & numOfBytes, OUT & flags, &_recv_event, nullptr)) {
+			errorCode = ::WSAGetLastError();
+		}
+	}
+
+	if (errorCode != 0 && errorCode != WSA_IO_PENDING)
+	{
+		// 수신 실패가 진행 중인 송신 플래그를 바꾸지 않도록 연결 종료로 처리한다.
+		cout << "WSARecv failed : " << errorCode << endl;
+		disconnect();
+		return false;
 	}
 
 	return true;
@@ -308,85 +296,106 @@ bool TestSession::register_recv()
 
 bool TestSession::register_send()
 {
-	if (is_connected() == false) {
-		return false;
-	}
-
-	_send_event.init();
-
+	int32 errorCode = 0;
 	{
 		lock_guard<mutex> lock(_send_lock);
-
-		while (_send_queue.empty() == false)
+		if (is_connected() == false)
 		{
-			shared_ptr<SendBuffer> sendBuffer = _send_queue.front();
-			_send_queue.pop();
-			_send_event.send_Buffers_push(sendBuffer);
-		}
-	}
-
-	vector<WSABUF> wsaBufs;
-	wsaBufs.reserve(_send_event.get_send_Buffers().size());
-	for (const shared_ptr<SendBuffer>& sendBuffer : _send_event.get_send_Buffers())
-	{
-		WSABUF wsaBuf;
-		wsaBuf.buf = reinterpret_cast<char*>(sendBuffer->get_buffer());
-		wsaBuf.len = static_cast<LONG>(sendBuffer->get_write_size());
-		wsaBufs.push_back(wsaBuf);
-	}
-
-	if (wsaBufs.empty())
-	{
-		_is_send_register.store(false);
-		return true;
-	}
-
-	DWORD numOfBytes = 0;
-	if (SOCKET_ERROR == ::WSASend(_socket, wsaBufs.data(), static_cast<DWORD>(wsaBufs.size()), OUT & numOfBytes, 0, &_send_event, nullptr))
-	{
-		int32 errorCode = ::WSAGetLastError();
-		if (errorCode != WSA_IO_PENDING)
-		{
-			_send_event.send_Buffers_clear();
+			// 최초 송신 또는 이전 완료 이후의 재등록만 이 함수에 진입한다.
+			_send_event.clear();
 			_is_send_register.store(false);
+			return false;
+		}
+
+		_send_event.init();
+
+		// 부분 송신 중에는 새 데이터를 섞지 않고 기존 버퍼의 남은 구간부터 보낸다.
+		if (!_send_event.has_pending_data())
+		{
+			while (!_send_queue.empty())
+			{
+				_send_event.send_Buffers_push(_send_queue.front());
+				_send_queue.pop();
+			}
+		}
+
+		vector<WSABUF> wsaBufs;
+		_send_event.build_wsabufs(wsaBufs);
+		if (wsaBufs.empty())
+		{
+			_send_event.clear();
+			_is_send_register.store(false);
+			return true;
+		}
+
+		if (SOCKET_ERROR == ::WSASend(_socket, wsaBufs.data(), static_cast<DWORD>(wsaBufs.size()), nullptr, 0, &_send_event, nullptr))
+		{
+			errorCode = ::WSAGetLastError();
+			if (errorCode != WSA_IO_PENDING)
+			{
+				// 즉시 실패하면 완료 통지가 오지 않으므로 버퍼 참조를 여기서 해제한다.
+				_send_event.clear();
+				// 종료 전까지 송신 중 플래그를 유지해 다른 요청의 새 등록을 막는다.
+			}
 		}
 	}
 
-	//cout << "register_send succes" << endl;
+	if (errorCode != 0 && errorCode != WSA_IO_PENDING)
+	{
+		cout << "WSASend failed : " << errorCode << endl;
+		// disconnect도 같은 잠금을 사용하므로 잠금을 해제한 뒤 호출한다.
+		disconnect();
+		return false;
+	}
 
 	return true;
 }
 
 void TestSession::process_send(uint32 num_bytes)
 {
-	_send_event.clear();
-
-	if (is_connected() == false) {
-		return;
-	}
-
-	if (num_bytes == 0)
-	{
-		disconnect();
-		cout << "process_send : num_byte 0" << endl;
-		return;
-	}
-
 	bool need_register = false;
-
+	bool need_disconnect = false;
 	{
 		lock_guard<mutex> lock(_send_lock);
-
-		if (_send_queue.empty()){
+		if (is_connected() == false)
+		{
+			// 취소되거나 종료된 송신도 완료 통지를 받은 뒤 버퍼를 해제한다.
+			_send_event.clear();
 			_is_send_register.store(false);
+			return;
 		}
-		else{
+
+		if (!_send_event.consume_sent_bytes(num_bytes))
+		{
+			_send_event.clear();
+			need_disconnect = true;
+		}
+		else if (_send_event.has_pending_data())
+		{
+			// 송신 완료 바이트 수만큼 이동한 위치에서 이어 보낸다.
 			need_register = true;
+		}
+		else
+		{
+			// 현재 묶음의 전체 송신이 끝난 뒤에만 다음 큐 데이터를 처리한다.
+			_send_event.clear();
+			if (_send_queue.empty()) {
+				_is_send_register.store(false);
+			}
+			else {
+				need_register = true;
+			}
 		}
 	}
 
-	if (need_register)
+	if (need_disconnect)
 	{
+		cout << "process_send : invalid completion size" << endl;
+		disconnect();
+		return;
+	}
+
+	if (need_register) {
 		register_send();
 	}
 }
@@ -451,6 +460,10 @@ void TestSession::process_recv(uint32 num_bytes)
 		}
 
 		process_len += header.size;
+
+		// 정원 초과 안내 등으로 종료한 경우 남아 있는 패킷을 더 처리하지 않는다.
+		if (!is_connected())
+			break;
 	}
 
 

@@ -12,6 +12,7 @@ public:
 private:
 	USE_LOCK;
 	unordered_map<string, AccountInfo> _memory_login_info_db;
+	set<wstring> _name_sessions_info_db;
 	atomic<uint64> _account_id{ 1 };
 
 	set<uint64> _login_list;

@@ -56,6 +56,13 @@ bool Handle_REQ_LOGIN(GameSessionRef& session, Protocol::REQ_LOGIN& pkt)
 		return false;
 	}
 
+	if (session->get_is_login())
+	{
+		ERROR_LOG("already login session");
+		session->disconnect();
+		return false;
+	}
+
 	if (pkt.is_create()) {
 		user_name = StringUtil::Utf8ToWString(pkt.name());
 
@@ -65,7 +72,8 @@ bool Handle_REQ_LOGIN(GameSessionRef& session, Protocol::REQ_LOGIN& pkt)
 		result = GLogin->login(pkt.id(), pkt.pw(), OUT user_name, OUT idx);
 	}
 
-	if (result == Protocol::LOGIN_ERROR::LOGIN_SUCCESS) {
+	if (result == Protocol::LOGIN_ERROR::LOGIN_SUCCESS)
+	{
 		session->set_is_login(true);
 		session->set_account_idx(idx);
 		session->set_name(user_name);
@@ -104,6 +112,13 @@ bool Handle_REQ_LOGOUT(GameSessionRef& session, Protocol::REQ_LOGOUT& pkt)
 
 	Protocol::ACK_LOGOUT logout_pkt;
 
+	// 같은 계정으로 다른 세션이 로그인하기 전에 기존 방 정보를 먼저 정리한다.
+	if (session->get_room_id() >= 0)
+	{
+		RoomManager::get_instance()->exit_room(session->get_room_id(), session->get_account_idx());
+		session->set_room_id(-1);
+	}
+
 	if (!GLogin->logout(session->get_account_idx()))
 	{
 		ERROR_LOG("Handle_REQ_LOGIN : account 정보가 없음");
@@ -113,21 +128,17 @@ bool Handle_REQ_LOGOUT(GameSessionRef& session, Protocol::REQ_LOGOUT& pkt)
 		return true;
 	}
 
-	if (session->get_room_id() >= 0)
-	{
-		RoomManager::get_instance()->exit_room(session->get_room_id(), session->get_account_idx());
-		session->set_room_id(-1);
-	}
-
 	auto service = session->get_service().lock();
 	if (service){
-		service->get_sessionManager()->release_logout_session(session->get_account_idx());
-		service->get_sessionManager()->release_name_session(session->get_name());
+		service->get_sessionManager()->release_logout_session(session->get_account_idx(), session);
+		service->get_sessionManager()->release_name_session(session->get_name(), session);
 	}
 
 	logout_pkt.set_result(Protocol::LOGOUT_ERROR::LOGOUT_SUCCESS);
 
+	// 계정과 이름 등록을 해제한 뒤 초기화해, 다음 로그인에 이전 계정 정보가 남지 않게 한다.
 	session->set_account_idx(0);
+	session->set_name(L"");
 	session->set_is_login(false);
 
 	SEND_PACKET(logout_pkt);
@@ -290,6 +301,13 @@ bool Handle_REQ_BOT_LOGIN(GameSessionRef& session, Protocol::REQ_BOT_LOGIN& pkt)
 		return false;
 	}
 
+	if (session->get_is_login())
+	{
+		ERROR_LOG("already login session");
+		session->disconnect();
+		return false;
+	}
+
 	if (pkt.is_create()) {
 		user_name = StringUtil::Utf8ToWString(pkt.name());
 
@@ -336,6 +354,7 @@ bool Handle_REQ_CHAT(GameSessionRef& session, Protocol::REQ_CHAT& pkt)
 		return false;
 	}
 	
+	// 실패 응답의 대상 수는 기본값 0이며, 성공한 전송 분기에서만 설정한다.
 	Protocol::ACK_CHAT ack_chat;
 	Protocol::CHAT_ERROR result = Protocol::CHAT_ERROR::CHAT_ERROR_SUCCESS;
 
@@ -385,6 +404,7 @@ bool Handle_REQ_CHAT(GameSessionRef& session, Protocol::REQ_CHAT& pkt)
 			const int32 targetCount = service->get_sessionManager()->normal_chat(pkt.room_id(), sendBuffer);
 			GServerStats.broadcast_packet++;
 			GServerStats.broadcast_target += targetCount;
+			ack_chat.set_target_count(static_cast<uint32>(targetCount));
 	}
 
 	else if (pkt.chat_state() == Protocol::CHAT_STATE::CHAT_ALL)
@@ -407,6 +427,7 @@ bool Handle_REQ_CHAT(GameSessionRef& session, Protocol::REQ_CHAT& pkt)
 		const int32 targetCount = service->get_sessionManager()->all_chat(sendBuffer);
 		GServerStats.broadcast_packet++;
 		GServerStats.broadcast_target += targetCount;
+		ack_chat.set_target_count(static_cast<uint32>(targetCount));
 	}
 	else if (pkt.chat_state() == Protocol::CHAT_STATE::CHAT_WHISPER)
 	{
@@ -443,6 +464,7 @@ bool Handle_REQ_CHAT(GameSessionRef& session, Protocol::REQ_CHAT& pkt)
 		const int32 targetCount = service->get_sessionManager()->whisper_chat(StringUtil::Utf8ToWString(pkt.target_name()), sendBuffer);
 		GServerStats.broadcast_packet++;
 		GServerStats.broadcast_target += targetCount;
+		ack_chat.set_target_count(static_cast<uint32>(targetCount));
 	}
 	else
 	{

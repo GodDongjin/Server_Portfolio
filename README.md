@@ -170,7 +170,6 @@ bot_thread_count=4
 worker_thread_count=4
 chat_interval_ms=2500
 bot_room_count=10
-bot_room_target_count=10
 all_chat_interval=10
 whisper_interval=15
 

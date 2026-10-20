@@ -2,10 +2,17 @@
 #include "IocpObject.h"
 #include "IocpEvent.h"
 
+class JobQueue;
+
 class Listener : public IocpObject
 {
+	enum
+	{
+		ACCEPT_RETRY_INTERVAL_MS = 100,
+	};
+
 public:
-	Listener() = default;
+	Listener();
 	~Listener();
 
 public:
@@ -19,6 +26,13 @@ public:
 private:
 	void register_accept(AcceptEvent* acceptEvent);
 	void process_accept(AcceptEvent* acceptEvent);
+	void reserve_accept_retry(AcceptEvent* acceptEvent);
+
+private:
+	// Accept 등록과 소켓 종료는 같은 잠금으로 보호한다.
+	USE_LOCK;
+	bool _accept_stopped = false;
+	shared_ptr<JobQueue> _accept_retry_queue;
 
 protected:
 	SOCKET _socket = INVALID_SOCKET;

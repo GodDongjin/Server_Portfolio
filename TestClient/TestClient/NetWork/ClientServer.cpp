@@ -117,8 +117,8 @@ void ClientServer::dispatch()
 
 		if (result == FALSE)
 		{
-			session->disconnect();
-			continue;
+			// 실패한 송신 완료도 세션으로 전달해 보관 중인 버퍼를 정리한다.
+			numOfBytes = 0;
 		}
 
 		session->dispatch(iocp_event, numOfBytes);

@@ -7,12 +7,12 @@ public:
 	SessionManager(int32 sessionMaxCount);
 
 public:
-	void add_session(SessionRef session);
+	bool add_session(SessionRef session);
 	void add_account_session(uint64 account_id, SessionRef session);
 	void add_name_session(wstring name, SessionRef session);
 	void release_session(SessionRef session);
-	void release_logout_session(uint64 account_id);
-	void release_name_session(wstring user_name);
+	void release_logout_session(uint64 account_id, const SessionRef& expected_session);
+	void release_name_session(const wstring& user_name, const SessionRef& expected_session);
 
 	bool is_whisper_target_find(wstring target_name);
 
@@ -26,7 +26,7 @@ public:
 	int32 whisper_chat(wstring target_name, SendBufferRef sendBuffer);
 
 public:
-	void on_connected(SessionRef session);
+	bool on_connected(SessionRef session);
 	void on_disconnected(SessionRef session);
 
 public:

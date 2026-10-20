@@ -47,6 +47,8 @@ bool IocpCore::dispatch(uint32 timeoutMs)
 		}
 
 		ERROR_LOG("IO failed completion");
+		// 실패한 완료 통지는 정상 송신 바이트로 처리하지 않고 연결 종료 경로로 보낸다.
+		numOfBytes = 0;
 	}
 
 	if (iocpEvent == nullptr) {
