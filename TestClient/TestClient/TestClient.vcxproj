@@ -29,6 +29,7 @@
     <ClInclude Include="Protocol\Struct.pb.h" />
     <ClInclude Include="Session\TestSession.h" />
     <ClInclude Include="Utils\ConfigReader.h" />
+    <ClInclude Include="Utils\ClientConfig.h" />
     <ClInclude Include="Utils\GlobalData.h" />
     <ClInclude Include="Utils\StringUtil.h" />
     <ClInclude Include="Utils\Types.h" />

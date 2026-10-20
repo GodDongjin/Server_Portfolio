@@ -1,15 +1,37 @@
-﻿#pragma once
-
-#include "../Utils/Types.h"
+﻿#include "../Utils/Types.h"
 #include "../NetWork/ClientServer.h"
 #include "../Session/TestSession.h"
 #include "../Packet/ClientPacketHandler.h"
 #include "../Utils/GlobalData.h"
-#include "../Utils/ConfigReader.h"
+#include "../Utils/ClientConfig.h"
+#include "../Utils/StringUtil.h"
+#include <condition_variable>
+#include <thread>
 
-void run_load_test(ConfigReader& config);
-void run_manual_test(ConfigReader& config);
-void print_load_test_stats_loop(atomic<bool>& running);
+struct LoadControl
+{
+	atomic<bool> running = true;
+	mutex lock;
+	condition_variable changed;
+
+	void wait(uint32 interval_ms)
+	{
+		unique_lock<mutex> guard(lock);
+		changed.wait_for(guard, chrono::milliseconds(interval_ms),
+			[this]() { return !running.load(); });
+	}
+
+	void stop()
+	{
+		lock_guard<mutex> guard(lock);
+		running.store(false);
+		changed.notify_all();
+	}
+};
+
+bool run_load_test(ConfigReader& config);
+bool run_manual_test(ConfigReader& config);
+void print_load_test_stats_loop(LoadControl& control);
 
 int main()
 {
@@ -21,325 +43,272 @@ int main()
 	if (!config.load())
 	{
 		wcerr << L"Failed to load config.ini" << endl;
-		return 0;
+		return 1;
 	}
-
 	ClientPacketHandler::Init();
-
-	WSADATA wsa_data;
-	if (::WSAStartup(MAKEWORD(2, 2), OUT & wsa_data))
-	{
-		cout << "WSAStartup failed : " << WSAGetLastError() << endl;
-		WSACleanup();
+	wcout << L"1. Manual Test\n2. Load Test\nSelect Mode : " << endl;
+	wstring mode;
+	if (!getline(wcin, mode)) {
 		return 0;
 	}
+	if (mode != L"1" && mode != L"2")
+	{
+		wcerr << L"모드는 1 또는 2를 입력하세요." << endl;
+		return 1;
+	}
+	GClientMode = mode == L"1" ? ClientMode::MANUAL : ClientMode::LOAD_TEST;
 
-	GClientMode = ClientMode::LOAD_TEST;
+	WSADATA wsa_data{};
+	const int32 error_code = ::WSAStartup(MAKEWORD(2, 2), &wsa_data);
+	if (error_code != 0)
+	{
+		cerr << "WSAStartup failed : " << error_code << endl;
+		return 1;
+	}
+	// Winsock은 프로세스에서 한 번 시작하고 모든 세션과 작업 스레드가 끝난 뒤 정리한다.
+	struct WinsockScope
+	{
+		~WinsockScope() { ::WSACleanup(); }
+	} winsock_scope;
 
-	cout << "1. Manual Test" << endl;
-	cout << "2. Load Test" << endl;
-	cout << "Select Mode : ";
-
-	int32 input = 0;
-	cin >> input;
-
-	if (input == 1)
-		GClientMode = ClientMode::MANUAL;
-
-	if (GClientMode == ClientMode::MANUAL)
-		run_manual_test(config);
-	else
-		run_load_test(config);
-
-	WSACleanup();
-	return 0;
+	return (GClientMode == ClientMode::MANUAL ? run_manual_test(config) : run_load_test(config)) ? 0 : 1;
 }
 
-void run_load_test(ConfigReader& config)
+bool run_load_test(ConfigReader& config)
 {
+	ClientConfig settings;
+	if (!settings.load(config, true)) {
+		return false;
+	}
 	ClientServer server;
-	if (!server.CreateIocpHandle())
-		return;
-
-	const wstring server_ip = config.get_wstring("server", "ip");
-	const uint16 port_value = static_cast<uint16>(config.get_int("server", "port"));
-	const int32 session_count = config.get_int("client", "session_count");
-	const int32 worker_thread_count = config.get_int("client", "worker_thread_count");
-	const int32 bot_thread_count = config.get_int("client", "bot_thread_count");
-	const int32 chat_interval_ms = config.get_int("client", "chat_interval_ms");
-	const int32 bot_room_count = max(1, config.get_int("client", "bot_room_count", 10));
-	const int32 all_chat_interval = max(1, config.get_int("client", "all_chat_interval", 10));
-	const int32 whisper_interval = max(1, config.get_int("client", "whisper_interval", 15));
-
-	if (port_value <= 0 || port_value > 65535)
-	{
-		wcerr << L"Invalid server port: " << port_value << endl;
-		return;
+	SOCKADDR_IN server_addr{};
+	if (!server.start_server(settings.server_ip, settings.port, server_addr) ||
+		!server.CreateIocpHandle() || !server.start_worker_thread(settings.worker_thread_count)) {
+		return false;
 	}
 
-	server.start_worker_thread(worker_thread_count);
-
-	SOCKADDR_IN server_addr = server.start_server(server_ip, port_value);
-
 	vector<shared_ptr<TestSession>> sessions;
-	sessions.reserve(session_count);
-
-	for (int32 i = 0; i < session_count; i++)
+	sessions.reserve(settings.session_count);
+	for (int32 i = 0; i < settings.session_count; i++)
 	{
-		shared_ptr<TestSession> session = make_shared<TestSession>();
+		auto session = make_shared<TestSession>();
 		session->set_bot_index(i);
-
-		if (!session->connect(server_addr))
+		if (!session->connect(server_addr) || !server.register_socket(session) || !session->start()) {
 			continue;
-
-		if (!server.register_socket(session))
-			continue;
-
-		if (!session->start())
-			continue;
-
+		}
 		session->test_login(i, false);
 		sessions.push_back(session);
 	}
 
-	atomic<bool> running = true;
-
+	LoadControl control;
 	vector<thread> bot_threads;
-	bot_threads.reserve(bot_thread_count);
-
-	for (int32 i = 0; i < bot_thread_count; i++)
+	bot_threads.reserve(settings.bot_thread_count);
+	for (int32 i = 0; i < settings.bot_thread_count; i++)
 	{
-		bot_threads.push_back(thread([&, i]()
+		bot_threads.emplace_back([&, i]()
 		{
-			vector<shared_ptr<TestSession>> my_sessions;
-
-			for (int32 index = i; index < static_cast<int32>(sessions.size()); index += bot_thread_count)
+			while (control.running.load())
 			{
-				my_sessions.push_back(sessions[index]);
-			}
-
-			while (running)
-			{
-				for (shared_ptr<TestSession>& session : my_sessions)
+				for (size_t index = i; index < sessions.size(); index += settings.bot_thread_count)
 				{
-					if (session->get_is_login() == false)
+					const auto& session = sessions[index];
+					if (!control.running.load()) {
+						break;
+					}
+					if (!session->get_is_login()) {
 						continue;
-
+					}
 					const int32 bot_index = session->get_bot_index();
-
-					if (session->get_room_id() < 0)
+					const int32 room_id = session->get_room_id();
+					if (room_id < 0)
 					{
-						session->send_enter_room(static_cast<uint8>(bot_index % bot_room_count));
+						session->send_enter_room(static_cast<uint8>(bot_index % settings.bot_room_count));
 						continue;
 					}
-
-					if (bot_index % all_chat_interval == 0)
-					{
-						session->send_chat(L"bot all chat test", Protocol::CHAT_STATE::CHAT_ALL, session->get_room_id());
-						continue;
+					if (bot_index % settings.all_chat_interval == 0) {
+						session->send_chat(L"bot all chat test", Protocol::CHAT_STATE::CHAT_ALL, room_id);
 					}
-
-					if (sessions.size() > 1 && bot_index % whisper_interval == 0)
+					else if (sessions.size() > 1 && bot_index % settings.whisper_interval == 0)
 					{
-						const int32 target_index = (bot_index + 1) % static_cast<int32>(sessions.size());
-						const wstring target_name = L"Bot_" + to_wstring(target_index);
-						session->send_whisper_chat(target_name, L"bot whisper test", Protocol::CHAT_STATE::CHAT_WHISPER, session->get_room_id());
-						continue;
+						// 연결 실패로 봇 번호에 빈칸이 있어도 실제 연결된 세션의 이름을 선택한다.
+						const auto& target = sessions[(index + 1) % sessions.size()];
+						session->send_whisper_chat(L"Bot_" + to_wstring(target->get_bot_index()),
+							L"bot whisper test", Protocol::CHAT_STATE::CHAT_WHISPER, room_id);
 					}
-
-					session->send_chat(L"bot room chat test", Protocol::CHAT_STATE::CHAT_NORMAL, session->get_room_id());
+					else {
+						session->send_chat(L"bot room chat test", Protocol::CHAT_STATE::CHAT_NORMAL, room_id);
+					}
 				}
-
-				::Sleep(chat_interval_ms);
+				control.wait(settings.chat_interval_ms);
 			}
-		}));
+		});
 	}
+	thread stats([&]() { print_load_test_stats_loop(control); });
 
-	print_load_test_stats_loop(running);
-
-	running = false;
-
-	for (thread& bot_thread : bot_threads)
-	{
-		if (bot_thread.joinable())
-			bot_thread.join();
+	// 입력은 메인 스레드 한 곳에서만 읽는다. /q 또는 입력 종료로 부하 테스트도 정리한다.
+	wcout << L"/q = 부하 테스트 종료" << endl;
+	wstring line;
+	while (getline(wcin, line)) {
+		if (line == L"/q") {
+			break;
+		}
 	}
-
+	control.stop();
+	for (thread& bot_thread : bot_threads) {
+		bot_thread.join();
+	}
+	stats.join();
 	server.stop();
+	wcout << L"클라이언트 종료 완료" << endl;
+	return true;
 }
 
-void run_manual_test(ConfigReader& config)
+bool run_manual_test(ConfigReader& config)
 {
+	ClientConfig settings;
+	if (!settings.load(config, false)) {
+		return false;
+	}
 	ClientServer server;
-	if (!server.CreateIocpHandle())
-		return;
-
-	const wstring server_ip = config.get_wstring("server", "ip");
-	const uint16 port_value = static_cast<uint16>(config.get_int("server", "port"));
-
-	if (port_value <= 0 || port_value > 65535)
-	{
-		wcerr << L"Invalid server port: " << port_value << endl;
-		return;
+	SOCKADDR_IN server_addr{};
+	if (!server.start_server(settings.server_ip, settings.port, server_addr) ||
+		!server.CreateIocpHandle() || !server.start_worker_thread(1)) {
+		return false;
+	}
+	auto session = make_shared<TestSession>();
+	if (!session->connect(server_addr) || !server.register_socket(session) || !session->start()) {
+		return false;
 	}
 
-	server.start_worker_thread(1);
-
-	SOCKADDR_IN server_addr = server.start_server(server_ip, port_value);
-
-	shared_ptr<TestSession> session = make_shared<TestSession>();
-
-	if (!session->connect(server_addr))
-		return;
-
-	if (!server.register_socket(session))
-		return;
-
-	if (!session->start())
-		return;
-
-	session->login();
-
-	wcout << L" /rooms = 방 목록, /enter [room_id] = 방 입장, /exit = 방 퇴장, /chat [message] = 방 채팅, /all [message] = 전체 채팅, /whisper [name] [message] = 귓속말, /q = 종료" << endl;
-
-	while (true)
+	while (session->is_connected() && !session->get_is_login())
 	{
-		wstring line;
-		getline(wcin, line);
+		wcout << L"1. 로그인    2. 계정 생성   3. 나가기" << endl;
+		wstring choice, id, pw, name;
+		if (!getline(wcin, choice) || choice == L"3" || choice == L"/q") {
+			break;
+		}
+		if (choice != L"1" && choice != L"2")
+		{
+			wcout << L"1, 2, 3 중 하나를 입력하세요." << endl;
+			continue;
+		}
+		wcout << L"id 입력 : " << endl;
+		if (!getline(wcin, id)) {
+			break;
+		}
+		wcout << L"password 입력 : " << endl;
+		if (!getline(wcin, pw)) {
+			break;
+		}
+		if (choice == L"2")
+		{
+			wcout << L"이름 입력 : " << endl;
+			if (!getline(wcin, name)) {
+				break;
+			}
+		}
+		if (!session->login(choice == L"2", WStringToUtf8(id), WStringToUtf8(pw), name)) {
+			continue;
+		}
+		// 메인 스레드가 결과를 기다리는 동안에도 IOCP 스레드는 핑과 수신을 계속 처리한다.
+		if (!session->wait_for_login())
+		{
+			wcout << L"로그인 응답 시간이 초과되었습니다." << endl;
+			session->disconnect();
+		}
+	}
 
+	if (session->get_is_login()) {
+		wcout << L"/rooms = 방 목록, /enter [room_id] = 입장, /exit = 퇴장, "
+			L"/chat [message] = 방 채팅, /all [message] = 전체 채팅, "
+			L"/whisper [name] [message] = 귓속말, /q = 종료" << endl;
+	}
+	wstring line;
+	while (session->is_connected() && session->get_is_login() && getline(wcin, line))
+	{
 		if (line == L"/q")
 		{
 			session->logout();
+			session->wait_for_disconnect();
 			break;
 		}
-
-		if (line == L"/rooms")
-		{
+		if (line == L"/rooms") {
 			session->send_get_room_info();
-			continue;
 		}
-
-		if (line.rfind(L"/enter ", 0) == 0)
+		else if (line.rfind(L"/enter ", 0) == 0)
 		{
 			try
 			{
-				int32 room_id = stoi(line.substr(7));
-
-				if (room_id < 0 || room_id > 255)
-				{
-					wcout << L"invalid room id" << endl;
-					continue;
+				const wstring value = line.substr(7);
+				size_t end = 0;
+				const int32 room_id = stoi(value, &end);
+				if (end != value.size() || room_id < 0 || room_id > 255) {
+					throw out_of_range("room id");
 				}
-
-				session->send_enter_room(static_cast<uint8>(room_id));
+				if (!session->send_enter_room(static_cast<uint8>(room_id))) {
+					wcout << L"이미 방에 있거나 방 요청의 응답을 기다리는 중입니다." << endl;
+				}
 			}
-			catch (...)
-			{
-				wcout << L"invalid room id" << endl;
+			catch (const exception&) {
+				wcout << L"방 번호는 0~255의 정수로 입력하세요." << endl;
 			}
-
-			continue;
 		}
-
-		if (line == L"/exit")
+		else if (line == L"/exit")
 		{
-			session->send_exit_room();
-			continue;
+			if (!session->send_exit_room()) {
+				wcout << L"입장한 방이 없거나 방 요청의 응답을 기다리는 중입니다." << endl;
+			}
 		}
-
-		if (line.rfind(L"/all ", 0) == 0)
-		{
+		else if (line.rfind(L"/all ", 0) == 0) {
 			session->send_chat(line.substr(5), Protocol::CHAT_STATE::CHAT_ALL, session->get_room_id());
-			continue;
 		}
-
-		if (line.rfind(L"/chat ", 0) == 0)
-		{
+		else if (line.rfind(L"/chat ", 0) == 0) {
 			session->send_chat(line.substr(6), Protocol::CHAT_STATE::CHAT_NORMAL, session->get_room_id());
-			continue;
 		}
-
-		if (line.rfind(L"/whisper ", 0) == 0)
+		else if (line.rfind(L"/whisper ", 0) == 0)
 		{
-			wstring command_body = line.substr(10);
-			size_t split_pos = command_body.find(L' ');
-
-			if (split_pos == wstring::npos)
+			const wstring body = line.substr(9);
+			const size_t split = body.find(L' ');
+			if (split == wstring::npos)
 			{
 				wcout << L"usage: /whisper [name] [message]" << endl;
 				continue;
 			}
-
-			wstring target_name = command_body.substr(0, split_pos);
-			wstring message = command_body.substr(split_pos + 1);
-
-			if (target_name.empty() || message.empty())
-			{
-				wcout << L"usage: /whisper [name] [message]" << endl;
-				continue;
-			}
-
-			session->send_whisper_chat(target_name, message, Protocol::CHAT_STATE::CHAT_WHISPER, session->get_room_id());
-			continue;
+			session->send_whisper_chat(body.substr(0, split), body.substr(split + 1),
+				Protocol::CHAT_STATE::CHAT_WHISPER, session->get_room_id());
 		}
 	}
-
 	server.stop();
+	wcout << L"클라이언트 종료 완료" << endl;
+	return true;
 }
 
-void print_load_test_stats_loop(atomic<bool>& running)
+void print_load_test_stats_loop(LoadControl& control)
 {
 	uint64 prev_send = 0;
 	uint64 prev_recv = 0;
 	auto prev_time = chrono::steady_clock::now();
-
-	while (running)
+	while (control.running.load())
 	{
-		auto now = chrono::steady_clock::now();
-		double elapsed_sec = chrono::duration<double>(now - prev_time).count();
+		const auto now = chrono::steady_clock::now();
+		const double elapsed_sec = chrono::duration<double>(now - prev_time).count();
 		prev_time = now;
-
-		uint64 connect = GServerStats.connect_success.load();
-		uint64 login = GServerStats.login_success.load();
-		uint64 send = GServerStats.send_chat.load();
-		uint64 recv = GServerStats.recv_chat.load();
-		uint64 expected_recv = GServerStats.expected_chat_recv.load();
-		uint64 disconnect = GServerStats.disconnect.load();
-
-		uint64 send_delta = send - prev_send;
-		uint64 recv_delta = recv - prev_recv;
-
-		prev_send = send;
-		prev_recv = recv;
-
-		double send_per_sec = send_delta / elapsed_sec;
-		double recv_per_sec = recv_delta / elapsed_sec;
-
-		uint64 backlog = 0;
-		if (expected_recv > recv)
-			backlog = expected_recv - recv;
-
-		wcout << L"connect = " << connect
-			<< L" login = " << login
-			<< L" send = " << send
-			<< L" recv = " << recv
-			<< L" expected_recv = " << expected_recv
-			<< L" disconnect = " << disconnect
-			<< L" send/s = " << static_cast<uint64>(send_per_sec)
-			<< L" recv/s = " << static_cast<uint64>(recv_per_sec)
-			<< L" backlog = " << backlog
-			<< endl;
-
-		::Sleep(1000);
+		const uint64 sent = GServerStats.send_chat.load();
+		const uint64 received = GServerStats.recv_chat.load();
+		const uint64 expected = GServerStats.expected_chat_recv.load();
+		const uint64 send_per_sec = elapsed_sec > 0 ? static_cast<uint64>((sent - prev_send) / elapsed_sec) : 0;
+		const uint64 recv_per_sec = elapsed_sec > 0 ? static_cast<uint64>((received - prev_recv) / elapsed_sec) : 0;
+		prev_send = sent;
+		prev_recv = received;
+		wcout << L"connect = " << GServerStats.connect_success.load()
+			<< L" login = " << GServerStats.login_success.load()
+			<< L" send = " << sent
+			<< L" recv = " << received
+			<< L" expected_recv = " << expected
+			<< L" disconnect = " << GServerStats.disconnect.load()
+			<< L" send/s = " << send_per_sec
+			<< L" recv/s = " << recv_per_sec
+			<< L" backlog = " << (expected > received ? expected - received : 0) << endl;
+		control.wait(1000);
 	}
 }
-
-
-
-
-
-
-
-
-
-

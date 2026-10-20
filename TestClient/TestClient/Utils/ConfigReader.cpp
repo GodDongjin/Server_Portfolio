@@ -80,19 +80,34 @@ wstring ConfigReader::get_wstring(const string& section, const string& key, cons
 
 int32 ConfigReader::get_int(const string& section, const string& key, int32 default_value) const
 {
-	const string value = get_string(section, key, "");
+	int32 value = default_value;
+	return get_int_checked(section, key, value, default_value) ? value : default_value;
+}
 
-	if (value.empty()) {
-		return default_value;
+bool ConfigReader::get_int_checked(const string& section, const string& key, int32& value, int32 default_value) const
+{
+	value = default_value;
+	auto section_iter = _sections.find(section);
+	if (section_iter == _sections.end()) {
+		return true;
 	}
-
+	auto key_iter = section_iter->second.find(key);
+	if (key_iter == section_iter->second.end()) {
+		return true;
+	}
 	try
 	{
-		return stoi(value);
+		size_t end = 0;
+		const int32 parsed = stoi(key_iter->second, &end);
+		// "10abc"처럼 일부만 숫자인 값도 설정 오류로 처리한다.
+		if (end != key_iter->second.size()) {
+			return false;
+		}
+		value = parsed;
+		return true;
 	}
-	catch (...)
-	{
-		return default_value;
+	catch (const exception&) {
+		return false;
 	}
 }
 

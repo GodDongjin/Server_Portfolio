@@ -13,6 +13,10 @@ bool TestSession::start()
 		return false;
 	}
 
+	if (_recv_started.exchange(true)) {
+		return false;
+	}
+
 	if (!register_recv()) {
 		disconnect();
 		cout << "register_recv failed" << endl;
@@ -24,7 +28,8 @@ bool TestSession::start()
 
 bool TestSession::connect(SOCKADDR_IN server_addr)
 {
-	if (_test_session_state == TEST_SESSION_STATE::CONNECTED) {
+	lock_guard<mutex> lock(_send_lock);
+	if (is_connected() || _is_disconnect.load()) {
 		cout << "test_session_state is CONNECTED" << endl;
 		return false;
 	}
@@ -33,7 +38,6 @@ bool TestSession::connect(SOCKADDR_IN server_addr)
 	if (client_socket == INVALID_SOCKET)
 	{
 		cout << "WSASocket failed : " << WSAGetLastError() << endl;
-		WSACleanup();
 		return false;
 	}
 
@@ -42,7 +46,6 @@ bool TestSession::connect(SOCKADDR_IN server_addr)
 		cout << "connect failed : " << WSAGetLastError() << endl;
 		_is_connect = false;
 		closesocket(client_socket);
-		WSACleanup();
 		return false;
 	}
 
@@ -70,6 +73,11 @@ void TestSession::disconnect()
 
 	_test_session_state = TEST_SESSION_STATE::DISCONNECTED;
 	_is_login.store(false);
+	_account_idx.store(0);
+	_room_id.store(-1);
+	_login_pending = false;
+	_room_request = ROOM_REQUEST::NONE;
+	_state_changed.notify_all();
 	_is_send_register.store(false);
 
 	// 아직 등록하지 않은 데이터는 버린다. 진행 중인 버퍼는 완료 통지까지 유지한다.
@@ -86,10 +94,10 @@ void TestSession::disconnect()
 	}
 }
 
-void TestSession::send(shared_ptr<SendBuffer> send_buffer)
+bool TestSession::send(shared_ptr<SendBuffer> send_buffer)
 {
 	if (send_buffer == nullptr || send_buffer->get_write_size() <= 0) {
-		return;
+		return false;
 	}
 
 	bool registerSend = false;
@@ -99,7 +107,7 @@ void TestSession::send(shared_ptr<SendBuffer> send_buffer)
 
 		// 종료와 경합한 송신 요청이 큐에 남거나 새 송신을 시작하지 않도록 안에서 확인한다.
 		if (is_connected() == false) {
-			return;
+			return false;
 		}
 
 		_send_queue.push(send_buffer);
@@ -115,134 +123,259 @@ void TestSession::send(shared_ptr<SendBuffer> send_buffer)
 		{
 			// Log 찍어야함.
 			wcout << L"register_send Fail" << endl;
-			return;
+			return false;
 		}
 	}
+	return true;
 }
 
-void TestSession::login()
+TestSession::~TestSession()
 {
-	int is_create = 0;
-
-	cout << "1. 로그인    2. 계정 생성   3. 나가기 " << endl;
-	cin >> is_create;
-
-	if (is_create == 3) {
-		disconnect();
-		return;
+	// ClientServer가 완료를 모두 회수한 뒤 소유권을 해제한다.
+	assert(!has_pending_io());
+	if (_socket != INVALID_SOCKET) {
+		::closesocket(_socket);
 	}
+}
 
-	string id;
-	string pw;
-	wstring name;
-
-	cout << "id 입력 : ";
-	cin >> id;
-	cout << "passward 입력 : ";
-	cin >> pw;
-
-	if (is_create == 2)
+bool TestSession::register_iocp(HANDLE iocp_handle)
+{
+	lock_guard<mutex> lock(_send_lock);
+	if (!is_connected() || _socket == INVALID_SOCKET) {
+		return false;
+	}
+	if (::CreateIoCompletionPort(reinterpret_cast<HANDLE>(_socket), iocp_handle,
+		reinterpret_cast<ULONG_PTR>(this), 0) == nullptr)
 	{
-		cout << "이름 입력 : ";
-		wcin >> name;
+		cout << "register socket failed : " << ::GetLastError() << endl;
+		return false;
 	}
-
-	Protocol::REQ_LOGIN _login_pkt;
-	_login_pkt.set_is_create((is_create - 1));
-	_login_pkt.set_id(id);
-	_login_pkt.set_pw(pw);
-	_login_pkt.set_name(WStringToUtf8(name));
-
-	shared_ptr<SendBuffer> send_buffer = ClientPacketHandler::MakeSendBuffer(_login_pkt);
-	send(send_buffer);
+	return true;
 }
 
-void TestSession::test_login(uint32 index, bool is_create_has_account)
+void TestSession::begin_io()
 {
-	wstring name = L"Bot_" + to_wstring(index);
-	string id = "bot_" + to_string(index);
-	string pw = "1234";
+	lock_guard<mutex> lock(_io_lock);
+	++_pending_io;
+}
 
-	Protocol::REQ_BOT_LOGIN _login_pkt;
-	_login_pkt.set_id(id);
-	_login_pkt.set_pw(pw);
-	_login_pkt.set_name(WStringToUtf8(name));
-	
-	if (!is_create_has_account) {
-		_login_pkt.set_is_create(true);
+void TestSession::finish_io()
+{
+	lock_guard<mutex> lock(_io_lock);
+	assert(_pending_io > 0);
+	if (--_pending_io == 0) {
+		_io_completed.notify_all();
 	}
-	else if (is_create_has_account) {
-		_login_pkt.set_is_create(false);
-	}
-	
+}
 
-	shared_ptr<SendBuffer> send_buffer = ClientPacketHandler::MakeSendBuffer(_login_pkt);
-	send(send_buffer);
+bool TestSession::has_pending_io()
+{
+	lock_guard<mutex> lock(_io_lock);
+	return _pending_io != 0;
+}
+
+void TestSession::wait_for_io()
+{
+	unique_lock<mutex> lock(_io_lock);
+	_io_completed.wait(lock, [this]() { return _pending_io == 0; });
+}
+
+bool TestSession::begin_login()
+{
+	lock_guard<mutex> lock(_send_lock);
+	if (!is_connected() || get_is_login() || _login_pending) {
+		return false;
+	}
+	_login_pending = true;
+	_test_session_state.store(TEST_SESSION_STATE::LOGIN_SEND);
+	return true;
+}
+
+bool TestSession::login(bool is_create, const string& id, const string& pw, const wstring& name)
+{
+	const string user_name = WStringToUtf8(name);
+	if (id.empty() || id.size() > 32 || pw.empty() || pw.size() > 32 ||
+		(is_create && (user_name.empty() || user_name.size() > 32)))
+	{
+		wcout << L"아이디·비밀번호·닉네임은 UTF-8 기준 1~32바이트로 입력하세요." << endl;
+		return false;
+	}
+	if (!begin_login()) {
+		return false;
+	}
+	Protocol::REQ_LOGIN pkt;
+	pkt.set_is_create(is_create);
+	pkt.set_id(id);
+	pkt.set_pw(pw);
+	pkt.set_name(user_name);
+	if (!send(ClientPacketHandler::MakeSendBuffer(pkt)))
+	{
+		complete_login(false);
+		return false;
+	}
+	return true;
+}
+
+bool TestSession::test_login(uint32 index, bool is_create_has_account)
+{
+	if (!begin_login()) {
+		return false;
+	}
+	Protocol::REQ_BOT_LOGIN pkt;
+	pkt.set_id("bot_" + to_string(index));
+	pkt.set_pw("1234");
+	pkt.set_name("Bot_" + to_string(index));
+	pkt.set_is_create(!is_create_has_account);
+	if (!send(ClientPacketHandler::MakeSendBuffer(pkt)))
+	{
+		complete_login(false);
+		return false;
+	}
+	return true;
+}
+
+void TestSession::complete_login(bool success, uint64 account_idx)
+{
+	lock_guard<mutex> lock(_send_lock);
+	if (is_connected())
+	{
+		_account_idx.store(success ? account_idx : 0);
+		_is_login.store(success);
+		_test_session_state.store(success ? TEST_SESSION_STATE::LOGIN : TEST_SESSION_STATE::CONNECTED);
+	}
+	_login_pending = false;
+	_state_changed.notify_all();
+}
+
+bool TestSession::wait_for_login(uint32 timeout_ms)
+{
+	unique_lock<mutex> lock(_send_lock);
+	return _state_changed.wait_for(lock, chrono::milliseconds(timeout_ms),
+		[this]() { return !_login_pending || !is_connected(); });
+}
+
+bool TestSession::wait_for_disconnect(uint32 timeout_ms)
+{
+	unique_lock<mutex> lock(_send_lock);
+	return _state_changed.wait_for(lock, chrono::milliseconds(timeout_ms),
+		[this]() { return !is_connected(); });
 }
 
 void TestSession::logout()
 {
-	Protocol::REQ_LOGOUT _logout_pkt;
-	_logout_pkt.set_idx(_account_idx);
-
-	shared_ptr<SendBuffer> send_buffer = ClientPacketHandler::MakeSendBuffer(_logout_pkt);
-	send(send_buffer);
+	Protocol::REQ_LOGOUT pkt;
+	pkt.set_idx(get_account());
+	send(ClientPacketHandler::MakeSendBuffer(pkt));
 }
 
 void TestSession::send_get_room_info()
 {
 	Protocol::REQ_GET_ROOM_INFO pkt;
-
-	shared_ptr<SendBuffer> send_buffer = ClientPacketHandler::MakeSendBuffer(pkt);
-	send(send_buffer);
+	send(ClientPacketHandler::MakeSendBuffer(pkt));
 }
 
-void TestSession::send_enter_room(uint8 room_id)
+bool TestSession::send_enter_room(uint8 room_id)
 {
+	{
+		lock_guard<mutex> lock(_send_lock);
+		if (!is_connected() || !get_is_login() || get_room_id() >= 0 ||
+			_room_request != ROOM_REQUEST::NONE) {
+			return false;
+		}
+		_room_request = ROOM_REQUEST::ENTER;
+	}
 	Protocol::REQ_ENTER_ROOM pkt;
 	pkt.set_room_id(room_id);
-
-	shared_ptr<SendBuffer> send_buffer = ClientPacketHandler::MakeSendBuffer(pkt);
-	send(send_buffer);
+	if (!send(ClientPacketHandler::MakeSendBuffer(pkt)))
+	{
+		complete_enter_room(false, -1);
+		return false;
+	}
+	return true;
 }
 
-void TestSession::send_exit_room()
+bool TestSession::send_exit_room()
 {
+	{
+		lock_guard<mutex> lock(_send_lock);
+		if (!is_connected() || !get_is_login() || get_room_id() < 0 ||
+			_room_request != ROOM_REQUEST::NONE) {
+			return false;
+		}
+		_room_request = ROOM_REQUEST::EXIT;
+	}
 	Protocol::REQ_EXIT_ROOM pkt;
+	if (!send(ClientPacketHandler::MakeSendBuffer(pkt)))
+	{
+		complete_exit_room(false);
+		return false;
+	}
+	return true;
+}
 
-	shared_ptr<SendBuffer> send_buffer = ClientPacketHandler::MakeSendBuffer(pkt);
-	send(send_buffer);
+void TestSession::complete_enter_room(bool success, int32 room_id)
+{
+	lock_guard<mutex> lock(_send_lock);
+	if (_room_request != ROOM_REQUEST::ENTER) {
+		return;
+	}
+	// 실패 응답으로 이미 확정된 방 정보를 지우지 않는다.
+	if (is_connected() && success) {
+		_room_id.store(room_id);
+	}
+	_room_request = ROOM_REQUEST::NONE;
+}
+
+void TestSession::complete_exit_room(bool success)
+{
+	lock_guard<mutex> lock(_send_lock);
+	if (_room_request != ROOM_REQUEST::EXIT) {
+		return;
+	}
+	if (is_connected() && success) {
+		_room_id.store(-1);
+	}
+	_room_request = ROOM_REQUEST::NONE;
 }
 
 void TestSession::send_chat(const wstring& message, Protocol::CHAT_STATE chat_state, int32 room_id)
 {
+	const string text = WStringToUtf8(message);
+	if (text.empty() || text.size() > 256)
+	{
+		wcout << L"채팅은 UTF-8 기준 1~256바이트로 입력하세요." << endl;
+		return;
+	}
 	Protocol::REQ_CHAT pkt;
-	pkt.set_message(WStringToUtf8(message));
+	pkt.set_message(text);
 	pkt.set_chat_state(chat_state);
 	pkt.set_room_id(room_id);
-
-	auto sendBuffer = ClientPacketHandler::MakeSendBuffer(pkt);
-	send(sendBuffer);
-
-	GServerStats.send_chat++;
-
+	if (send(ClientPacketHandler::MakeSendBuffer(pkt))) {
+		GServerStats.send_chat++;
+	}
 	// 예상 수신량은 ACK_CHAT에 담긴 서버의 전송 대상 수로 집계한다.
 }
 
-void TestSession::send_whisper_chat(const wstring& target_name, const wstring& message, Protocol::CHAT_STATE chat_state, int32 room_id)
+void TestSession::send_whisper_chat(const wstring& target_name, const wstring& message,
+	Protocol::CHAT_STATE chat_state, int32 room_id)
 {
+	const string target = WStringToUtf8(target_name);
+	const string text = WStringToUtf8(message);
+	if (target.empty() || target.size() > 32 || text.empty() || text.size() > 256)
+	{
+		wcout << L"귓속말 대상은 1~32바이트, 채팅은 1~256바이트로 입력하세요." << endl;
+		return;
+	}
 	Protocol::REQ_CHAT pkt;
-	pkt.set_message(WStringToUtf8(message));
+	pkt.set_message(text);
 	pkt.set_chat_state(chat_state);
-	pkt.set_target_name(WStringToUtf8(target_name));
-
-	auto sendBuffer = ClientPacketHandler::MakeSendBuffer(pkt);
-	send(sendBuffer);
-
-	GServerStats.send_chat++;
-
+	pkt.set_target_name(target);
+	if (send(ClientPacketHandler::MakeSendBuffer(pkt))) {
+		GServerStats.send_chat++;
+	}
 	// 예상 수신량은 ACK_CHAT에 담긴 서버의 전송 대상 수로 집계한다.
 }
+
 
 void TestSession::dispatch(IocpEvent* iocp_evnet, INT32 numOfbyte)
 {
@@ -259,6 +392,8 @@ void TestSession::dispatch(IocpEvent* iocp_evnet, INT32 numOfbyte)
 		break;
 	}
 
+	// 콜백에서 다음 I/O를 등록한 뒤 현재 완료를 차감한다.
+	finish_io();
 }
 
 bool TestSession::register_recv()
@@ -278,8 +413,12 @@ bool TestSession::register_recv()
 
 		DWORD numOfBytes = 0;
 		DWORD flags = 0;
+		begin_io();
 		if (SOCKET_ERROR == ::WSARecv(_socket, &wsa_buf, 1, OUT & numOfBytes, OUT & flags, &_recv_event, nullptr)) {
 			errorCode = ::WSAGetLastError();
+			if (errorCode != WSA_IO_PENDING) {
+				finish_io();
+			}
 		}
 	}
 
@@ -328,11 +467,13 @@ bool TestSession::register_send()
 			return true;
 		}
 
+		begin_io();
 		if (SOCKET_ERROR == ::WSASend(_socket, wsaBufs.data(), static_cast<DWORD>(wsaBufs.size()), nullptr, 0, &_send_event, nullptr))
 		{
 			errorCode = ::WSAGetLastError();
 			if (errorCode != WSA_IO_PENDING)
 			{
+				finish_io();
 				// 즉시 실패하면 완료 통지가 오지 않으므로 버퍼 참조를 여기서 해제한다.
 				_send_event.clear();
 				// 종료 전까지 송신 중 플래그를 유지해 다른 요청의 새 등록을 막는다.
@@ -456,7 +597,8 @@ void TestSession::process_recv(uint32 num_bytes)
 		if (!ClientPacketHandler::HandlePacket(session, &recv_buffer[process_len], header.size))
 		{
 			cout << "HandlePacket ERROR - ID : " << header.id << endl;
-			break;
+			disconnect();
+			return;
 		}
 
 		process_len += header.size;
@@ -478,9 +620,3 @@ void TestSession::process_recv(uint32 num_bytes)
 
 	register_recv();
 }
-
-
-
-
-
-

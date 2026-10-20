@@ -115,7 +115,9 @@ namespace
 
 		~ConnectedSession()
 		{
-			session->disconnect();
+			if (session) {
+				session->disconnect();
+			}
 			::closesocket(peer);
 		}
 
@@ -412,6 +414,158 @@ static void test_chat_target_count()
 	cout << "PASS: chat statistics use successful ACK targets, including zero targets and failures" << endl;
 }
 
+static void test_shutdown_lifetime()
+{
+	for (int32 workers : { 0, 1, 4 })
+	{
+		for (int32 iteration = 0; iteration < 5; ++iteration)
+		{
+			reset_send();
+			real_io.store(true);
+			ConnectedSession fixture;
+			ClientServer server;
+			require_send(server.CreateIocpHandle() && server.register_socket(fixture.session), "register shutdown session");
+			if (workers > 0) {
+				require_send(server.start_worker_thread(workers), "start shutdown workers");
+			}
+			require_send(fixture.session->start() && !fixture.session->start(), "only one receive chain starts");
+			auto buffer = make_buffer(string(2 * 1024 * 1024, 'S'));
+			weak_ptr<SendBuffer> weak_buffer = buffer;
+			require_send(fixture.session->send(buffer), "send before cancellation");
+			buffer.reset();
+			weak_ptr<TestSession> weak_session = fixture.session;
+			fixture.session.reset();
+			require_send(!weak_session.expired(), "ClientServer owns registered sessions");
+			// 완료 대기 중인 송수신을 취소한 뒤 세션과 버퍼가 모두 해제되어야 한다.
+			server.stop();
+			server.stop();
+			require_send(weak_session.expired() && weak_buffer.expired(), "shutdown drains completions before releasing ownership");
+		}
+	}
+	real_io.store(false);
+	cout << "PASS: 15 shutdowns drain pending receive/send with 0, 1 and 4 IOCP workers" << endl;
+}
+
+static void test_connection_failure_isolation()
+{
+	reset_send();
+	real_io.store(true);
+	ConnectedSession fixture;
+	ClientServer server;
+	require_send(server.CreateIocpHandle() && server.register_socket(fixture.session), "register healthy session");
+	require_send(server.start_worker_thread(1), "start healthy worker");
+	SOCKADDR_IN invalid{};
+	require_send(!server.start_server(L"invalid-ip", 7777, invalid), "reject invalid address");
+
+	// 바인드만 한 소켓은 접속을 거절하면서 다른 프로세스의 포트 재사용도 막는다.
+	SOCKET blocker = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	require_send(blocker != INVALID_SOCKET, "create reserved port");
+	SOCKADDR_IN address{};
+	address.sin_family = AF_INET;
+	address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+	require_send(::bind(blocker, reinterpret_cast<SOCKADDR*>(&address), sizeof(address)) == 0, "reserve refused port");
+	int32 length = sizeof(address);
+	require_send(::getsockname(blocker, reinterpret_cast<SOCKADDR*>(&address), &length) == 0, "read refused port");
+	auto failed = make_shared<TestSession>();
+	require_send(!failed->connect(address), "one session fails to connect");
+	::closesocket(blocker);
+
+	require_send(fixture.session->send(make_buffer("still-alive")), "healthy socket survives another connection failure");
+	char data[11]{};
+	size_t received = 0;
+	while (received < sizeof(data))
+	{
+		int32 count = ::recv(fixture.peer, data + received, static_cast<int32>(sizeof(data) - received), 0);
+		require_send(count > 0, "receive after another session failed");
+		received += count;
+	}
+	require_send(string(data, sizeof(data)) == "still-alive", "healthy connection contents");
+	server.stop();
+	real_io.store(false);
+	cout << "PASS: invalid address and failed connection leave other Winsock sessions usable" << endl;
+}
+
+static void test_room_requests()
+{
+	reset_send();
+	ConnectedSession fixture;
+	fixture.session->set_is_login(true);
+	atomic<int32> accepted = 0;
+	vector<thread> requests;
+	for (int32 i = 0; i < 16; ++i) {
+		requests.emplace_back([&]() {
+			if (fixture.session->send_enter_room(3)) {
+				++accepted;
+			}
+		});
+	}
+	for (auto& request : requests) {
+		request.join();
+	}
+	require_send(accepted == 1 && send_requests.size() == 1, "concurrent room entry sends exactly one request");
+	complete_send(fixture.session, static_cast<uint32>(send_requests.back().size()));
+	Protocol::ACK_ENTER_ROOM enter;
+	enter.set_room_id(3);
+	enter.set_result(Protocol::ENTER_ROOM_ERROR::ENTER_ROOM_SUCCESS);
+	Handle_ACK_ENTER_ROOM(fixture.session, enter);
+	require_send(fixture.session->get_room_id() == 3, "entry ACK sets room");
+
+	enter.set_result(Protocol::ENTER_ROOM_ERROR::ENTER_ROOM_FAIL);
+	Handle_ACK_ENTER_ROOM(fixture.session, enter);
+	require_send(fixture.session->get_room_id() == 3, "duplicate failure does not clear confirmed room");
+	require_send(!fixture.session->send_enter_room(4), "cannot enter another room before exit");
+	require_send(fixture.session->send_exit_room() && !fixture.session->send_exit_room(), "only one exit request pending");
+	complete_send(fixture.session, static_cast<uint32>(send_requests.back().size()));
+	Protocol::ACK_EXIT_ROOM exit;
+	exit.set_result(Protocol::EXIT_ROOM_ERROR::EXIT_ROOM_FAIL);
+	Handle_ACK_EXIT_ROOM(fixture.session, exit);
+	require_send(fixture.session->get_room_id() == 3 && fixture.session->send_exit_room(), "failed exit keeps room and permits retry");
+	complete_send(fixture.session, static_cast<uint32>(send_requests.back().size()));
+	exit.set_result(Protocol::EXIT_ROOM_ERROR::EXIT_ROOM_SUCCESS);
+	Handle_ACK_EXIT_ROOM(fixture.session, exit);
+	require_send(fixture.session->get_room_id() == -1 && fixture.session->send_enter_room(4), "successful exit permits next entry");
+	complete_send(fixture.session, static_cast<uint32>(send_requests.back().size()));
+	Handle_ACK_ENTER_ROOM(fixture.session, enter);
+	require_send(fixture.session->get_room_id() == -1 && fixture.session->send_enter_room(4), "failed entry permits retry");
+	complete_send(fixture.session, static_cast<uint32>(send_requests.back().size()));
+	fixture.session->disconnect();
+	enter.set_result(Protocol::ENTER_ROOM_ERROR::ENTER_ROOM_SUCCESS);
+	Handle_ACK_ENTER_ROOM(fixture.session, enter);
+	require_send(fixture.session->get_room_id() == -1 && !fixture.session->get_is_login(), "late ACK cannot restore disconnected state");
+	cout << "PASS: concurrent room requests, failed/late ACKs and room-state preservation" << endl;
+}
+
+static void test_packet_and_input_limits()
+{
+	Protocol::REQ_CHAT pkt;
+	pkt.set_message(string(65527, 'x'));
+	auto maximum = ClientPacketHandler::MakeSendBuffer(pkt);
+	require_send(maximum && maximum->get_write_size() == UINT16_MAX, "largest packet fits uint16 header exactly");
+	require_send(reinterpret_cast<PacketHeader*>(maximum->get_buffer())->size == UINT16_MAX, "maximum header length is not wrapped");
+	pkt.set_message(string(65528, 'x'));
+	require_send(!ClientPacketHandler::MakeSendBuffer(pkt), "one byte above packet limit rejected");
+	pkt.set_message(string(131072, 'x'));
+	require_send(!ClientPacketHandler::MakeSendBuffer(pkt), "multiple-wrap payload rejected");
+	reset_send();
+	ConnectedSession fixture;
+	require_send(!fixture.session->login(true, string(33, 'i'), "pw", L"name"), "oversized login rejected");
+	fixture.session->send_chat(wstring(257, L'x'), Protocol::CHAT_STATE::CHAT_NORMAL, 1);
+	fixture.session->send_whisper_chat(wstring(33, L'x'), L"msg", Protocol::CHAT_STATE::CHAT_WHISPER, 1);
+	require_send(send_requests.empty(), "invalid user input never reaches socket");
+	require_send(fixture.session->login(false, "id", "pw", L""), "valid login sent");
+	require_send(!fixture.session->login(false, "id", "pw", L""), "duplicate login while pending blocked");
+	complete_send(fixture.session, static_cast<uint32>(send_requests.back().size()));
+	Protocol::ACK_LOGIN ack;
+	ack.set_result(Protocol::LOGIN_ERROR::LOGIN_PW_NONE);
+	Handle_ACK_LOGIN(fixture.session, ack);
+	require_send(fixture.session->wait_for_login(10) && !fixture.session->get_is_login(), "failed login wakes main without console input");
+	require_send(fixture.session->login(false, "id", "pw", L""), "login can retry after ACK");
+	complete_send(fixture.session, static_cast<uint32>(send_requests.back().size()));
+	fixture.session->disconnect();
+	require_send(fixture.session->wait_for_login(10), "disconnect wakes pending login");
+	cout << "PASS: uint16 packet boundary, input lengths and login result notification" << endl;
+}
+
 int main()
 {
 	WSADATA data{};
@@ -422,6 +576,10 @@ int main()
 	test_send_failures();
 	test_failed_iocp_completion();
 	test_real_stream();
+	test_shutdown_lifetime();
+	test_connection_failure_isolation();
+	test_room_requests();
+	test_packet_and_input_limits();
 	::WSACleanup();
 	cout << "PASS: all client send tests" << endl;
 }

@@ -6,107 +6,62 @@ PacketHandlerFunc GPacketHandler[UINT16_MAX];
 
 bool Handle_ACK_LOGIN(shared_ptr<TestSession>& session, Protocol::ACK_LOGIN& pkt)
 {
-    if (session == nullptr) {
-        cout << "Handle_ACK_CHAT : session nullptr" << endl;
-        return false;
-    }
-
-    switch (pkt.result())
-    {
-       case Protocol::LOGIN_ERROR::LOGIN_FAILE:
-           wcout << L"로그인 실패 " << endl;
-           session->login();
-           break;
-       case Protocol::LOGIN_ERROR::LOGIN_ID_NONE:
-           wcout << L"아이디가 없습니다. " << endl;
-           session->login();
-           break;
-       case Protocol::LOGIN_ERROR::LOGIN_PW_NONE:
-           wcout << L"패스워드가 없습니다. " << endl;
-           session->login();
-           break;
-       case Protocol::LOGIN_ERROR::LOGIN_CREATE_FAILE:
-           wcout << L"계정 생성 실패 " << endl;
-           session->login();
-           break;
-       case Protocol::LOGIN_ERROR::LOGIN_CREATE_HAS_ACCOUNT:
-           wcout << L"이미 계정이 있습니다. " << endl;
-           session->login();
-           break;
-       case Protocol::LOGIN_ERROR::LOGIN_ALREADY_LOGIN:
-           wcout << L"이미 이미 로그인 되어있습니다. " << endl;
-           session->login();
-           break;
-       case Protocol::LOGIN_ERROR::LOGIN_USER_DUPLICATION:
-           wcout << L"이미 사용 중인 닉네임입니다. 다른 닉네임을 입력하세요." << endl;
-           session->set_account(0);
-           session->set_is_login(false);
-           session->login();
-           break;
-       case Protocol::LOGIN_ERROR::LOGIN_SUCCESS:
-           wcout << L"로그인 성공" << endl;
-           session->set_account(pkt.idx());
-           session->set_is_login(true);
-           break;
-    default:
-        break;
-    }
-
-    return true;
+	if (session == nullptr) {
+		return false;
+	}
+	switch (pkt.result())
+	{
+	case Protocol::LOGIN_ERROR::LOGIN_SUCCESS:
+		wcout << L"로그인 성공" << endl;
+		break;
+	case Protocol::LOGIN_ERROR::LOGIN_ID_NONE:
+		wcout << L"아이디가 없습니다." << endl;
+		break;
+	case Protocol::LOGIN_ERROR::LOGIN_PW_NONE:
+		wcout << L"비밀번호가 일치하지 않습니다." << endl;
+		break;
+	case Protocol::LOGIN_ERROR::LOGIN_CREATE_HAS_ACCOUNT:
+		wcout << L"이미 계정이 있습니다." << endl;
+		break;
+	case Protocol::LOGIN_ERROR::LOGIN_ALREADY_LOGIN:
+		wcout << L"이미 로그인되어 있습니다." << endl;
+		break;
+	case Protocol::LOGIN_ERROR::LOGIN_USER_DUPLICATION:
+		wcout << L"이미 사용 중인 닉네임입니다. 다른 닉네임을 입력하세요." << endl;
+		break;
+	default:
+		wcout << L"로그인 또는 계정 생성에 실패했습니다." << endl;
+		break;
+	}
+	// IOCP 스레드에서는 결과만 알리고, 재입력은 메인 스레드가 처리한다.
+	session->complete_login(pkt.result() == Protocol::LOGIN_ERROR::LOGIN_SUCCESS, pkt.idx());
+	return true;
 }
 
 bool Handle_ACK_BOT_LOGIN(shared_ptr<TestSession>& session, Protocol::ACK_BOT_LOGIN& pkt)
 {
-    if (session == nullptr) {
-        cout << "Handle_ACK_CHAT : session nullptr" << endl;
-        return false;
-    }
-
-    switch (pkt.result())
-    {
-    case Protocol::LOGIN_ERROR::LOGIN_FAILE:
-        wcout << L"로그인 실패 " << endl;
-        session->test_login(session->get_bot_index(), false);
-        break;
-    case Protocol::LOGIN_ERROR::LOGIN_ID_NONE:
-        wcout << L"아이디가 없습니다. " << endl;
-        session->test_login(session->get_bot_index(), false);
-        break;
-    case Protocol::LOGIN_ERROR::LOGIN_PW_NONE:
-        wcout << L"패스워드가 없습니다. " << endl;
-        session->test_login(session->get_bot_index(), false);
-        break;
-    case Protocol::LOGIN_ERROR::LOGIN_CREATE_FAILE:
-        wcout << L"계정 생성 실패 " << endl;
-        session->test_login(session->get_bot_index(), false);
-        break;
-    case Protocol::LOGIN_ERROR::LOGIN_CREATE_HAS_ACCOUNT:
-        wcout << L"이미 계정이 있습니다. " << endl;
-        session->test_login(session->get_bot_index(), true);
-        break;
-    case Protocol::LOGIN_ERROR::LOGIN_ALREADY_LOGIN:
-        wcout << L"이미 이미 로그인 되어있습니다. " << endl;
-        session->test_login(session->get_bot_index(), false);
-        break;
-    case Protocol::LOGIN_ERROR::LOGIN_USER_DUPLICATION:
-        wcout << L"닉네임 중복으로 봇 로그인 실패: Bot_" << session->get_bot_index() << endl;
-        session->set_account(0);
-        session->set_is_login(false);
-        // 같은 닉네임으로 재시도하면 계속 실패하므로 이 봇의 연결을 종료한다.
-        session->disconnect();
-        break;
-    case Protocol::LOGIN_ERROR::LOGIN_SUCCESS:
-        if (GClientMode == ClientMode::MANUAL)
-            wcout << L"로그인 성공 Bot_" << session->get_bot_index() << endl;
-        session->set_account(pkt.idx());
-        session->set_is_login(true);
-        GServerStats.login_success++;
-        break;
-    default:
-        break;
-    }
-
-    return true;
+	if (session == nullptr) {
+		return false;
+	}
+	const bool success = pkt.result() == Protocol::LOGIN_ERROR::LOGIN_SUCCESS;
+	session->complete_login(success, pkt.idx());
+	if (success)
+	{
+		GServerStats.login_success++;
+	}
+	else if (pkt.result() == Protocol::LOGIN_ERROR::LOGIN_CREATE_HAS_ACCOUNT)
+	{
+		// 기존 계정이면 생성 대신 로그인으로 한 번 전환한다.
+		session->test_login(session->get_bot_index(), true);
+	}
+	else
+	{
+		// 같은 자격 증명으로 실패를 반복하지 않도록 이 봇을 종료한다.
+		wcout << L"봇 로그인 실패: Bot_" << session->get_bot_index()
+			<< L" / 오류: " << pkt.result() << endl;
+		session->disconnect();
+	}
+	return true;
 }
 
 bool Handle_ACK_LOGOUT(shared_ptr<TestSession>& session, Protocol::ACK_LOGOUT& pkt)
@@ -153,10 +108,12 @@ bool Handle_ACK_ENTER_ROOM(shared_ptr<TestSession>& session, Protocol::ACK_ENTER
         return false;
     }
 
+    session->complete_enter_room(pkt.result() == Protocol::ENTER_ROOM_ERROR::ENTER_ROOM_SUCCESS, pkt.room_id());
+
     if (pkt.result() == Protocol::ENTER_ROOM_ERROR::ENTER_ROOM_SUCCESS)
     {
         
-        session->set_room_id(pkt.room_id());
+
         
         if (GClientMode == ClientMode::MANUAL) {
             wcout << L"방 입장 성공" << endl;
@@ -164,8 +121,7 @@ bool Handle_ACK_ENTER_ROOM(shared_ptr<TestSession>& session, Protocol::ACK_ENTER
     }
     else
     {
-        session->set_room_id(-1);
-		 wcout << L"방 입장 실패" << endl;
+        wcout << L"방 입장 실패" << endl;
     }
 
     return true;
@@ -178,9 +134,10 @@ bool Handle_ACK_EXIT_ROOM(shared_ptr<TestSession>& session, Protocol::ACK_EXIT_R
         return false;
     }
 
+    session->complete_exit_room(pkt.result() == Protocol::EXIT_ROOM_ERROR::EXIT_ROOM_SUCCESS);
+
     if (pkt.result() == Protocol::EXIT_ROOM_ERROR::EXIT_ROOM_SUCCESS)
     {
-        session->set_room_id(-1);
 
         if (GClientMode == ClientMode::MANUAL)
             wcout << L"방 퇴장 성공" << endl;

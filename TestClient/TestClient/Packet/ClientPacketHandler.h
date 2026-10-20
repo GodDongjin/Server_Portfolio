@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "../Protocol/Protocol.pb.h"
 #include "../Buffer/SendBuffer.h"
 #include "../Session/TestSession.h"
@@ -67,9 +67,13 @@ public:
 
 	static bool HandlePacket(shared_ptr<TestSession>& session, BYTE* buffer, int32 len)
 	{
+		if (session == nullptr || buffer == nullptr || len < sizeof(PacketHeader)) {
+			return false;
+		}
+
 		PacketHeader* header = reinterpret_cast<PacketHeader*>(buffer);
 
-		if (header->id >= UINT16_MAX)
+		if (header->size != len || header->id >= UINT16_MAX)
 			return false;
 
 		PacketHandlerFunc handler = GPacketHandler[header->id];
@@ -108,14 +112,20 @@ private:
 	template<typename T>
 	static shared_ptr<SendBuffer> MakeSendBuffer(T& pkt, uint16 pktId)
 	{
-		const uint16 dataSize = static_cast<uint16>(pkt.ByteSizeLong());
-		const uint16 packetSize = dataSize + sizeof(PacketHeader);
+		const size_t dataSize = pkt.ByteSizeLong();
+		// uint16로 줄이기 전에 헤더를 포함한 전체 길이를 검사한다.
+		if (dataSize > UINT16_MAX - sizeof(PacketHeader)) {
+			return nullptr;
+		}
+		const uint16 packetSize = static_cast<uint16>(dataSize + sizeof(PacketHeader));
 
 		shared_ptr<SendBuffer> sendBuffer = make_shared<SendBuffer>(packetSize);
 		PacketHeader* header = reinterpret_cast<PacketHeader*>(sendBuffer->get_buffer());
 		header->size = packetSize;
 		header->id = pktId;
-		pkt.SerializeToArray(&header[1], dataSize);
+		if (!pkt.SerializeToArray(&header[1], static_cast<int32>(dataSize))) {
+			return nullptr;
+		}
 		sendBuffer->close(packetSize);
 
 		return sendBuffer;

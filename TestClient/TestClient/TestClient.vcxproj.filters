@@ -63,6 +63,9 @@
     <ClInclude Include="Utils\GlobalData.h">
       <Filter>Utils</Filter>
     </ClInclude>
+    <ClInclude Include="Utils\ClientConfig.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
     <ClInclude Include="Utils\ConfigReader.h">
       <Filter>Utils</Filter>
     </ClInclude>

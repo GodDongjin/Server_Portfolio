@@ -13,6 +13,8 @@ public:
 	wstring get_wstring(const string& section, const string& key, const wstring& default_value = L"")const;
 	int32 get_int(const string& section, const string& key, int32 default_value = 0)const;
 
+	bool get_int_checked(const string& section, const string& key, int32& value, int32 default_value = 0)const;
+
 private:
 	string trim(const string& value);
 

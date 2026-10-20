@@ -3,89 +3,115 @@
 
 bool ClientServer::CreateIocpHandle()
 {
-	_iocp_handle = ::CreateIoCompletionPort(INVALID_HANDLE_VALUE, 0, 0, 0);
-	
-	if (_iocp_handle == nullptr) {
-		cout << "CreateIocpHandle INVALID_HANDLE_VALUE" << GetLastError() << endl;
+	lock_guard<mutex> guard(_lock);
+	if (_stopped.load()) {
 		return false;
 	}
-
+	if (_iocp_handle != nullptr) {
+		return true;
+	}
+	_iocp_handle = ::CreateIoCompletionPort(INVALID_HANDLE_VALUE, 0, 0, 0);
+	if (_iocp_handle == nullptr) {
+		cout << "CreateIoCompletionPort failed : " << ::GetLastError() << endl;
+		return false;
+	}
 	return true;
 }
 
 bool ClientServer::register_socket(shared_ptr<TestSession> session)
 {
-	if (session == nullptr || *session->get_socket() == INVALID_SOCKET)
-	{
-		cout << "error : cloent_socket error" << endl;
+	if (session == nullptr) {
 		return false;
 	}
-
-	HANDLE result = CreateIoCompletionPort(reinterpret_cast<HANDLE>(*session->get_socket()), _iocp_handle, reinterpret_cast<ULONG_PTR>(session.get()), 0);
-
-	if (result == nullptr)
+	lock_guard<mutex> guard(_lock);
+	if (_stopped.load() || _iocp_handle == nullptr)
 	{
-		cout << "error : " << GetLastError() << endl;
-
-		cout << "register_scoket failed socket" <<  endl;
-		closesocket(*session->get_socket());
-
+		session->disconnect();
 		return false;
 	}
-
+	for (const auto& registered : _sessions) {
+		if (registered == session) {
+			return true;
+		}
+	}
+	if (!session->register_iocp(_iocp_handle))
+	{
+		session->disconnect();
+		return false;
+	}
+	_sessions.push_back(session);
 	return true;
 }
 
-SOCKADDR_IN ClientServer::start_server(const wstring& ip, uint16 port)
+bool ClientServer::start_server(const wstring& ip, uint16 port, SOCKADDR_IN& server_addr)
 {
-	SOCKADDR_IN server_addr;
-	::ZeroMemory(&server_addr, sizeof(server_addr));
-
+	server_addr = {};
+	if (port == 0 || ::InetPtonW(AF_INET, ip.c_str(), &server_addr.sin_addr) != 1)
+	{
+		wcerr << L"Invalid server address: " << ip << L":" << port << endl;
+		return false;
+	}
 	server_addr.sin_family = AF_INET;
 	server_addr.sin_port = ::htons(port);
-
-	if (::InetPtonW(AF_INET, ip.c_str(), &server_addr.sin_addr) != 1)
-	{
-		//cout << "Invalid ip address : " << ip.c_str() << endl;
-		WSACleanup();
-		return server_addr;
-	}
-
-	return server_addr;
+	return true;
 }
 
-void ClientServer::start_worker_thread(short thread_count)
+bool ClientServer::start_worker_thread(int32 thread_count)
 {
 	lock_guard<mutex> guard(_lock);
-
-	for (int i = 0; i < thread_count; i++)
-	{
-		_worker_threads.push_back(thread([=]()
-		{
-			dispatch();
-		}));
+	if (_stopped.load() || _iocp_handle == nullptr || thread_count < 1 || thread_count > 256) {
+		return false;
 	}
+	for (int32 i = 0; i < thread_count; i++) {
+		_worker_threads.emplace_back([this]() { dispatch(); });
+	}
+	return true;
 }
 
 void ClientServer::stop()
 {
-	if (_stopped.exchange(true))
-		return;
-
-	for (size_t i = 0; i < _worker_threads.size(); i++)
+	// 중복 종료 호출도 최초 종료 작업이 끝날 때까지 기다리게 한다.
+	lock_guard<mutex> stop_guard(_stop_lock);
+	vector<shared_ptr<TestSession>> sessions;
 	{
+		lock_guard<mutex> guard(_lock);
+		if (_stopped.exchange(true)) {
+			return;
+		}
+		sessions = _sessions;
+	}
+
+	for (const auto& session : sessions) {
+		session->disconnect();
+	}
+	// 소켓 종료는 취소 요청일 뿐이다. 완료 처리가 끝나기 전에 버퍼를 해제하면 안 된다.
+	if (_worker_threads.empty())
+	{
+		// 작업 스레드를 시작하기 전에 종료한 경우에도 현재 스레드가 완료를 회수한다.
+		for (const auto& session : sessions) {
+			while (session->has_pending_io()) {
+				dispatch_once(100);
+			}
+		}
+	}
+	else
+	{
+		for (const auto& session : sessions) {
+			session->wait_for_io();
+		}
+	}
+
+	for (size_t i = 0; i < _worker_threads.size(); i++) {
 		::PostQueuedCompletionStatus(_iocp_handle, 0, 0, nullptr);
 	}
-
-	for (thread& t : _worker_threads)
-	{
-		if (t.joinable())
-			t.join();
+	for (thread& worker : _worker_threads) {
+		if (worker.joinable()) {
+			worker.join();
+		}
 	}
-
 	_worker_threads.clear();
-
-	if (_iocp_handle)
+	_sessions.clear();
+	if (_iocp_handle != nullptr)
 	{
 		::CloseHandle(_iocp_handle);
 		_iocp_handle = nullptr;
@@ -94,33 +120,29 @@ void ClientServer::stop()
 
 void ClientServer::dispatch()
 {
-	while (true)
+	while (dispatch_once(INFINITE)) {}
+}
+
+bool ClientServer::dispatch_once(uint32 timeout_ms)
+{
+	DWORD num_bytes = 0;
+	ULONG_PTR key = 0;
+	IocpEvent* iocp_event = nullptr;
+	BOOL result = ::GetQueuedCompletionStatus(_iocp_handle, &num_bytes, &key,
+		reinterpret_cast<LPOVERLAPPED*>(&iocp_event), timeout_ms);
+	if (iocp_event == nullptr)
 	{
-		DWORD numOfBytes = 0;
-		ULONG_PTR key = 0;
-		IocpEvent* iocp_event = nullptr;
-
-		BOOL result = ::GetQueuedCompletionStatus(
-			_iocp_handle,
-			OUT & numOfBytes,
-			OUT & key,
-			OUT reinterpret_cast<LPOVERLAPPED*>(&iocp_event),
-			INFINITE
-		);
-
-		if (iocp_event == nullptr)
-			break;
-
-		TestSession* session = reinterpret_cast<TestSession*>(key);
-		if (session == nullptr)
-			continue;
-
-		if (result == FALSE)
-		{
-			// 실패한 송신 완료도 세션으로 전달해 보관 중인 버퍼를 정리한다.
-			numOfBytes = 0;
+		if (result == FALSE && ::GetLastError() == WAIT_TIMEOUT) {
+			return true;
 		}
-
-		session->dispatch(iocp_event, numOfBytes);
+		return false;
 	}
+
+	TestSession* session = reinterpret_cast<TestSession*>(key);
+	if (session == nullptr) {
+		return true;
+	}
+	// 실패한 완료도 전달해야 I/O 개수와 송수신 버퍼가 정리된다.
+	session->dispatch(iocp_event, result ? num_bytes : 0);
+	return true;
 }
