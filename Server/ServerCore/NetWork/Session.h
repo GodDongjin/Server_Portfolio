@@ -23,6 +23,9 @@ public:
 public:
 	void				send(SendBufferRef sendBuffer);
 	void				disconnect();
+	void				begin_shutdown();
+	void				wait_for_shutdown();
+	virtual bool		is_closing() const override { return _shutdown_started.load(); }
 	// Accept 직후 정원 초과가 확인된 새 세션에서만 호출한다.
 	void				reject_connection(int32 max_session_count);
 	// 세션마다 작업 큐를 두고, 기존 IOCP 작업 스레드가 큐에 쌓인 작업을 처리한다.
@@ -82,6 +85,7 @@ private:
 	void				process_send(int32 numOfBytes);
 
 	void				handle_error(int32 errorCode);
+	void				queue_logic(std::function<void()> callback, bool cleanup);
 
 protected:
 	// 코어는 프로토콜에 의존하지 않고, 게임 세션이 거절 안내 패킷을 만든다.
@@ -92,6 +96,17 @@ protected:
 	virtual void		on_recv_packet(BYTE* get_buffer, int32 len);
 
 private:
+	// 소켓 닫기와 IO 등록을 직렬화한다. 완료 통지는 이 잠금을 잡고 기다리지 않는다.
+	mutex _io_lock;
+	atomic<bool> _shutdown_started = false;
+	atomic<bool> _was_connected = false;
+
+	mutex _logic_lock;
+	condition_variable _logic_completed;
+	uint32 _pending_jobs = 0;
+	bool _logic_stopped = false;
+	bool _cleanup_done = false;
+
 	SOCKET				_socket = INVALID_SOCKET;
 	NetAddress			_net_address = {};
 

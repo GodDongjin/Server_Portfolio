@@ -12,8 +12,8 @@
 - 연결 종료는 먼저 연결 상태를 false로 바꿉니다. 아직 실행되지 않은 패킷은
   건너뛰고, 방 퇴장·로그아웃·SessionManager 등록 해제는 같은 큐에서 처리합니다.
   이미 실행 중인 핸들러가 끝난 다음 정리가 실행됩니다.
-- `post_logic()` 자체는 연결 상태를 검사하지 않습니다. 종료 정리도 실행해야
-  하기 때문입니다. 새 패킷 작업처럼 연결이 필요한 작업은 실행 시 검사합니다.
+- `post_logic()`는 서버 종료가 시작된 세션의 새 일반 작업을 거절합니다.
+  연결 정리는 별도 내부 경로로 반드시 등록하며, 일반 연결 해제 후의 패킷은 실행 시 연결 상태를 검사합니다.
 - 다른 세션이나 heartbeat에서 조회하는 방 ID·방 인원·연결 상태 등은 atomic을
   사용합니다. 공유 Room/Login/SessionManager의 기존 잠금은 유지합니다.
 
@@ -113,3 +113,20 @@ python Server\Tests\chat_target_count_test.py Server\Binaries\Debug\GameServer.e
 귓속말, 실패 요청, 대상 0명인 요청을 확인한다. 실제 부하 클라이언트의
 성공 ACK 집계가 수신량과 일치하고 이전 인원 설정값을 무시하는지도 검사한다.
 서버와 클라이언트를 새 프로토콜로 함께 빌드한 뒤 실행한다.
+
+## 서버 정상 종료
+
+`server_shutdown_test.py`는 빈 서버의 `/q`와 EOF, 작업 스레드 1개에서 32개 로그인/방 상태 정리,
+Accept·정원 초과 안내·패킷 수신과 종료의 경합을 검사합니다. `--client`를 지정하면
+실제 TestClient 1,000명이 500ms 간격으로 채팅하는 중 서버를 종료하는 검사도 실행합니다.
+프로세스 종료 코드, 연결/종료 누적 통계 일치, 실제 소켓 연결 해제와 콘솔의 종료 완료 표시를 확인합니다.
+`--output`에 새 디렉터리를 지정하면 테스트 설정과 콘솔 출력을 보관합니다.
+
+```powershell
+python Server/Tests/server_shutdown_test.py Server/Binaries/Release/GameServer.exe --client TestClient/x64/Release/TestClient.exe
+```
+
+네이티브 수신 테스트는 DisconnectEx가 아직 완료되지 않은 시점에 종료를 요청하고,
+이벤트 소유자가 유지되는지, IO 완료와 JobQueue 정리를 모두 기다리는지,
+중복 종료의 정리가 한 번만 실행되는지, 종료 후 새 세션/패킷 작업을 거절하는지도 검사합니다.
+기존 Python 테스트는 서버 표준 입력 파이프를 유지해 시작 직후 EOF로 종료되지 않게 합니다.

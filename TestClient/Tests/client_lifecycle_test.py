@@ -195,7 +195,7 @@ def live_server_scenarios(executable, server_executable, root):
         f"[server]\nip=127.0.0.1\nport={port}\nwork_thread_count=4\nsession_max_count=64\n",
         encoding="ascii")
     with (directory / "server.log").open("wb") as output:
-        server = subprocess.Popen([str(server_executable)], cwd=directory, stdout=output,
+        server = subprocess.Popen([str(server_executable)], cwd=directory, stdin=subprocess.PIPE, stdout=output,
                                   stderr=subprocess.STDOUT, creationflags=subprocess.CREATE_NO_WINDOW)
         try:
             deadline = time.monotonic() + 10

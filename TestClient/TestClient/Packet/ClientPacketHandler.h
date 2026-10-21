@@ -33,7 +33,6 @@ enum : uint16
 	PKT_ACK_SEND_CONNECT_PING = 1016,
 	PKT_ACK_SERVER_FULL = 1017,
 };
-
 bool Handle_ACK_LOGIN(shared_ptr<TestSession>& session, Protocol::ACK_LOGIN& pkt);
 bool Handle_ACK_BOT_LOGIN(shared_ptr<TestSession>& session, Protocol::ACK_BOT_LOGIN& pkt);
 bool Handle_ACK_LOGOUT(shared_ptr<TestSession>& session, Protocol::ACK_LOGOUT& pkt);
@@ -43,7 +42,6 @@ bool Handle_ACK_EXIT_ROOM(shared_ptr<TestSession>& session, Protocol::ACK_EXIT_R
 bool Handle_ACK_CHAT(shared_ptr<TestSession>& session, Protocol::ACK_CHAT& pkt);
 bool Handle_ACK_SEND_CHAT(shared_ptr<TestSession>& session, Protocol::ACK_SEND_CHAT& pkt);
 bool Handle_ACK_SEND_CONNECT_PING(shared_ptr<TestSession>& session, Protocol::ACK_SEND_CONNECT_PING& pkt);
-
 bool Handle_ACK_SERVER_FULL(shared_ptr<TestSession>& session, Protocol::ACK_SERVER_FULL& pkt);
 
 class ClientPacketHandler

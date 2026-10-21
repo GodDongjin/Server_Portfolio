@@ -6,6 +6,8 @@
 #include "SessionManager.h"
 #include "../Job/JobQueue.h"
 
+#define ACCEPT_COUNT 32
+
 Listener::Listener() : _accept_retry_queue(make_shared<JobQueue>())
 {
 }
@@ -16,8 +18,7 @@ Listener::~Listener()
 
 	for (AcceptEvent* acceptEvent : _accept_events)
 	{
-		// TODO
-		
+		// close_service에서 취소된 Accept의 완료 처리까지 기다린 뒤 해제한다.
 		delete(acceptEvent);
 	}
 }
@@ -58,8 +59,8 @@ bool Listener::start_accept(ServerServiceRef service)
 		return false;
 	}
 
-	const int32 acceptCount = _service->get_sessionManager()->get_max_session_count();
-	for (int32 i = 0; i < acceptCount; i++)
+	//const int32 acceptCount = _service->get_sessionManager()->get_max_session_count();
+	for (int32 i = 0; i < ACCEPT_COUNT; i++)
 	{
 		AcceptEvent* acceptEvent = new AcceptEvent();
 		_accept_events.push_back(acceptEvent);
@@ -76,7 +77,8 @@ void Listener::close_socket()
 	WRITE_LOCK;
 
 	// 예약된 작업이 나중에 실행돼도 Accept를 다시 등록하지 않는다.
-	_accept_stopped = true;
+	if (_accept_stopped.exchange(true))
+		return;
 	SocketUtils::close(_socket);
 }
 
@@ -115,6 +117,8 @@ void Listener::register_accept(AcceptEvent* acceptEvent)
 	// 진행 중인 Accept의 완료 통지를 받을 때까지 리스너와 세션을 유지한다.
 	acceptEvent->set_owner(shared_from_this());
 
+	begin_io();
+
 	DWORD bytesReceived = 0;
 	if (SocketUtils::AcceptEx(_socket, session->get_socket(), session->get_recv_buffer().write_pos(), 0, sizeof(SOCKADDR_IN) + 16, sizeof(SOCKADDR_IN) + 16, OUT & bytesReceived, static_cast<LPOVERLAPPED>(acceptEvent))) {
 		return;
@@ -129,6 +133,9 @@ void Listener::register_accept(AcceptEvent* acceptEvent)
 	// 즉시 실패하면 완료 통지가 오지 않으므로 참조를 여기서 해제한다.
 	acceptEvent->set_session(nullptr);
 	acceptEvent->set_owner(nullptr);
+
+	finish_io();
+
 	ERROR_LOG("AcceptEx failed: " + to_string(errorCode));
 
 	switch (errorCode)
@@ -195,7 +202,6 @@ void Listener::process_accept(AcceptEvent* acceptEvent)
 	}
 
 	INFO_LOG("Success Accept");
-
 	session->set_net_address(NetAddress(sockAddress));
 	if (!_service->get_sessionManager()->on_connected(session))
 	{

@@ -3,6 +3,7 @@
 #include "Service.h"
 #include "SocketUtils.h"
 #include "ThreadManager.h"
+#include <future>
 
 int WSAAPI test_server_recv(SOCKET, LPWSABUF, DWORD, LPDWORD, LPDWORD,
 	LPWSAOVERLAPPED, LPWSAOVERLAPPED_COMPLETION_ROUTINE);
@@ -18,6 +19,8 @@ namespace
 	int32 recv_calls = 0;
 	int32 disconnect_calls = 0;
 	IocpEvent* recv_event = nullptr;
+	IocpEvent* disconnect_event = nullptr;
+	bool disconnect_pending = false;
 
 	void require_recv(bool condition, const char* message)
 	{
@@ -28,9 +31,15 @@ namespace
 		}
 	}
 
-	BOOL PASCAL test_disconnect(SOCKET, LPOVERLAPPED, DWORD, DWORD)
+	BOOL PASCAL test_disconnect(SOCKET, LPOVERLAPPED overlapped, DWORD, DWORD)
 	{
 		++disconnect_calls;
+		if (disconnect_pending)
+		{
+			disconnect_event = static_cast<IocpEvent*>(overlapped);
+			::WSASetLastError(WSA_IO_PENDING);
+			return FALSE;
+		}
 		// 실제 연결 없이 만든 테스트 소켓이므로 기존 동기 종료 정리 경로로 보낸다.
 		::WSASetLastError(WSAENOTCONN);
 		return FALSE;
@@ -86,6 +95,7 @@ namespace
 			// 가짜 수신은 커널에 등록되지 않았으므로 테스트가 EOF 완료를 전달한다.
 			auto owner = recv_event->get_owner();
 			owner->dispatch(recv_event, 0);
+			owner->finish_io();
 		}
 
 		require_recv(!session->is_connected(), "receive failure disconnects immediately");
@@ -108,9 +118,57 @@ namespace
 		{
 			auto owner = recv_event->get_owner();
 			owner->dispatch(recv_event, 0);
+			owner->finish_io();
 		}
 		drain_jobs();
 	}
+	void test_shutdown_pending_disconnect()
+	{
+		recv_error = WSA_IO_PENDING;
+		disconnect_pending = true;
+		int32 cleanup_count = 0;
+		auto manager = make_shared<SessionManager>(1);
+		auto service = make_shared<ServerService>(
+			NetAddress(L"127.0.0.1", 0), make_shared<IocpCore>(),
+			[&]() { return make_shared<ReceiveSession>(cleanup_count); }, manager);
+		auto session = service->create_session();
+		require_recv(manager->add_session(session), "shutdown test session admitted");
+		session->disconnect();
+		require_recv(disconnect_event && disconnect_event->get_owner() == session,
+			"pending DisconnectEx keeps its owner");
+
+		// 종료 요청 후에도 커널이 사용하는 이벤트 소유자는 완료 시점까지 남아야 한다.
+		session->begin_shutdown();
+		session->begin_shutdown();
+		bool rejected_job_ran = false;
+		session->post_logic([&]() { rejected_job_ran = true; });
+		auto stopped = std::async(std::launch::async, [session]() { session->wait_for_shutdown(); });
+		require_recv(stopped.wait_for(std::chrono::milliseconds(30)) == std::future_status::timeout,
+			"shutdown waits for pending IO");
+		for (auto event : { recv_event, disconnect_event })
+		{
+			auto owner = event->get_owner();
+			require_recv(owner == session, "shutdown must not release in-flight event owner");
+			owner->dispatch(event, 0);
+			owner->finish_io();
+		}
+		require_recv(stopped.wait_for(std::chrono::milliseconds(30)) == std::future_status::timeout,
+			"IO completion alone cannot skip queued cleanup");
+		drain_jobs();
+		require_recv(stopped.wait_for(std::chrono::seconds(3)) == std::future_status::ready,
+			"shutdown finishes after IO and cleanup");
+		stopped.get();
+		require_recv(cleanup_count == 1 && !rejected_job_ran,
+			"cleanup executes once and shutdown rejects new packet jobs");
+		service->close_service();
+		require_recv(!service->create_session(), "closed service rejects new sessions");
+		weak_ptr<Session> weak_session = session;
+		session.reset();
+		require_recv(weak_session.expired(), "shutdown tracking does not retain session");
+		disconnect_pending = false;
+		cout << "PASS: shutdown waits for IO and queued cleanup; pending DisconnectEx owner survives; cleanup once" << endl;
+	}
+
 }
 
 int WSAAPI test_server_recv(SOCKET, LPWSABUF, DWORD, LPDWORD, LPDWORD,
@@ -142,6 +200,8 @@ void test_server_receive()
 		test_receive_result(errorCode);
 	}
 
+	test_shutdown_pending_disconnect();
+	GLogger->shutdown();
 	SocketUtils::DisconnectEx = previous_disconnect;
 	filesystem::current_path(previous_directory);
 	// 이번 테스트가 직접 만든 고유 임시 디렉터리만 정리한다.

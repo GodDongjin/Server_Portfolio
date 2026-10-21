@@ -193,7 +193,7 @@ def main():
             f"session_max_count={CAPACITY}\n", encoding="ascii")
         with (root / "server.log").open("wb") as output:
             process = subprocess.Popen(
-                [str(server_exe)], cwd=root, stdout=output, stderr=subprocess.STDOUT,
+                [str(server_exe)], cwd=root, stdin=subprocess.PIPE, stdout=output, stderr=subprocess.STDOUT,
                 creationflags=subprocess.CREATE_NO_WINDOW)
             try:
                 deadline = time.monotonic() + 10

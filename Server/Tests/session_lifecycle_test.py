@@ -226,7 +226,7 @@ def main():
             f"[server]\nip=127.0.0.1\nport={port}\nwork_thread_count=4\n"
             "session_max_count=2000\n", encoding="ascii")
         with (root / "server.log").open("wb") as output:
-            process = subprocess.Popen([str(executable)], cwd=root, stdout=output,
+            process = subprocess.Popen([str(executable)], cwd=root, stdin=subprocess.PIPE, stdout=output,
                                        stderr=subprocess.STDOUT,
                                        creationflags=subprocess.CREATE_NO_WINDOW)
             try:

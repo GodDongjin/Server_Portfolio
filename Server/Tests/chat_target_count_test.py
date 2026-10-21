@@ -153,7 +153,7 @@ def main():
             "work_thread_count=4\nsession_max_count=30\n", encoding="ascii")
         with (root / "server.log").open("wb") as output:
             process = subprocess.Popen(
-                [str(server)], cwd=root, stdout=output, stderr=subprocess.STDOUT,
+                [str(server)], cwd=root, stdin=subprocess.PIPE, stdout=output, stderr=subprocess.STDOUT,
                 creationflags=subprocess.CREATE_NO_WINDOW)
             try:
                 deadline = time.monotonic() + 10

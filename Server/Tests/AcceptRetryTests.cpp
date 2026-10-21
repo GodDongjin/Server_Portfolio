@@ -8,6 +8,9 @@
 
 namespace
 {
+	// 현재 Listener는 최대 접속 수와 별개로 32개 Accept 슬롯을 유지한다.
+	constexpr int32 accept_slots = 32;
+	uint64 first_accept_tick = 0;
 	int32 accept_call_count = 0;
 	int32 failures_left = 0;
 	int32 accept_error = WSAENOBUFS;
@@ -29,6 +32,8 @@ namespace
 	{
 		++accept_call_count;
 		last_accept_tick = ::GetTickCount64();
+		if (accept_call_count == 1)
+			first_accept_tick = last_accept_tick;
 		*bytesReceived = 0;
 		if (failures_left > 0)
 		{
@@ -80,6 +85,8 @@ namespace
 			// test_accept는 커널 I/O를 등록하지 않으므로 테스트가 완료 참조를 직접 정리한다.
 			for (AcceptEvent* acceptEvent : _accept_events)
 			{
+				if (acceptEvent->get_owner())
+					finish_io();
 				acceptEvent->set_owner(nullptr);
 				acceptEvent->set_session(nullptr);
 			}
@@ -134,6 +141,7 @@ namespace
 		~AcceptTestScope()
 		{
 			SocketUtils::AcceptEx = _previous_accept;
+			GLogger->shutdown();
 			filesystem::current_path(_previous_directory);
 			// 이 테스트가 새로 만든 임시 디렉터리만 정리한다.
 			filesystem::remove_all(_directory);
@@ -152,26 +160,26 @@ void test_accept_retry()
 
 	for (int32 errorCode : { WSAENOBUFS, WSAEMFILE, WSAECONNRESET, WSAECONNABORTED })
 	{
-		set_accept_result(errorCode, 4);
+		set_accept_result(errorCode, accept_slots * 4);
 		AcceptFixture fixture;
 		fixture.start();
-		require_accept(accept_call_count == 1, "immediate failure must not recurse");
+		require_accept(accept_call_count == accept_slots, "immediate failure must not recurse");
 		auto acceptEvent = fixture.listener->get_test_event();
 		require_accept(acceptEvent->get_owner() == nullptr && acceptEvent->get_session() == nullptr,
 			"failed Accept releases listener and session references");
 
 		// 등록 실패 시각에서 99ms까지는 재시도하지 않아야 한다.
-		distribute_at(last_accept_tick + 99);
-		require_accept(accept_call_count == 1, "retry must wait at least 100ms");
+		distribute_at(first_accept_tick + 99);
+		require_accept(accept_call_count == accept_slots, "retry must wait at least 100ms");
 		for (int32 expectedCount = 2; expectedCount <= 5; ++expectedCount)
 		{
 			distribute_due_jobs();
-			require_accept(accept_call_count == expectedCount, "one attempt per timer callback");
+			require_accept(accept_call_count == accept_slots * expectedCount, "one attempt per timer callback");
 		}
 
 		// 마지막 시도는 WSA_IO_PENDING이므로 추가 예약이 없어야 한다.
 		distribute_due_jobs();
-		require_accept(accept_call_count == 5, "pending Accept must not be retried");
+		require_accept(accept_call_count == accept_slots * 5, "pending Accept must not be retried");
 		require_accept(acceptEvent->get_owner() == fixture.listener && acceptEvent->get_session() != nullptr,
 			"pending Accept retains listener and session");
 	}
@@ -179,11 +187,11 @@ void test_accept_retry()
 
 	for (int32 errorCode : { WSAEINVAL, WSAENOTSOCK, WSANOTINITIALISED })
 	{
-		set_accept_result(errorCode, 1);
+		set_accept_result(errorCode, accept_slots);
 		AcceptFixture fixture;
 		fixture.start();
 		distribute_due_jobs();
-		require_accept(accept_call_count == 1, "non-retryable error stops this Accept slot");
+		require_accept(accept_call_count == accept_slots, "non-retryable error stops this Accept slot");
 		require_accept(fixture.listener->get_test_event()->get_owner() == nullptr,
 			"terminal error releases event owner");
 	}
@@ -194,7 +202,7 @@ void test_accept_retry()
 		AcceptFixture fixture;
 		fixture.start();
 		distribute_due_jobs();
-		require_accept(accept_call_count == 1, "synchronous success waits for completion without retry");
+		require_accept(accept_call_count == accept_slots, "synchronous success waits for completion without retry");
 	}
 	cout << "PASS: permanent errors stop retry; synchronous success is not duplicated" << endl;
 
@@ -203,40 +211,40 @@ void test_accept_retry()
 		int32 factory_call_count = 0;
 		AcceptFixture fixture([&]() -> SessionRef
 		{
-			if (++factory_call_count == 1) {
+			if (++factory_call_count <= accept_slots) {
 				return nullptr;
 			}
 			return make_shared<Session>();
 		});
 		fixture.start();
-		require_accept(factory_call_count == 1 && accept_call_count == 0,
+		require_accept(factory_call_count == accept_slots && accept_call_count == 0,
 			"null session is rejected before AcceptEx");
 		distribute_due_jobs();
-		require_accept(factory_call_count == 2 && accept_call_count == 1,
+		require_accept(factory_call_count == accept_slots * 2 && accept_call_count == accept_slots,
 			"session creation recovers through the timer");
 	}
 	cout << "PASS: session creation failure retries without null dereference" << endl;
 
 	{
-		set_accept_result(WSAENOBUFS, 2);
+		set_accept_result(WSAENOBUFS, accept_slots * 2);
 		AcceptFixture fixture;
 		fixture.start();
 		fixture.listener->close_socket();
 		fixture.listener->close_socket();
 		distribute_due_jobs();
 		distribute_due_jobs();
-		require_accept(accept_call_count == 1, "queued retry cannot register after close");
+		require_accept(accept_call_count == accept_slots, "queued retry cannot register after close");
 	}
 
 	{
-		set_accept_result(WSAENOBUFS, 2);
+		set_accept_result(WSAENOBUFS, accept_slots * 2);
 		AcceptFixture fixture;
 		fixture.start();
 		weak_ptr<TestListener> weak_listener = fixture.listener;
 		fixture.listener.reset();
 		require_accept(weak_listener.expired(), "queued retry does not retain a destroyed listener");
 		distribute_due_jobs();
-		require_accept(accept_call_count == 1, "expired listener cancels queued retry");
+		require_accept(accept_call_count == accept_slots, "expired listener cancels queued retry");
 	}
 	cout << "PASS: listener close and destruction cancel delayed Accept registration" << endl;
 }

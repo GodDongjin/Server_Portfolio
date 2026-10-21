@@ -25,6 +25,7 @@ public:
 
 	virtual void		close_service();
 	SessionRef			create_session();
+	void				release_live_session(Session* session);
 
 	void				set_sessionFactory(SessionFactory func) { _sessionFactory = func; }
 
@@ -33,6 +34,12 @@ public:
 	NetAddress			get_net_address() { return _net_address; }
 	IocpCoreRef&		get_iocp_core() { return _iocp_core; }
 	SessionManagerRef&  get_sessionManager() { return _sessionManager; }
+
+private:
+	// 정원 목록과 별도로 Accept 대기 및 정원 초과 안내 세션의 수명도 추적한다.
+	mutex _sessions_lock;
+	map<Session*, weak_ptr<Session>> _live_sessions;
+	bool _closing = false;
 
 protected:
 	USE_LOCK;
@@ -57,5 +64,6 @@ public:
 	virtual void	close_service() override;
 
 private:
+	mutex _close_lock;
 	ListenerRef		_listener = nullptr;
 };

@@ -11,9 +11,14 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ServerCore", "ServerCore\Se
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tool", "Tool", "{1ECD1DAC-42A1-466E-A301-9FCE69142458}"
 EndProject
-Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "PacketGenerator", "Tool\PacketGenerator\PacketGenerator.pyproj", "{C32DB4B4-4B45-4788-AE5C-EF7D26C5FDA2}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Test_code", "Test_code\Test_code.vcxproj", "{4D79777A-34D0-46FF-AC9D-A2043795193C}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PacketGenerator", "PacketGenerator", "{C32DB4B4-4B45-4788-AE5C-EF7D26C5FDA2}"
+	ProjectSection(SolutionItems) = preProject
+		Tool\PacketGenerator\PacketGenerator.py = Tool\PacketGenerator\PacketGenerator.py
+		Tool\PacketGenerator\ProtoParser.py = Tool\PacketGenerator\ProtoParser.py
+		Tool\PacketGenerator\requirements.txt = Tool\PacketGenerator\requirements.txt
+		Tool\PacketGenerator\Templates\ServerPacketHandler.h = Tool\PacketGenerator\Templates\ServerPacketHandler.h
+		Tool\PacketGenerator\Templates\ClientPacketHandler.h = Tool\PacketGenerator\Templates\ClientPacketHandler.h
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -49,24 +54,6 @@ Global
 		{7AAAE0F8-6059-4BF2-93E5-DD5B38AD7144}.Release|x64.Build.0 = Release|x64
 		{7AAAE0F8-6059-4BF2-93E5-DD5B38AD7144}.Release|x86.ActiveCfg = Release|x64
 		{7AAAE0F8-6059-4BF2-93E5-DD5B38AD7144}.Release|x86.Build.0 = Release|x64
-		{C32DB4B4-4B45-4788-AE5C-EF7D26C5FDA2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C32DB4B4-4B45-4788-AE5C-EF7D26C5FDA2}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{C32DB4B4-4B45-4788-AE5C-EF7D26C5FDA2}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{C32DB4B4-4B45-4788-AE5C-EF7D26C5FDA2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C32DB4B4-4B45-4788-AE5C-EF7D26C5FDA2}.Release|x64.ActiveCfg = Release|Any CPU
-		{C32DB4B4-4B45-4788-AE5C-EF7D26C5FDA2}.Release|x86.ActiveCfg = Release|Any CPU
-		{4D79777A-34D0-46FF-AC9D-A2043795193C}.Debug|Any CPU.ActiveCfg = Debug|x64
-		{4D79777A-34D0-46FF-AC9D-A2043795193C}.Debug|Any CPU.Build.0 = Debug|x64
-		{4D79777A-34D0-46FF-AC9D-A2043795193C}.Debug|x64.ActiveCfg = Debug|x64
-		{4D79777A-34D0-46FF-AC9D-A2043795193C}.Debug|x64.Build.0 = Debug|x64
-		{4D79777A-34D0-46FF-AC9D-A2043795193C}.Debug|x86.ActiveCfg = Debug|Win32
-		{4D79777A-34D0-46FF-AC9D-A2043795193C}.Debug|x86.Build.0 = Debug|Win32
-		{4D79777A-34D0-46FF-AC9D-A2043795193C}.Release|Any CPU.ActiveCfg = Release|x64
-		{4D79777A-34D0-46FF-AC9D-A2043795193C}.Release|Any CPU.Build.0 = Release|x64
-		{4D79777A-34D0-46FF-AC9D-A2043795193C}.Release|x64.ActiveCfg = Release|x64
-		{4D79777A-34D0-46FF-AC9D-A2043795193C}.Release|x64.Build.0 = Release|x64
-		{4D79777A-34D0-46FF-AC9D-A2043795193C}.Release|x86.ActiveCfg = Release|Win32
-		{4D79777A-34D0-46FF-AC9D-A2043795193C}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

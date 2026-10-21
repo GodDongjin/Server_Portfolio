@@ -21,7 +21,11 @@ Windows IOCP 기반 비동기 TCP 게임 서버 포트폴리오입니다.
 - TestClient 수동 테스트 모드
 - TestClient 다중 세션 부하 테스트 모드
 - 서버 / 클라이언트 통계 출력
-- ini 기반 서버/클라이언트 실행 설정 분리
+- ini 기반 서버/클라이언트 실행 설정 분리 및 값 검증
+- 세션 JobQueue를 통한 패킷 처리와 연결 정리 직렬화
+- 최대 접속 수 제한 및 정원 초과 안내 후 연결 종료
+- JobTimer 기반 Accept 재시도와 부분 송신 처리
+- `/q` 및 입력 EOF 기반 서버/클라이언트 정상 종료
 
 ## 기술 스택
 
@@ -244,6 +248,37 @@ IOCP·봇 스레드 수는 각각 1~256, 채팅 주기는 1~60,000ms, 봇 방 �
 전체 채팅·귓속말 간격은 양의 정수여야 하며 숫자 뒤의 불필요한 문자도 오류로 처리합니다.
 `bot_room_count`는 실제 서버의 방 구성에 맞추어 설정해야 합니다.
 
+## 패킷 코드 재생성
+
+일반적인 C++ 빌드에는 Python이 필요하지 않습니다. `.proto` 또는 패킷 핸들러 템플릿을
+수정할 때만 Python 3.10 이상과 아래 의존성을 설치합니다. 다음 명령은 저장소 루트 기준입니다.
+
+```powershell
+python -m pip install -r Server/Tool/PacketGenerator/requirements.txt
+python Server/Tool/PacketGenerator/PacketGenerator.py --target all
+```
+
+- `--target server`, `--target client`: 한쪽 코드만 재생성합니다.
+- `--check`: 파일을 수정하지 않고 현재 생성 코드와 일치하는지 검사합니다. 다르면 종료 코드 1을 반환합니다.
+- 기존 `Server/Common/protoc-21.12-win64/bin/GenPackets.bat`과
+  `TestClient/Common/protoc-28.1-win64/bin/protocol.bat`도 같은 Python 도구를 실행합니다.
+
+서버와 클라이언트의 `.proto`는 각각 `Server/Common/protoc-21.12-win64/bin`과
+`TestClient/Common/protoc-28.1-win64/bin`에 있습니다. 프로토콜을 변경할 때 두 곳을 함께 수정합니다.
+두 폴더의 `protoc.exe`는 모두 21.12 버전이며, 클라이언트 폴더의 `28.1`은 기존 디렉터리 이름입니다.
+
+핸들러 템플릿은 `Server/Tool/PacketGenerator/Templates`에서 관리합니다.
+서버 템플릿에는 세션 JobQueue 처리, 클라이언트 템플릿에는 수신 패킷과 송신 크기 검사가 포함됩니다.
+생성 대상 전체를 임시 디렉터리에서 먼저 생성하므로, 생성에 실패하면 프로젝트 파일은 갱신하지 않습니다.
+도구가 스크립트 위치를 기준으로 경로를 찾기 때문에 실행 디렉터리에 영향을 받지 않습니다.
+
+## 기능 검증
+
+- [서버 테스트](Server/Tests/README.md): 세션 작업 큐, Accept 재시도, 송수신 실패,
+  로그인/재접속, 채팅 대상 수, 정원 초과, 정상 종료를 검증합니다.
+- [테스트 클라이언트 테스트](TestClient/Tests/README.md): 부분 송신, 패킷 크기 제한,
+  설정 검증, 수동/부하 모드 종료와 연결 정리를 검증합니다.
+
 ## 부하 테스트
 
 TestClient의 Load Test Mode를 사용해 1,000개 클라이언트 세션을 생성하고, 룸 채팅/전체 채팅/귓속말이 섞인 채팅 송수신 부하를 측정했습니다.
@@ -319,15 +354,32 @@ Server:
 - 계정 정보는 현재 DB가 아닌 메모리 기반으로 관리됩니다.
 - DB 연결 코드는 확장용으로 분리되어 있으며, 현재 로그인 로직에는 연결하지 않았습니다.
 - 부하 테스트는 단일 PC 환경 기준입니다.
-- graceful shutdown은 추가 개선이 필요합니다.
 - Room 생성/삭제 정책은 현재 고정 설정 기반이며, 동적 확장은 향후 개선 항목입니다.
 
 ## 다음 개선 사항
 
 - DB 기반 계정 저장
-- graceful shutdown
 - room 생성/삭제 정책 개선
 - JobQueue 기반 room broadcast 최적화
-- config 검증 강화
 - 운영 로그/에러 로그 정리
 - 장시간 soak test 추가
+
+
+## 서버 정상 종료
+
+서버 콘솔에 `/q`를 입력하면 새 Accept와 재시도를 중단하고, 접속 중인 세션 및
+정원 초과 안내를 송신하던 임시 세션의 소켓을 닫습니다. IOCP 작업 스레드는
+취소된 IO 완료 통지와 세션 JobQueue의 방 퇴장·로그아웃·등록 해제를 처리한 뒤 종료합니다.
+하트비트와 통계 스레드의 대기는 종료 신호로 깨우며, 최종 누적 통계는 콘솔에 표시합니다.
+
+표준 입력 EOF도 같은 종료 경로를 사용합니다. 자동 실행에서는 입력 파이프를 열어 두고
+종료할 때 `/q` 또는 EOF를 전달합니다. 콘솔 창 강제 닫기·프로세스 강제 종료는
+이 절차의 대상이 아니며, 종료 직전 채팅의 상대방 수신까지 보장하지 않습니다.
+
+```powershell
+python Server/Tests/server_shutdown_test.py Server/Binaries/Release/GameServer.exe --client TestClient/x64/Release/TestClient.exe
+```
+
+빈 서버의 `/q`·EOF, 단일 작업 스레드에서 연결 정리, 정원 초과 및 접속 시도와
+종료의 경합, 실제 테스트 클라이언트 1,000명 접속 중 종료를 검사합니다.
+임시 설정과 별도 loopback 포트를 사용하며 기존 실행 중인 서버에는 접속하지 않습니다.
